@@ -35,6 +35,15 @@ class Tools(object):
         with open("config.json") as json_data_file:
             self.config = json.load(json_data_file)
 
+    def get_json_content(self, path):
+        """
+        Retourne le contenu d'un fichier json dans un dictionnaire
+        """
+        store = {}
+        with open(path) as json_data_file:
+            store = json.load(json_data_file)
+        return store
+
     def get_config(self):
         """
         Retourne le dictionnaire config
@@ -104,3 +113,12 @@ class Tools(object):
             smtp.sendmail(from_addr, _i, mail.as_string())
 
         smtp.close()
+
+    def directory_list(self, path):
+        """
+        Liste des fichiers d'un répertoire
+        """
+        file_list = []
+        for filename in os.listdir(path):
+            file_list.append(filename)
+        return file_list

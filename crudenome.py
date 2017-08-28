@@ -68,10 +68,33 @@ class AppWindow(Gtk.ApplicationWindow):
         self.headerbar.props.title = self.config["title"]
         self.set_titlebar(self.headerbar)
 
+        # CREATION DES BOUTONS DES VUES
+        self.button_views = {}
+        hbox_button = Gtk.HBox() # box qui permet d'inverser l'ordre de présentation des boutons
+        # Lecture des fichiers d'application 
+        file_list = self.tools.directory_list(self.config["application_directory"])
+        for application_file in file_list:
+            application_store = self.tools.get_json_content(self.config["application_directory"] + "/" + application_file)
+            self.tables = application_store["tables"]
+            for table_id in self.tables:
+                for view_id in self.tables[table_id]["views"]:
+                    self.button_view = Gtk.Button(self.tables[table_id]["views"][view_id]["title"])
+                    self.button_view.connect("clicked", self.on_button_view_clicked, table_id, view_id)
+                    self.button_views[table_id + "_" + view_id] = self.button_view
+                    hbox_button.pack_end(self.button_view, False, False, 5)
+
+        self.headerbar.pack_start(hbox_button)
+
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.connect("search-changed", self.on_search_changed)
 
         self.headerbar.pack_end(self.search_entry)
+
+    def on_button_view_clicked(self, widget, table_id, view_id):
+        """
+        Activation d'une vue
+        """
+        print "on_button_view_clicked", table_id, view_id
 
     def on_button_add_clicked(self, widget):
         """
