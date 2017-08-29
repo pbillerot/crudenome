@@ -176,7 +176,11 @@ class AppWindow(Gtk.ApplicationWindow):
             self.treeview.append_column(tvc)
             id_row += 1
 
+        # for col in self.treeview.get_columns():
+        #     pprint(col.get_title())
+
         self.scroll_window.add(self.treeview)
+        self.scroll_window.show_all()
 
     def create_liststore(self):
         """ Création de la structure du liststore à partir du dictionnaire des données """
