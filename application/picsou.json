@@ -3,7 +3,6 @@
     "desc": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
     "tables": {
         "cours": {
-            "id": "cours",
             "basename": "/mnt/sandisk/data/picsou.sqlite",
             "key": "cours_id",
             "elements": {
@@ -22,7 +21,7 @@
                     "label_short": "Date",
                     "type": "date"
                 },
-                "cours_quote": {
+                "cours_close": {
                     "label_long": "Cours",
                     "label_short": "Cours",
                     "type": "float"
@@ -34,17 +33,17 @@
                     "elements": {
                         "cours_id": {},
                         "cours_ptf_id": {},
-                        "cours_date": {},
-                        "cours_quote": {}
+                        "cours_close": {},
+                        "cours_date": {}
                     }
                 },
                 "vopen": {
                     "title": "Les cours ouverts",
                     "elements": {
-                        "cours_id": {},
                         "cours_ptf_id": {},
                         "cours_date": {},
-                        "cours_quote": {}
+                        "cours_close": {},
+                        "cours_id": {}
                     }
                 }
             },

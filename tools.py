@@ -70,14 +70,14 @@ class Tools(object):
             if conn:
                 conn.close()
 
-    def sql_to_dict(self, sql, params):
+    def sql_to_dict(self, db, sql, params):
         """
         Chargement du résultat d'une requête sql dans dictionnaire
         """
         conn = None
         data = None
         try:
-            conn = sqlite3.connect(self.config["db_name"])
+            conn = sqlite3.connect(db)
             cursor = conn.cursor()
             cursor.execute(sql, params)
             desc = cursor.description
