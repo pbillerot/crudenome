@@ -4,12 +4,12 @@
 # https://gtk.developpez.com/doc/fr/gtk/gtk-Stock-Items.html
 import sys
 from pprint import pprint
-from tools import Tools
+from tools import Tools, NumberEntry
 import constants as const
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GdkPixbuf, Gio, GObject
+from gi.repository import Gtk, GdkPixbuf, Gio
 
 class AppWindow(Gtk.ApplicationWindow):
     """
@@ -23,12 +23,14 @@ class AppWindow(Gtk.ApplicationWindow):
         self.tools = app.tools
         self.config = self.tools.get_config()
 
-        # Initialisation de tables table_id view_id par défaut
-        # Valorisation dans create_toolbar()
+        # Initialisation des variables globales
         self.tables = None
         self.table_id = None
         self.view_id = None
         self.form_id = None
+        self.treeview = None
+        self.liststore = None
+        self.current_filter = None
 
         self.set_title(self.config["name"])
         self.activate_focus()
@@ -40,7 +42,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.add(self.vbox)
 
         self.create_toolbar()
-        self.create_treeview()
+        self.create_scroll_window()
         self.create_view()
         self.create_footerbar()
 
@@ -53,17 +55,6 @@ class AppWindow(Gtk.ApplicationWindow):
         Affichage de message dans la fenêtre des traces
         """
         print msg
-
-    def create_treeview(self):
-        """
-        Création du container de la vue à afficher
-        """
-        # La scrollwindow va contenir la treeview
-        self.scroll_window = Gtk.ScrolledWindow()
-        self.scroll_window.set_hexpand(True)
-        self.scroll_window.set_vexpand(True)
-
-        self.vbox.pack_start(self.scroll_window, True, True, 3)
 
     def create_footerbar(self):
         """
@@ -134,22 +125,29 @@ class AppWindow(Gtk.ApplicationWindow):
         """
         if len(self.search_entry.get_text()) == 1:
             return
-        # self.current_filter = self.search_entry.get_text()
-        # self.store_filter.refilter()
+        self.current_filter = self.search_entry.get_text()
+        self.store_filter.refilter()
+
+    def create_scroll_window(self):
+        """
+        Création du container de la vue à afficher
+        """
+        # La scrollwindow va contenir la treeview
+        self.scroll_window = Gtk.ScrolledWindow()
+        self.scroll_window.set_hexpand(True)
+        self.scroll_window.set_vexpand(True)
+
+        self.vbox.pack_start(self.scroll_window, True, True, 3)
 
     def create_view(self):
         """
         Création de la vue (liststore)
         """
-        # Génération de la structure du liststore
-        col_store_types = []
-        for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
-            col_store_types.append(str)
+        self.create_liststore()
+        self.create_treeview()
 
-        self.liststore = Gtk.ListStore(str, float, int, str)
-
-        self.update_liststore()
-
+    def create_treeview(self):
+        """ Création/mise à jour de la treeview associée au liststore """
         # Treview sort and filter
         self.current_filter = None
         #Creating the filter, feeding it with the liststore model
@@ -158,7 +156,11 @@ class AppWindow(Gtk.ApplicationWindow):
         self.store_filter.set_visible_func(self.filter_func)
         self.store_filter_sort = Gtk.TreeModelSort(self.store_filter)
 
-        self.treeview = Gtk.TreeView.new_with_model(self.liststore)
+        if self.treeview is not None:
+            self.scroll_window.remove(self.treeview)
+            del(self.treeview)
+
+        self.treeview = Gtk.TreeView.new_with_model(self.store_filter_sort)
 
         # CellRenderers
         textleft = Gtk.CellRendererText()
@@ -175,6 +177,17 @@ class AppWindow(Gtk.ApplicationWindow):
             id_row += 1
 
         self.scroll_window.add(self.treeview)
+
+    def create_liststore(self):
+        """ Création de la structure du liststore à partir du dictionnaire des données """
+        # Génération de la structure du liststore
+        col_store_types = []
+        for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
+            col_store_types.append(const.GOBJECT_TYPE[self.get_rubrique_prop(element, "type")])
+
+        self.liststore = Gtk.ListStore(*col_store_types)
+
+        self.update_liststore()
 
     def update_liststore(self):
         """ Mise à jour du liststore en relisant la table """
@@ -202,8 +215,8 @@ class AppWindow(Gtk.ApplicationWindow):
 
     def filter_func(self, model, iter, data):
         """Tests if the text in the row is the one in the filter"""
-        # if self.current_filter is None or self.current_filter == "":
-        #     return True
+        if self.current_filter is None or self.current_filter == "":
+            return True
         # else:
         #     if self.current_filter == "*":
         #         return len(model[iter][const.COL_NOTE]) > 0

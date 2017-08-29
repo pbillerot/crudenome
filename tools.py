@@ -21,6 +21,7 @@ import itertools
 import smtplib
 import gi
 gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
 
 class Tools(object):
     """
@@ -122,3 +123,14 @@ class Tools(object):
         for filename in os.listdir(path):
             file_list.append(filename)
         return file_list
+
+class NumberEntry(Gtk.Entry):
+    """ Input numéric seulement """
+    def __init__(self):
+        Gtk.Entry.__init__(self)
+        self.connect('changed', self.on_changed_number_entry)
+
+    def on_changed_number_entry(self):
+        """ Ctrl de la saisie """
+        text = self.get_text().strip()
+        self.set_text(''.join([i for i in text if i in '0123456789']))
