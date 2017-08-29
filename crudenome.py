@@ -9,7 +9,7 @@ import constants as const
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GdkPixbuf, Gio
+from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
 
 class AppWindow(Gtk.ApplicationWindow):
     """
@@ -41,8 +41,8 @@ class AppWindow(Gtk.ApplicationWindow):
         self.vbox = Gtk.VBox(spacing=3)
         self.add(self.vbox)
 
-        self.create_toolbar()
         self.create_scroll_window()
+        self.create_toolbar()
         self.create_view()
         self.create_footerbar()
 
@@ -80,7 +80,6 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_titlebar(self.headerbar)
 
         # CREATION DES BOUTONS DES VUES
-        self.button_views = {}
         hbox_button = Gtk.HBox() # box qui permet d'inverser l'ordre de présentation des boutons
         # Lecture des fichiers d'application 
         file_list = self.tools.directory_list(self.config["application_directory"])
@@ -88,15 +87,16 @@ class AppWindow(Gtk.ApplicationWindow):
             application_store = self.tools.get_json_content(self.config["application_directory"] + "/" + application_file)
             self.tables = application_store["tables"]
             for table_id in self.tables:
-                if self.table_id is None:
-                    self.table_id = table_id
+                self.table_id = table_id
                 for view_id in self.tables[table_id]["views"]:
-                    if self.view_id is None:
-                        self.view_id = view_id
-                    self.button_view = Gtk.Button(self.get_vue_prop("title"))
-                    self.button_view.connect("clicked", self.on_button_view_clicked, table_id, view_id)
-                    self.button_views[table_id + "_" + view_id] = self.button_view
-                    hbox_button.pack_end(self.button_view, False, False, 5)
+                    self.view_id = view_id
+                    # les boutons sont ajoutés dans le dictionnaire de la vue
+                    self.set_vue_prop("button", Gtk.Button(self.get_vue_prop("title")))
+                    self.get_vue_prop("button").connect("clicked", self.on_button_view_clicked, table_id, view_id)
+                    hbox_button.pack_end(self.get_vue_prop("button"), False, False, 5)
+
+        # mise en relief du bouton vue courante
+        self.get_vue_prop("button").get_style_context().add_class('button_selected')
 
         self.headerbar.pack_start(hbox_button)
 
@@ -109,8 +109,11 @@ class AppWindow(Gtk.ApplicationWindow):
         """
         Activation d'une vue
         """
+        self.tables[self.table_id]["views"][self.view_id]["button"].get_style_context().remove_class('button_selected')
+
         self.table_id = table_id
         self.view_id = view_id
+        self.get_vue_prop("button").get_style_context().add_class('button_selected')
         self.create_view()
 
     def on_button_add_clicked(self, widget):
@@ -137,6 +140,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.scroll_window.set_hexpand(True)
         self.scroll_window.set_vexpand(True)
 
+        print "1", self.scroll_window
         self.vbox.pack_start(self.scroll_window, True, True, 3)
 
     def create_view(self):
@@ -158,7 +162,6 @@ class AppWindow(Gtk.ApplicationWindow):
 
         if self.treeview is not None:
             self.scroll_window.remove(self.treeview)
-            del(self.treeview)
 
         self.treeview = Gtk.TreeView.new_with_model(self.store_filter_sort)
 
@@ -178,6 +181,8 @@ class AppWindow(Gtk.ApplicationWindow):
 
         # for col in self.treeview.get_columns():
         #     pprint(col.get_title())
+
+        print "2", self.scroll_window
 
         self.scroll_window.add(self.treeview)
         self.scroll_window.show_all()
@@ -239,22 +244,42 @@ class AppWindow(Gtk.ApplicationWindow):
     def get_vue_prop(self, prop):
         """ Obtenir la valeur d'une propriété de la vue courante """
         return self.tables[self.table_id]["views"][self.view_id][prop]
+    
+    def set_vue_prop(self, prop, value):
+        """ Ajouter/mettre à jour une propriété de la vue courante """
+        self.tables[self.table_id]["views"][self.view_id][prop] = value
 
     def get_formulaire_prop(self, prop):
         """ Obtenir la valeur d'une propriété du formulaire courant """
         return self.tables[self.table_id]["forms"][self.form_id][prop]
 
+    def set_formulaire_prop(self, prop, value):
+        """ Ajouter/mettre à jour une propriété du formulaire courant """
+        self.tables[self.table_id]["forms"][self.form_id][prop] = value
+
     def get_rubrique_prop(self, element, prop):
         """ Obtenir la valeur d'une propriété d'un élément (colonne) de la table courante """
         return self.tables[self.table_id]["elements"][element][prop]
+
+    def set_rubrique_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
+        self.tables[self.table_id]["elements"][element][prop] = value
 
     def get_colonne_prop(self, element, prop):
         """ Obtenir la valeur d'une propriété d'une colonne de la vue courante """
         return self.tables[self.table_id]["views"][self.view_id]["elements"][element][prop]
 
+    def set_colonne_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'une colonne de la vue courante """
+        self.tables[self.table_id]["views"][self.view_id]["elements"][element][prop] = value
+
     def get_champ_prop(self, element, prop):
         """ Obtenir la valeur d'une propriété d'un champ du formulaire courant """
         return self.tables[self.table_id]["forms"][self.form_id]["elements"][element][prop]
+
+    def set_champ_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
+        self.tables[self.table_id]["forms"][self.form_id]["elements"][element][prop] = value
 
 class Application(Gtk.Application):
     """
@@ -349,6 +374,14 @@ class Application(Gtk.Application):
         Fin de l'application
         """
         self.quit()
+
+# get the style from the css file and apply it
+style_provider = Gtk.CssProvider()
+style_provider.load_from_path('style.css')
+Gtk.StyleContext.add_provider_for_screen(
+    Gdk.Screen.get_default(),
+    style_provider,
+    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 myapp = Application()
 exit_status = myapp.run(sys.argv)
