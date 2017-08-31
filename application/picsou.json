@@ -16,6 +16,12 @@
                     "label_short": "Valeur",
                     "type": "text"
                 },
+                "cours_name": {
+                    "label_long": "Nom",
+                    "label_short": "Nom",
+                    "type": "text",
+                    "searched": true
+                },
                 "cours_date": {
                     "label_long": "Date",
                     "label_short": "Date",
@@ -35,6 +41,7 @@
                     "elements": {
                         "cours_id": {},
                         "cours_ptf_id": {},
+                        "cours_name": {},
                         "cours_close": {
                             "sorted": true
                         },

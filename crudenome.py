@@ -7,6 +7,7 @@ from pprint import pprint
 from tools import Tools, NumberEntry
 import constants as const
 import collections
+import re
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -91,10 +92,12 @@ class AppWindow(Gtk.ApplicationWindow):
             self.tables = application_store["tables"]
             for table_id in self.tables:
                 self.table_id = table_id
-                if table_first is None: table_first = table_id
+                if table_first is None:
+                    table_first = table_id
                 for view_id in self.tables[table_id]["views"]:
                     self.view_id = view_id
-                    if view_first is None: view_first = view_id
+                    if view_first is None:
+                        view_first = view_id
                     # les boutons sont ajoutés dans le dictionnaire de la vue
                     self.set_vue_prop("button", Gtk.Button(self.get_vue_prop("title")))
                     self.get_vue_prop("button").connect("clicked", self.on_button_view_clicked, table_id, view_id)
@@ -179,18 +182,20 @@ class AppWindow(Gtk.ApplicationWindow):
         textcenter = Gtk.CellRendererText()
         textcenter.set_property('xalign', 0.5)
 
-        id_row = 0
-        for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
+        row_id = 0
+        for element in self.get_vue_elements():
             if self.get_colonne_prop(element, "type") == "int":
                 renderer = textright
             else:
                 renderer = textleft
             tvc = Gtk.TreeViewColumn(self.get_rubrique_prop(element, "label_short")\
-                , renderer, text=id_row)
+                , renderer, text=row_id)
             if self.get_colonne_prop(element, "sorted", False):
-                tvc.set_sort_column_id(id_row)
+                tvc.set_sort_column_id(row_id)
+
+            self.set_colonne_prop(element, "row_id", row_id)
             self.treeview.append_column(tvc)
-            id_row += 1
+            row_id += 1
 
         # for col in self.treeview.get_columns():
         #     pprint(col.get_title())
@@ -202,9 +207,8 @@ class AppWindow(Gtk.ApplicationWindow):
 
     def create_liststore(self):
         """ Création de la structure du liststore à partir du dictionnaire des données """
-        # Génération de la structure du liststore
         col_store_types = []
-        for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
+        for element in self.get_vue_elements():
             col_store_types.append(const.GOBJECT_TYPE[self.get_rubrique_prop(element, "type")])
 
         self.liststore = Gtk.ListStore(*col_store_types)
@@ -218,7 +222,7 @@ class AppWindow(Gtk.ApplicationWindow):
         sql = "SELECT "
         b_first = True
         id_row = 0
-        for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
+        for element in self.get_vue_elements():
             if b_first:
                 sql += element
                 b_first = False
@@ -233,7 +237,7 @@ class AppWindow(Gtk.ApplicationWindow):
 
         for row in rows:
             store = []
-            for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
+            for element in self.get_vue_elements():
                 display = self.get_colonne_prop(element, "format", "")
                 if display == "":
                     store.append(row[element])
@@ -245,25 +249,30 @@ class AppWindow(Gtk.ApplicationWindow):
         """Tests if the text in the row is the one in the filter"""
         if self.current_filter is None or self.current_filter == "":
             return True
-        # else:
-        #     if self.current_filter == "*":
-        #         return len(model[iter][const.COL_NOTE]) > 0
-        #     else:
-        #         return re.search(self.current_filter, model[iter][const.COL_ID], re.IGNORECASE) \
-        #             or re.search(self.current_filter, model[iter][const.COL_NAME], re.IGNORECASE) \
-        #             or re.search(self.current_filter, model[iter][const.COL_TRADE], re.IGNORECASE) \
-        #             or re.search(self.current_filter, model[iter][const.COL_INPTF], re.IGNORECASE) \
-        #             or re.search(self.current_filter, model[iter][const.COL_INTEST], re.IGNORECASE) \
-        #             or re.search(self.current_filter, model[iter][const.COL_NOTE], re.IGNORECASE)
+        else:
+            bret = False
+            for element in self.get_vue_elements():
+                if self.get_colonne_prop(element, "searched", False):
+                    if re.search(self.current_filter, model[iter][self.get_colonne_prop(element, "row_id")], re.IGNORECASE):
+                        bret = True
+            return bret
 
     def get_table_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de la table courante """
         return self.tables[self.table_id].get(prop, default)
 
+    def get_table_elements(self):
+        """ Obtenir la liste des rubriques de la table courante """
+        return self.tables[self.table_id]["elements"]
+
     def get_vue_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de la vue courante """
         return self.tables[self.table_id]["views"][self.view_id].get(prop, default)
-    
+
+    def get_vue_elements(self):
+        """ Obtenir la liste des colonnes de la vue courante """
+        return self.tables[self.table_id]["views"][self.view_id]["elements"]
+
     def set_vue_prop(self, prop, value):
         """ Ajouter/mettre à jour une propriété de la vue courante """
         self.tables[self.table_id]["views"][self.view_id][prop] = value
@@ -271,6 +280,10 @@ class AppWindow(Gtk.ApplicationWindow):
     def get_formulaire_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété du formulaire courant """
         return self.tables[self.table_id]["forms"][self.form_id].get(prop, default)
+
+    def get_formulaire_elements(self):
+        """ Obtenir la liste des champs du formulaire courant """
+        return self.tables[self.table_id]["forms"][self.form_id]["elements"]
 
     def set_formulaire_prop(self, prop, value):
         """ Ajouter/mettre à jour une propriété du formulaire courant """
