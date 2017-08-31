@@ -6,6 +6,7 @@ import sys
 from pprint import pprint
 from tools import Tools, NumberEntry
 import constants as const
+import collections
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -83,19 +84,25 @@ class AppWindow(Gtk.ApplicationWindow):
         hbox_button = Gtk.HBox() # box qui permet d'inverser l'ordre de présentation des boutons
         # Lecture des fichiers d'application 
         file_list = self.tools.directory_list(self.config["application_directory"])
+        table_first = None
+        view_first = None
         for application_file in file_list:
             application_store = self.tools.get_json_content(self.config["application_directory"] + "/" + application_file)
             self.tables = application_store["tables"]
             for table_id in self.tables:
                 self.table_id = table_id
+                if table_first is None: table_first = table_id
                 for view_id in self.tables[table_id]["views"]:
                     self.view_id = view_id
+                    if view_first is None: view_first = view_id
                     # les boutons sont ajoutés dans le dictionnaire de la vue
                     self.set_vue_prop("button", Gtk.Button(self.get_vue_prop("title")))
                     self.get_vue_prop("button").connect("clicked", self.on_button_view_clicked, table_id, view_id)
-                    hbox_button.pack_end(self.get_vue_prop("button"), False, False, 5)
+                    hbox_button.pack_start(self.get_vue_prop("button"), False, False, 5)
 
         # mise en relief du bouton vue courante
+        self.table_id = table_first
+        self.view_id = view_first
         self.get_vue_prop("button").get_style_context().add_class('button_selected')
 
         self.headerbar.pack_start(hbox_button)
@@ -180,6 +187,8 @@ class AppWindow(Gtk.ApplicationWindow):
                 renderer = textleft
             tvc = Gtk.TreeViewColumn(self.get_rubrique_prop(element, "label_short")\
                 , renderer, text=id_row)
+            if self.get_colonne_prop(element, "sorted", False):
+                tvc.set_sort_column_id(id_row)
             self.treeview.append_column(tvc)
             id_row += 1
 

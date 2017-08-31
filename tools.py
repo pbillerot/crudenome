@@ -10,6 +10,7 @@ from email.mime.text import MIMEText
 import sqlite3
 import os
 import json
+from collections import OrderedDict
 # import urlparse
 # import httplib
 # import urllib2
@@ -42,7 +43,7 @@ class Tools(object):
         """
         store = {}
         with open(path) as json_data_file:
-            store = json.load(json_data_file)
+            store = json.load(json_data_file, object_pairs_hook=OrderedDict)
         return store
 
     def get_config(self):

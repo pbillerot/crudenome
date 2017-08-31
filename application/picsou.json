@@ -19,7 +19,8 @@
                 "cours_date": {
                     "label_long": "Date",
                     "label_short": "Date",
-                    "type": "date"
+                    "type": "date",
+                    "sorted": true
                 },
                 "cours_close": {
                     "label_long": "Cours",
@@ -34,15 +35,17 @@
                     "elements": {
                         "cours_id": {},
                         "cours_ptf_id": {},
-                        "cours_close": {},
+                        "cours_close": {
+                            "sorted": true
+                        },
                         "cours_date": {}
                     }
                 },
                 "vopen": {
                     "title": "Les cours ouverts",
                     "elements": {
-                        "cours_ptf_id": {},
-                        "cours_id": {}
+                        "cours_id": {},
+                        "cours_ptf_id": {}
                     }
                 }
             },
