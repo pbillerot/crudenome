@@ -1,9 +1,10 @@
 
 GtkEntry.invalid {
-    background-color: #ffaaaa;
     background: #ffaaaa;
 }
 
 .button_selected {
-    background: #E5CD89;
+    /*background: #E5CD89;*/
+    /*color: blue;*/
+    font-weight: 900;
 }

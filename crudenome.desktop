@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=Crudenome
+Comment=Framework de développemens d'application Gnome
+Exec=/mnt/sandisk/git/crudenome/crudenome.py
+Icon=/mnt/sandisk/git/crudenome/crudenome.jpg
+Terminal=false
+Type=Application
+StartupNotify=true
+Name[fr_FR]=crudenome.desktop
+Categories=GNOME;GTK;Utility;Framework

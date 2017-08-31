@@ -24,7 +24,8 @@
                 "cours_close": {
                     "label_long": "Cours",
                     "label_short": "Cours",
-                    "type": "float"
+                    "type": "text",
+                    "format": "{:.2f}"
                 }
             },
             "views": {

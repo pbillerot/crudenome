@@ -140,7 +140,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.scroll_window.set_hexpand(True)
         self.scroll_window.set_vexpand(True)
 
-        print "1", self.scroll_window
+        # print "1", self.scroll_window
         self.vbox.pack_start(self.scroll_window, True, True, 3)
 
     def create_view(self):
@@ -174,15 +174,19 @@ class AppWindow(Gtk.ApplicationWindow):
 
         id_row = 0
         for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
+            if self.get_colonne_prop(element, "type") == "int":
+                renderer = textright
+            else:
+                renderer = textleft
             tvc = Gtk.TreeViewColumn(self.get_rubrique_prop(element, "label_short")\
-                , textleft, text=id_row)
+                , renderer, text=id_row)
             self.treeview.append_column(tvc)
             id_row += 1
 
         # for col in self.treeview.get_columns():
         #     pprint(col.get_title())
 
-        print "2", self.scroll_window
+        # print "2", self.scroll_window
 
         self.scroll_window.add(self.treeview)
         self.scroll_window.show_all()
@@ -204,7 +208,6 @@ class AppWindow(Gtk.ApplicationWindow):
 
         sql = "SELECT "
         b_first = True
-        col_store_types = []
         id_row = 0
         for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
             if b_first:
@@ -212,15 +215,22 @@ class AppWindow(Gtk.ApplicationWindow):
                 b_first = False
             else:
                 sql += ", " + element
-            col_store_types.append("str")
             id_row += 1
 
-        sql += " FROM " + self.table_id 
+        sql += " FROM " + self.table_id
         sql += " LIMIT 10 "
         rows = self.tools.sql_to_dict(self.get_table_prop("basename"), sql, {})
         self.liststore.clear()
+
         for row in rows:
-            self.liststore.append(row.values())
+            store = []
+            for element in self.tables[self.table_id]["views"][self.view_id]["elements"]:
+                display = self.get_colonne_prop(element, "format", "")
+                if display == "":
+                    store.append(row[element])
+                else:
+                    store.append(display.format(row[element]))
+            self.liststore.append(store)
 
     def filter_func(self, model, iter, data):
         """Tests if the text in the row is the one in the filter"""
@@ -237,45 +247,55 @@ class AppWindow(Gtk.ApplicationWindow):
         #             or re.search(self.current_filter, model[iter][const.COL_INTEST], re.IGNORECASE) \
         #             or re.search(self.current_filter, model[iter][const.COL_NOTE], re.IGNORECASE)
 
-    def get_table_prop(self, prop):
+    def get_table_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de la table courante """
-        return self.tables[self.table_id][prop]
+        return self.tables[self.table_id].get(prop, default)
 
-    def get_vue_prop(self, prop):
+    def get_vue_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de la vue courante """
-        return self.tables[self.table_id]["views"][self.view_id][prop]
+        return self.tables[self.table_id]["views"][self.view_id].get(prop, default)
     
     def set_vue_prop(self, prop, value):
         """ Ajouter/mettre à jour une propriété de la vue courante """
         self.tables[self.table_id]["views"][self.view_id][prop] = value
 
-    def get_formulaire_prop(self, prop):
+    def get_formulaire_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété du formulaire courant """
-        return self.tables[self.table_id]["forms"][self.form_id][prop]
+        return self.tables[self.table_id]["forms"][self.form_id].get(prop, default)
 
     def set_formulaire_prop(self, prop, value):
         """ Ajouter/mettre à jour une propriété du formulaire courant """
         self.tables[self.table_id]["forms"][self.form_id][prop] = value
 
-    def get_rubrique_prop(self, element, prop):
+    def get_rubrique_prop(self, element, prop, default=""):
         """ Obtenir la valeur d'une propriété d'un élément (colonne) de la table courante """
-        return self.tables[self.table_id]["elements"][element][prop]
+        return self.tables[self.table_id]["elements"][element].get(prop, default)
 
     def set_rubrique_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
         self.tables[self.table_id]["elements"][element][prop] = value
 
-    def get_colonne_prop(self, element, prop):
-        """ Obtenir la valeur d'une propriété d'une colonne de la vue courante """
-        return self.tables[self.table_id]["views"][self.view_id]["elements"][element][prop]
+    def get_colonne_prop(self, element, prop, default=""):
+        """ 
+        Obtenir la valeur d'une propriété d'une colonne de la vue courante 
+        Si la propriété de la colonne n'est pas définie au niveau de la colonne
+        on recherchera au niveau de la rubrique
+        """
+        value = self.tables[self.table_id]["views"][self.view_id]["elements"][element].get(prop, None)
+        return self.get_rubrique_prop(element, prop, default) if value is None else value
 
     def set_colonne_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'une colonne de la vue courante """
         self.tables[self.table_id]["views"][self.view_id]["elements"][element][prop] = value
 
-    def get_champ_prop(self, element, prop):
-        """ Obtenir la valeur d'une propriété d'un champ du formulaire courant """
-        return self.tables[self.table_id]["forms"][self.form_id]["elements"][element][prop]
+    def get_champ_prop(self, element, prop, default):
+        """ 
+        Obtenir la valeur d'une propriété d'un champ du formulaire courant
+        Si la propriété du champ n'est pas définie au niveau du champ
+        on recherchera au niveau de la rubrique
+        """
+        value = self.tables[self.table_id]["forms"][self.form_id]["elements"][element].get(prop, None)
+        return self.get_rubrique_prop(element, prop, default) if value is None else value
 
     def set_champ_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
