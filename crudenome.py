@@ -4,8 +4,8 @@
 # https://gtk.developpez.com/doc/fr/gtk/gtk-Stock-Items.html
 import sys
 from pprint import pprint
-from tools import Tools, NumberEntry
-import constants as const
+from crud import Crud, NumberEntry
+import crudconst as const
 import collections
 import re
 
@@ -18,18 +18,14 @@ class AppWindow(Gtk.ApplicationWindow):
     La fenêtre principale du Gtk
     """
     def __init__(self, app):
-        Gtk.Window.__init__(self, title="Welcome to GNOME", application=app)
+        Gtk.Window.__init__(self, title="Welcome to CRUDENOME", application=app)
 
         # Chargement des paramètres
         self.app = app
-        self.tools = app.tools
-        self.config = self.tools.get_config()
+        self.crud = app.crud
+        self.config = self.crud.get_config()
 
         # Initialisation des variables globales
-        self.tables = None
-        self.table_id = None
-        self.view_id = None
-        self.form_id = None
         self.treeview = None
         self.liststore = None
         self.current_filter = None
@@ -83,30 +79,33 @@ class AppWindow(Gtk.ApplicationWindow):
 
         # CREATION DES BOUTONS DES VUES
         hbox_button = Gtk.HBox() # box qui permet d'inverser l'ordre de présentation des boutons
-        # Lecture des fichiers d'application 
-        file_list = self.tools.directory_list(self.config["application_directory"])
+        # Lecture des fichiers d'application
+        file_list = self.crud.directory_list(self.config["application_directory"])
         table_first = None
         view_first = None
         for application_file in file_list:
-            application_store = self.tools.get_json_content(self.config["application_directory"] + "/" + application_file)
-            self.tables = application_store["tables"]
-            for table_id in self.tables:
-                self.table_id = table_id
+            application_store = self.crud.get_json_content(
+                self.config["application_directory"] + "/" + application_file)
+            self.crud.tables = application_store["tables"]
+            for table_id in self.crud.tables:
+                self.crud.table_id = table_id
                 if table_first is None:
                     table_first = table_id
-                for view_id in self.tables[table_id]["views"]:
-                    self.view_id = view_id
+                for view_id in self.crud.tables[table_id]["views"]:
+                    self.crud.view_id = view_id
                     if view_first is None:
                         view_first = view_id
                     # les boutons sont ajoutés dans le dictionnaire de la vue
-                    self.set_vue_prop("button", Gtk.Button(self.get_vue_prop("title")))
-                    self.get_vue_prop("button").connect("clicked", self.on_button_view_clicked, table_id, view_id)
-                    hbox_button.pack_start(self.get_vue_prop("button"), False, False, 5)
+                    self.crud.set_vue_prop("button", Gtk.Button(self.crud.get_vue_prop("title")))
+                    self.crud.get_vue_prop("button").connect("clicked",
+                                                             self.on_button_view_clicked,
+                                                             table_id, view_id)
+                    hbox_button.pack_start(self.crud.get_vue_prop("button"), False, False, 5)
 
         # mise en relief du bouton vue courante
-        self.table_id = table_first
-        self.view_id = view_first
-        self.get_vue_prop("button").get_style_context().add_class('button_selected')
+        self.crud.table_id = table_first
+        self.crud.view_id = view_first
+        self.crud.get_vue_prop("button").get_style_context().add_class('button_selected')
 
         self.headerbar.pack_start(hbox_button)
 
@@ -119,11 +118,11 @@ class AppWindow(Gtk.ApplicationWindow):
         """
         Activation d'une vue
         """
-        self.tables[self.table_id]["views"][self.view_id]["button"].get_style_context().remove_class('button_selected')
+        self.crud.tables[self.crud.table_id]["views"][self.crud.view_id]["button"].get_style_context().remove_class('button_selected')
 
-        self.table_id = table_id
-        self.view_id = view_id
-        self.get_vue_prop("button").get_style_context().add_class('button_selected')
+        self.crud.table_id = table_id
+        self.crud.view_id = view_id
+        self.crud.get_vue_prop("button").get_style_context().add_class('button_selected')
         self.create_view()
 
     def on_button_add_clicked(self, widget):
@@ -183,17 +182,17 @@ class AppWindow(Gtk.ApplicationWindow):
         textcenter.set_property('xalign', 0.5)
 
         row_id = 0
-        for element in self.get_vue_elements():
-            if self.get_colonne_prop(element, "type") == "int":
+        for element in self.crud.get_vue_elements():
+            if self.crud.get_colonne_prop(element, "type") == "int":
                 renderer = textright
             else:
                 renderer = textleft
-            tvc = Gtk.TreeViewColumn(self.get_rubrique_prop(element, "label_short")\
+            tvc = Gtk.TreeViewColumn(self.crud.get_rubrique_prop(element, "label_short")\
                 , renderer, text=row_id)
-            if self.get_colonne_prop(element, "sorted", False):
+            if self.crud.get_colonne_prop(element, "sorted", False):
                 tvc.set_sort_column_id(row_id)
 
-            self.set_colonne_prop(element, "row_id", row_id)
+            self.crud.set_colonne_prop(element, "row_id", row_id)
             self.treeview.append_column(tvc)
             row_id += 1
 
@@ -208,8 +207,8 @@ class AppWindow(Gtk.ApplicationWindow):
     def create_liststore(self):
         """ Création de la structure du liststore à partir du dictionnaire des données """
         col_store_types = []
-        for element in self.get_vue_elements():
-            col_store_types.append(const.GOBJECT_TYPE[self.get_rubrique_prop(element, "type")])
+        for element in self.crud.get_vue_elements():
+            col_store_types.append(const.GOBJECT_TYPE[self.crud.get_rubrique_prop(element, "type")])
 
         self.liststore = Gtk.ListStore(*col_store_types)
 
@@ -222,7 +221,7 @@ class AppWindow(Gtk.ApplicationWindow):
         sql = "SELECT "
         b_first = True
         id_row = 0
-        for element in self.get_vue_elements():
+        for element in self.crud.get_vue_elements():
             if b_first:
                 sql += element
                 b_first = False
@@ -230,15 +229,15 @@ class AppWindow(Gtk.ApplicationWindow):
                 sql += ", " + element
             id_row += 1
 
-        sql += " FROM " + self.table_id
+        sql += " FROM " + self.crud.table_id
         sql += " LIMIT 10 "
-        rows = self.tools.sql_to_dict(self.get_table_prop("basename"), sql, {})
+        rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, {})
         self.liststore.clear()
 
         for row in rows:
             store = []
-            for element in self.get_vue_elements():
-                display = self.get_colonne_prop(element, "format", "")
+            for element in self.crud.get_vue_elements():
+                display = self.crud.get_colonne_prop(element, "format", "")
                 if display == "":
                     store.append(row[element])
                 else:
@@ -251,77 +250,13 @@ class AppWindow(Gtk.ApplicationWindow):
             return True
         else:
             bret = False
-            for element in self.get_vue_elements():
-                if self.get_colonne_prop(element, "searched", False):
-                    if re.search(self.current_filter, model[iter][self.get_colonne_prop(element, "row_id")], re.IGNORECASE):
+            for element in self.crud.get_vue_elements():
+                if self.crud.get_colonne_prop(element, "searched", False):
+                    if re.search(self.current_filter,
+                                 model[iter][self.crud.get_colonne_prop(element, "row_id")],
+                                 re.IGNORECASE):
                         bret = True
             return bret
-
-    def get_table_prop(self, prop, default=""):
-        """ Obtenir la valeur d'une propriété de la table courante """
-        return self.tables[self.table_id].get(prop, default)
-
-    def get_table_elements(self):
-        """ Obtenir la liste des rubriques de la table courante """
-        return self.tables[self.table_id]["elements"]
-
-    def get_vue_prop(self, prop, default=""):
-        """ Obtenir la valeur d'une propriété de la vue courante """
-        return self.tables[self.table_id]["views"][self.view_id].get(prop, default)
-
-    def get_vue_elements(self):
-        """ Obtenir la liste des colonnes de la vue courante """
-        return self.tables[self.table_id]["views"][self.view_id]["elements"]
-
-    def set_vue_prop(self, prop, value):
-        """ Ajouter/mettre à jour une propriété de la vue courante """
-        self.tables[self.table_id]["views"][self.view_id][prop] = value
-
-    def get_formulaire_prop(self, prop, default=""):
-        """ Obtenir la valeur d'une propriété du formulaire courant """
-        return self.tables[self.table_id]["forms"][self.form_id].get(prop, default)
-
-    def get_formulaire_elements(self):
-        """ Obtenir la liste des champs du formulaire courant """
-        return self.tables[self.table_id]["forms"][self.form_id]["elements"]
-
-    def set_formulaire_prop(self, prop, value):
-        """ Ajouter/mettre à jour une propriété du formulaire courant """
-        self.tables[self.table_id]["forms"][self.form_id][prop] = value
-
-    def get_rubrique_prop(self, element, prop, default=""):
-        """ Obtenir la valeur d'une propriété d'un élément (colonne) de la table courante """
-        return self.tables[self.table_id]["elements"][element].get(prop, default)
-
-    def set_rubrique_prop(self, element, prop, value):
-        """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
-        self.tables[self.table_id]["elements"][element][prop] = value
-
-    def get_colonne_prop(self, element, prop, default=""):
-        """ 
-        Obtenir la valeur d'une propriété d'une colonne de la vue courante 
-        Si la propriété de la colonne n'est pas définie au niveau de la colonne
-        on recherchera au niveau de la rubrique
-        """
-        value = self.tables[self.table_id]["views"][self.view_id]["elements"][element].get(prop, None)
-        return self.get_rubrique_prop(element, prop, default) if value is None else value
-
-    def set_colonne_prop(self, element, prop, value):
-        """ Ajouter/mettre à jour une propriété d'une colonne de la vue courante """
-        self.tables[self.table_id]["views"][self.view_id]["elements"][element][prop] = value
-
-    def get_champ_prop(self, element, prop, default):
-        """ 
-        Obtenir la valeur d'une propriété d'un champ du formulaire courant
-        Si la propriété du champ n'est pas définie au niveau du champ
-        on recherchera au niveau de la rubrique
-        """
-        value = self.tables[self.table_id]["forms"][self.form_id]["elements"][element].get(prop, None)
-        return self.get_rubrique_prop(element, prop, default) if value is None else value
-
-    def set_champ_prop(self, element, prop, value):
-        """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
-        self.tables[self.table_id]["forms"][self.form_id]["elements"][element][prop] = value
 
 class Application(Gtk.Application):
     """
@@ -340,8 +275,8 @@ class Application(Gtk.Application):
         self.window = None
 
         # Chargement des paramètres
-        self.tools = Tools()
-        self.config = self.tools.get_config()
+        self.crud = Crud()
+        self.config = self.crud.get_config()
 
     def do_activate(self):
         """

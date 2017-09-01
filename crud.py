@@ -24,10 +24,15 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
-class Tools(object):
+class Crud(object):
     """
     Fonctions utiles regroupées dans une classe
     """
+    tables = {}
+    table_id = "id"
+    view_id = "id"
+    form_id = "id"
+
     def __init__(self):
         """
         Chargement du dictionnaire config.json
@@ -124,6 +129,72 @@ class Tools(object):
         for filename in os.listdir(path):
             file_list.append(filename)
         return file_list
+
+    def get_table_prop(self, prop, default=""):
+        """ Obtenir la valeur d'une propriété de la table courante """
+        return self.tables[self.table_id].get(prop, default)
+
+    def get_table_elements(self):
+        """ Obtenir la liste des rubriques de la table courante """
+        return self.tables[self.table_id]["elements"]
+
+    def get_vue_prop(self, prop, default=""):
+        """ Obtenir la valeur d'une propriété de la vue courante """
+        return self.tables[self.table_id]["views"][self.view_id].get(prop, default)
+
+    def get_vue_elements(self):
+        """ Obtenir la liste des colonnes de la vue courante """
+        return self.tables[self.table_id]["views"][self.view_id]["elements"]
+
+    def set_vue_prop(self, prop, value):
+        """ Ajouter/mettre à jour une propriété de la vue courante """
+        self.tables[self.table_id]["views"][self.view_id][prop] = value
+
+    def get_formulaire_prop(self, prop, default=""):
+        """ Obtenir la valeur d'une propriété du formulaire courant """
+        return self.tables[self.table_id]["forms"][self.form_id].get(prop, default)
+
+    def get_formulaire_elements(self):
+        """ Obtenir la liste des champs du formulaire courant """
+        return self.tables[self.table_id]["forms"][self.form_id]["elements"]
+
+    def set_formulaire_prop(self, prop, value):
+        """ Ajouter/mettre à jour une propriété du formulaire courant """
+        self.tables[self.table_id]["forms"][self.form_id][prop] = value
+
+    def get_rubrique_prop(self, element, prop, default=""):
+        """ Obtenir la valeur d'une propriété d'un élément (colonne) de la table courante """
+        return self.tables[self.table_id]["elements"][element].get(prop, default)
+
+    def set_rubrique_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
+        self.tables[self.table_id]["elements"][element][prop] = value
+
+    def get_colonne_prop(self, element, prop, default=""):
+        """
+        Obtenir la valeur d'une propriété d'une colonne de la vue courante
+        Si la propriété de la colonne n'est pas définie au niveau de la colonne
+        on recherchera au niveau de la rubrique
+        """
+        value = self.tables[self.table_id]["views"][self.view_id]["elements"][element].get(prop, None)
+        return self.get_rubrique_prop(element, prop, default) if value is None else value
+
+    def set_colonne_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'une colonne de la vue courante """
+        self.tables[self.table_id]["views"][self.view_id]["elements"][element][prop] = value
+
+    def get_champ_prop(self, element, prop, default):
+        """
+        Obtenir la valeur d'une propriété d'un champ du formulaire courant
+        Si la propriété du champ n'est pas définie au niveau du champ
+        on recherchera au niveau de la rubrique
+        """
+        value = self.tables[self.table_id]["forms"][self.form_id]["elements"][element].get(prop, None)
+        return self.get_rubrique_prop(element, prop, default) if value is None else value
+
+    def set_champ_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
+        self.tables[self.table_id]["forms"][self.form_id]["elements"][element][prop] = value
 
 class NumberEntry(Gtk.Entry):
     """ Input numéric seulement """
