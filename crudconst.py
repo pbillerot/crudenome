@@ -10,5 +10,7 @@ GOBJECT_TYPE = {
     "date": GObject.TYPE_STRING,
     "text": GObject.TYPE_STRING,
     "int": GObject.TYPE_INT,
-    "float": GObject.TYPE_FLOAT
+    "float": GObject.TYPE_FLOAT,
+    "check": GObject.TYPE_BOOLEAN,
+    "button": GObject.TYPE_OBJECT
 }

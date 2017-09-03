@@ -20,13 +20,15 @@
                     "label_long": "Nom",
                     "label_short": "Nom",
                     "type": "text",
-                    "searched": true
+                    "searchable": true,
+                    "expandable": false,
+                    "col_width": 150
                 },
                 "cours_date": {
                     "label_long": "Date",
                     "label_short": "Date",
                     "type": "date",
-                    "sorted": true
+                    "sortable": true
                 },
                 "cours_close": {
                     "label_long": "Cours",
@@ -38,12 +40,15 @@
             "views": {
                 "vall": {
                     "title": "Tous les cours",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
                     "elements": {
                         "cours_id": {},
                         "cours_ptf_id": {},
                         "cours_name": {},
                         "cours_close": {
-                            "sorted": true
+                            "sortable": true
                         },
                         "cours_date": {}
                     }
@@ -57,7 +62,19 @@
                 }
             },
             "forms": {
-                "fmaj": {
+                "fadd": {
+                    "title": "Ajout d'un élément",
+                    "elements": {
+                        "cours_id": {},
+                        "cours_ptf_id": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edition d'un élément",
+                    "elements": {
+                        "cours_id": {},
+                        "cours_ptf_id": {}
+                    }
                 }
             }
         }

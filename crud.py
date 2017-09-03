@@ -22,7 +22,17 @@ import itertools
 import smtplib
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
+
+class Ctx(object):
+    """ Gestion du contexte du CRUD """
+    crud = None
+
+    def __init__(self, crud=None):
+        if crud is None:
+            self.crud = Crud()
+        else:
+            self.crud = crud
 
 class Crud(object):
     """
@@ -32,15 +42,25 @@ class Crud(object):
     table_id = "id"
     view_id = "id"
     form_id = "id"
+    config = {}
+    key_value = "id"
 
-    def __init__(self):
+
+    def __init__(self, crud=None):
         """
         Chargement du dictionnaire config.json
         """
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        os.chdir(dir_path)
-        with open("config.json") as json_data_file:
-            self.config = json.load(json_data_file)
+        if crud is None:
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            os.chdir(dir_path)
+            with open("config.json") as json_data_file:
+                self.config = json.load(json_data_file)
+        else:
+            self.tables = crud.tables
+            self.table_id = crud.table_id
+            self.view_id = crud.view_id
+            self.form_id = crud.form_id
+            self.config = crud.config
 
     def get_json_content(self, path):
         """
@@ -50,12 +70,6 @@ class Crud(object):
         with open(path) as json_data_file:
             store = json.load(json_data_file, object_pairs_hook=OrderedDict)
         return store
-
-    def get_config(self):
-        """
-        Retourne le dictionnaire config
-        """
-        return self.config
 
     def exec_sql(self, sql, params):
         """
@@ -67,11 +81,11 @@ class Crud(object):
             cursor = conn.cursor()
             cursor.execute(sql, params)
             conn.commit()
-        except sqlite3.Error, e:
+        except sqlite3.Error, exc:
             if conn:
                 conn.rollback()
 
-            print "Error {}\n{}\n{}".format(e.args[0], sql, params)
+            print "Error {}\n{}\n{}".format(exc.args[0], sql, params)
             sys.exit(1)
         finally:
             if conn:
