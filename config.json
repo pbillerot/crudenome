@@ -1,10 +1,10 @@
 {
-    "title": "CRUD for GNOME en action",
+    "title": "CRUD for GNOME",
     "name": "crudenome",
     "version": "0.1",
     "copyright": "(c) pbillerot",
-    "comments": "Le CRUD pour GNOME défini dans un fichier JSON ",
-    "web_site": "https://github.com/pbillerot/crudenome",    
+    "comments": "Le framework pour développer des applications GNome",
+    "web_site": "https://github.com/pbillerot/crudenome",
     "logo": "crudenome.png",
     "smtp_host": "smtp.free.fr",
     "smtp_from": "pbillerot <pbillerot@yahoo.com>",
