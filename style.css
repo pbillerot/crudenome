@@ -3,6 +3,9 @@ GtkEntry.invalid {
     background: #ffaaaa;
 }
 
+.read_only {
+    background: lightgrey;
+}
 .button_selected {
     /*background: #E5CD89;*/
     /*color: blue;*/

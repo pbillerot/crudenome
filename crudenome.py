@@ -78,7 +78,7 @@ class AppWindow(Gtk.ApplicationWindow):
         """ Toolbar avec la recherche et les boutons pour afficher les vues """
         self.headerbar = Gtk.HeaderBar()
         self.headerbar.set_show_close_button(True)
-        self.headerbar.props.title = self.crud.application["title"]
+        self.headerbar.props.title = self.crud.get_application_prop("title")
         self.set_titlebar(self.headerbar)
 
         self.search_entry = Gtk.SearchEntry()
@@ -93,7 +93,7 @@ class AppWindow(Gtk.ApplicationWindow):
 
     def create_viewbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
-        self.viewbar_label = Gtk.Label(self.crud.get_vue_prop("title"))
+        self.viewbar_label = Gtk.Label(self.crud.get_view_prop("title"))
         self.box_viewbar.pack_start(self.viewbar_label, False, True, 3)
         self.button_add = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
         self.button_add.connect("clicked", self.on_button_add_clicked)
@@ -109,26 +109,26 @@ class AppWindow(Gtk.ApplicationWindow):
         for application_file in file_list:
             application_store = self.crud.get_json_content(
                 self.crud.config["application_directory"] + "/" + application_file)
-            self.crud.application = application_store
-            for table_id in self.crud.application["tables"]:
+            self.crud.set_application(application_store)
+            for table_id in self.crud.get_application_prop("tables"):
                 self.crud.table_id = table_id
                 if table_first is None:
                     table_first = table_id
-                for view_id in self.crud.application["tables"][table_id]["views"]:
+                for view_id in self.crud.get_application_prop("tables")[table_id]["views"]:
                     self.crud.view_id = view_id
                     if view_first is None:
                         view_first = view_id
                     # les boutons sont ajoutés dans le dictionnaire de la vue
-                    self.crud.set_vue_prop("button", Gtk.Button(self.crud.get_vue_prop("title")))
-                    self.crud.get_vue_prop("button").connect("clicked",
+                    self.crud.set_view_prop("button", Gtk.Button(self.crud.get_view_prop("title")))
+                    self.crud.get_view_prop("button").connect("clicked",
                                                              self.on_button_view_clicked,
                                                              table_id, view_id)
-                    self.box_sidebar.pack_start(self.crud.get_vue_prop("button"), False, False, 3)
+                    self.box_sidebar.pack_start(self.crud.get_view_prop("button"), False, False, 3)
 
         # mise en relief du bouton vue courante
         self.crud.table_id = table_first
         self.crud.view_id = view_first
-        self.crud.get_vue_prop("button").get_style_context().add_class('button_selected')
+        self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
 
     def create_listview(self):
         """ Création de la vue """
@@ -138,11 +138,11 @@ class AppWindow(Gtk.ApplicationWindow):
             self.scroll_window.set_vexpand(True)
             self.box_listview.pack_end(self.scroll_window, True, True, 3)
         # Affichage du bouton d'ajout si formulaire d'ajout présent
-        self.crud.form_id = self.crud.get_vue_prop("form_add", "")
+        self.crud.form_id = self.crud.get_view_prop("form_add", "")
         if self.crud.form_id == "":
             self.button_add.set_sensitive(False)
         else:
-            self.button_add.set_tooltip_text(self.crud.get_formulaire_prop("title"))
+            self.button_add.set_tooltip_text(self.crud.get_form_prop("title"))
             self.button_add.set_sensitive(True)
 
         self.create_liststore()
@@ -175,31 +175,31 @@ class AppWindow(Gtk.ApplicationWindow):
 
         col_id = 0
         # la colonne qui contiendra le n° de ligne row_id
-        self.crud.set_vue_prop("col_row_id", col_id)
+        self.crud.set_view_prop("col_row_id", col_id)
         tvc = Gtk.TreeViewColumn("id", textcenter, text=col_id)
         tvc.set_visible(False)
         self.treeview.append_column(tvc)
         col_id += 1
-        for element in self.crud.get_vue_elements():
-            if self.crud.get_colonne_prop(element, "type") == "int":
+        for element in self.crud.get_view_elements():
+            if self.crud.get_column_prop(element, "type") == "int":
                 renderer = textright
             else:
                 renderer = textleft
-            tvc = Gtk.TreeViewColumn(self.crud.get_rubrique_prop(element, "label_short")\
+            tvc = Gtk.TreeViewColumn(self.crud.get_element_prop(element, "label_short")\
                 , renderer, text=col_id)
-            if self.crud.get_colonne_prop(element, "sortable", False):
+            if self.crud.get_column_prop(element, "sortable", False):
                 tvc.set_sort_column_id(col_id)
             if element == self.crud.get_table_prop("key"):
-                self.crud.set_vue_prop("key_id", col_id)
-            if self.crud.get_colonne_prop(element, "expandable", False):
+                self.crud.set_view_prop("key_id", col_id)
+            if self.crud.get_column_prop(element, "expandable", False):
                 tvc.set_expand(True)
-            if self.crud.get_colonne_prop(element, "col_width", 0) > 0:
-                tvc.set_min_width(self.crud.get_colonne_prop(element, "col_width"))
-            self.crud.set_colonne_prop(element, "row_id", col_id)
+            if self.crud.get_column_prop(element, "col_width", 0) > 0:
+                tvc.set_min_width(self.crud.get_column_prop(element, "col_width"))
+            self.crud.set_column_prop(element, "row_id", col_id)
             self.treeview.append_column(tvc)
             col_id += 1
 
-        self.crud.set_vue_prop("col_action_id", col_id)
+        self.crud.set_view_prop("col_action_id", col_id)
         tvc = Gtk.TreeViewColumn("Action", action_toggle, active=col_id)
         self.treeview.append_column(tvc)
         col_id += 1
@@ -226,8 +226,8 @@ class AppWindow(Gtk.ApplicationWindow):
         # col_row_id
         col_store_types.append(const.GOBJECT_TYPE["int"])
 
-        for element in self.crud.get_vue_elements():
-            col_store_types.append(const.GOBJECT_TYPE[self.crud.get_rubrique_prop(element, "type")])
+        for element in self.crud.get_view_elements():
+            col_store_types.append(const.GOBJECT_TYPE[self.crud.get_element_prop(element, "type")])
 
         # col_action_id
         col_store_types.append(const.GOBJECT_TYPE["check"])
@@ -245,7 +245,7 @@ class AppWindow(Gtk.ApplicationWindow):
         sql = "SELECT "
         b_first = True
         id_row = 0
-        for element in self.crud.get_vue_elements():
+        for element in self.crud.get_view_elements():
             if b_first:
                 sql += element
                 b_first = False
@@ -262,8 +262,8 @@ class AppWindow(Gtk.ApplicationWindow):
             store = []
             # col_row_id
             store.append(row_id)
-            for element in self.crud.get_vue_elements():
-                display = self.crud.get_colonne_prop(element, "format", "")
+            for element in self.crud.get_view_elements():
+                display = self.crud.get_column_prop(element, "format", "")
                 if display == "":
                     store.append(row[element])
                 else:
@@ -281,27 +281,27 @@ class AppWindow(Gtk.ApplicationWindow):
             return True
         else:
             bret = False
-            for element in self.crud.get_vue_elements():
-                if self.crud.get_colonne_prop(element, "searchable", False):
+            for element in self.crud.get_view_elements():
+                if self.crud.get_column_prop(element, "searchable", False):
                     if re.search(self.current_filter,
-                                 model[iter][self.crud.get_colonne_prop(element, "row_id")],
+                                 model[iter][self.crud.get_column_prop(element, "row_id")],
                                  re.IGNORECASE):
                         bret = True
             return bret
 
     def on_button_view_clicked(self, widget, table_id, view_id):
         """ Activation d'une vue """
-        self.crud.application["tables"][self.crud.table_id]["views"][self.crud.view_id]["button"].get_style_context().remove_class('button_selected')
+        self.crud.get_view_prop("button").get_style_context().remove_class('button_selected')
 
         self.crud.table_id = table_id
         self.crud.view_id = view_id
-        self.crud.get_vue_prop("button").get_style_context().add_class('button_selected')
+        self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
         self.create_listview()
 
     def on_button_add_clicked(self, widget):
         """ Ajout d'un élément """
         print "on_button_add_clicked"
-        self.crud.form_id = self.crud.get_vue_prop("form_add")
+        self.crud.form_id = self.crud.get_view_prop("form_add")
 
         dialog = FormDlg(self, self.crud)
         response = dialog.run()
@@ -320,30 +320,31 @@ class AppWindow(Gtk.ApplicationWindow):
 
     def on_action_toggle(self, cell, path):
         """ Clic sur coche d'action"""
-        print "Action sur", self.store_filter_sort[path][self.crud.get_vue_prop("key_id")]
-        self.crud.key_value = self.store_filter_sort[path][self.crud.get_vue_prop("key_id")]
-        row_id = self.store_filter_sort[path][self.crud.get_vue_prop("col_row_id")]
-        self.liststore[row_id][self.crud.get_vue_prop("col_action_id")]\
-            = not self.liststore[row_id][self.crud.get_vue_prop("col_action_id")]
+        print "Action sur", self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        self.crud.key_value = self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        row_id = self.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        self.liststore[row_id][self.crud.get_view_prop("col_action_id")]\
+            = not self.liststore[row_id][self.crud.get_view_prop("col_action_id")]
 
     def on_tree_selection_changed(self, selection):
         """ Sélection d'une ligne """
         model, self.treeiter_selected = selection.get_selected()
         if self.treeiter_selected:
-            print "Select", self.store_filter_sort[self.treeiter_selected][self.crud.get_vue_prop("key_id")]
+            print "Select", self.store_filter_sort[self.treeiter_selected][self.crud.get_view_prop("key_id")]
 
     def on_row_actived(self, widget, row, col):
         """ Double clic sur une ligne """
-        # print "Activation", widget.get_model()[row][self.crud.get_vue_prop("key_id")]
-        self.crud.key_value = widget.get_model()[row][self.crud.get_vue_prop("key_id")]
-        self.crud.form_id = self.crud.get_vue_prop("form_edit")
-        dialog = FormDlg(self, self.crud)
-        response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            print("The Ok button was clicked")
-        elif response == Gtk.ResponseType.CANCEL:
-            print("The Cancel button was clicked")
-        dialog.destroy()
+        print "Activation", widget.get_model()[row][self.crud.get_view_prop("key_id")]
+        self.crud.key_value = widget.get_model()[row][self.crud.get_view_prop("key_id")]
+        if self.crud.get_view_prop("form_edit", None) is not None:
+            self.crud.form_id = self.crud.get_view_prop("form_edit")
+            dialog = FormDlg(self, self.crud)
+            response = dialog.run()
+            if response == Gtk.ResponseType.OK:
+                print("The Ok button was clicked")
+            elif response == Gtk.ResponseType.CANCEL:
+                print("The Cancel button was clicked")
+            dialog.destroy()
 
 class Application(Gtk.Application):
     """ La classe principale d'une application Gnome """

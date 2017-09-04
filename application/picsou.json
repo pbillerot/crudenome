@@ -73,7 +73,8 @@
                     "title": "Edition d'un élément",
                     "elements": {
                         "cours_id": {},
-                        "cours_ptf_id": {}
+                        "cours_ptf_id": {"read_only": true},
+                        "cours_name": {}
                     }
                 }
             }

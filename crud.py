@@ -39,11 +39,19 @@ class Crud(object):
     Fonctions utiles regroupées dans une classe
     """
     application = {}
+    ctx = {
+        "table_id": None,
+        "view_id": None,
+        "form_id": None,
+        "key_id": None,
+        "key_value": None
+    }
     table_id = "id"
     view_id = "id"
     form_id = "id"
-    config = {}
+    key_id = "id"
     key_value = "id"
+    config = {}
 
 
     def __init__(self, crud=None):
@@ -57,9 +65,12 @@ class Crud(object):
                 self.config = json.load(json_data_file)
         else:
             self.application = crud.application
+            self.ctx = crud.ctx
             self.table_id = crud.table_id
             self.view_id = crud.view_id
             self.form_id = crud.form_id
+            self.key_id = crud.key_id
+            self.key_value = crud.key_value
             self.config = crud.config
 
     def get_json_content(self, path):
@@ -144,6 +155,14 @@ class Crud(object):
             file_list.append(filename)
         return file_list
 
+    def set_application(self, application):
+        """ Chargement du contexte de l'application """
+        self.application = application
+
+    def get_application_prop(self, prop, default=""):
+        """ Obtenir la valeur d'une propriété de l'application courante """
+        return self.application.get(prop, default)
+
     def get_table_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de la table courante """
         return self.application["tables"][self.table_id].get(prop, default)
@@ -152,61 +171,61 @@ class Crud(object):
         """ Obtenir la liste des rubriques de la table courante """
         return self.application["tables"][self.table_id]["elements"]
 
-    def get_vue_prop(self, prop, default=""):
+    def get_view_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de la vue courante """
         return self.application["tables"][self.table_id]["views"][self.view_id].get(prop, default)
 
-    def get_vue_elements(self):
+    def get_view_elements(self):
         """ Obtenir la liste des colonnes de la vue courante """
         return self.application["tables"][self.table_id]["views"][self.view_id]["elements"]
 
-    def set_vue_prop(self, prop, value):
+    def set_view_prop(self, prop, value):
         """ Ajouter/mettre à jour une propriété de la vue courante """
         self.application["tables"][self.table_id]["views"][self.view_id][prop] = value
 
-    def get_formulaire_prop(self, prop, default=""):
+    def get_form_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété du formulaire courant """
         return self.application["tables"][self.table_id]["forms"][self.form_id].get(prop, default)
 
-    def get_formulaire_elements(self):
+    def get_form_elements(self):
         """ Obtenir la liste des champs du formulaire courant """
         return self.application["tables"][self.table_id]["forms"][self.form_id]["elements"]
 
-    def set_formulaire_prop(self, prop, value):
+    def set_form_prop(self, prop, value):
         """ Ajouter/mettre à jour une propriété du formulaire courant """
         self.application["tables"][self.table_id]["forms"][self.form_id][prop] = value
 
-    def get_rubrique_prop(self, element, prop, default=""):
+    def get_element_prop(self, element, prop, default=""):
         """ Obtenir la valeur d'une propriété d'un élément (colonne) de la table courante """
         return self.application["tables"][self.table_id]["elements"][element].get(prop, default)
 
-    def set_rubrique_prop(self, element, prop, value):
+    def set_element_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
         self.application["tables"][self.table_id]["elements"][element][prop] = value
 
-    def get_colonne_prop(self, element, prop, default=""):
+    def get_column_prop(self, element, prop, default=""):
         """
         Obtenir la valeur d'une propriété d'une colonne de la vue courante
         Si la propriété de la colonne n'est pas définie au niveau de la colonne
         on recherchera au niveau de la rubrique
         """
         value = self.application["tables"][self.table_id]["views"][self.view_id]["elements"][element].get(prop, None)
-        return self.get_rubrique_prop(element, prop, default) if value is None else value
+        return self.get_element_prop(element, prop, default) if value is None else value
 
-    def set_colonne_prop(self, element, prop, value):
+    def set_column_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'une colonne de la vue courante """
         self.application["tables"][self.table_id]["views"][self.view_id]["elements"][element][prop] = value
 
-    def get_champ_prop(self, element, prop, default):
+    def get_field_prop(self, element, prop, default=""):
         """
         Obtenir la valeur d'une propriété d'un champ du formulaire courant
         Si la propriété du champ n'est pas définie au niveau du champ
         on recherchera au niveau de la rubrique
         """
         value = self.application["tables"][self.table_id]["forms"][self.form_id]["elements"][element].get(prop, None)
-        return self.get_rubrique_prop(element, prop, default) if value is None else value
+        return self.get_element_prop(element, prop, default) if value is None else value
 
-    def set_champ_prop(self, element, prop, value):
+    def set_field_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
         self.application["tables"][self.table_id]["forms"][self.form_id]["elements"][element][prop] = value
 
