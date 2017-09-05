@@ -46,11 +46,6 @@ class Crud(object):
         "key_id": None,
         "key_value": None
     }
-    table_id = "id"
-    view_id = "id"
-    form_id = "id"
-    key_id = "id"
-    key_value = "id"
     config = {}
 
 
@@ -66,11 +61,6 @@ class Crud(object):
         else:
             self.application = crud.application
             self.ctx = crud.ctx
-            self.table_id = crud.table_id
-            self.view_id = crud.view_id
-            self.form_id = crud.form_id
-            self.key_id = crud.key_id
-            self.key_value = crud.key_value
             self.config = crud.config
 
     def get_json_content(self, path):
@@ -96,7 +86,7 @@ class Crud(object):
             if conn:
                 conn.rollback()
 
-            print "Error {}\n{}\n{}".format(exc.args[0], sql, params)
+            print "Error", exc.args[0], sql, params
             sys.exit(1)
         finally:
             if conn:
@@ -120,7 +110,7 @@ class Crud(object):
             if conn:
                 conn.rollback()
 
-            print "Error {}\n{}\n{}".format(exc.args[0], sql, params)
+            print "Error", exc.args[0], sql, params
             sys.exit(1)
         finally:
             if conn:
@@ -155,6 +145,46 @@ class Crud(object):
             file_list.append(filename)
         return file_list
 
+    def get_table_id(self):
+        """ table_id """
+        return self.ctx["table_id"]
+
+    def get_view_id(self):
+        """ view_id """
+        return self.ctx["view_id"]
+
+    def get_form_id(self):
+        """ form_id """
+        return self.ctx["form_id"]
+
+    def get_key_id(self):
+        """ key_id """
+        return self.ctx["key_id"]
+
+    def get_key_value(self):
+        """ key_value """
+        return self.ctx["key_value"]
+
+    def set_table_id(self, val):
+        """ set """
+        self.ctx["table_id"] = val
+
+    def set_view_id(self, val):
+        """ set """
+        self.ctx["view_id"] = val
+
+    def set_form_id(self, val):
+        """ set """
+        self.ctx["form_id"] = val
+
+    def set_key_id(self, val):
+        """ set """
+        self.ctx["key_id"] = val
+
+    def set_key_value(self, val):
+        """ set """
+        self.ctx["key_value"] = val
+
     def set_application(self, application):
         """ Chargement du contexte de l'application """
         self.application = application
@@ -163,45 +193,57 @@ class Crud(object):
         """ Obtenir la valeur d'une propriété de l'application courante """
         return self.application.get(prop, default)
 
+    def get_application_tables(self):
+        """ Obtenir la liste des tables de l'application courante """
+        return self.application["tables"]
+
+    def get_table_views(self):
+        """ Obtenir la liste des vues de la table courante """
+        return self.application["tables"][self.ctx["table_id"]]["views"]
+
+    def get_table_forms(self):
+        """ Obtenir la liste des formulaire de la table courante """
+        return self.application["tables"][self.ctx["table_id"]]["forms"]
+
     def get_table_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de la table courante """
-        return self.application["tables"][self.table_id].get(prop, default)
+        return self.application["tables"][self.ctx["table_id"]].get(prop, default)
 
     def get_table_elements(self):
         """ Obtenir la liste des rubriques de la table courante """
-        return self.application["tables"][self.table_id]["elements"]
+        return self.application["tables"][self.ctx["table_id"]]["elements"]
 
     def get_view_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de la vue courante """
-        return self.application["tables"][self.table_id]["views"][self.view_id].get(prop, default)
+        return self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]].get(prop, default)
 
     def get_view_elements(self):
         """ Obtenir la liste des colonnes de la vue courante """
-        return self.application["tables"][self.table_id]["views"][self.view_id]["elements"]
+        return self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"]
 
     def set_view_prop(self, prop, value):
         """ Ajouter/mettre à jour une propriété de la vue courante """
-        self.application["tables"][self.table_id]["views"][self.view_id][prop] = value
+        self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]][prop] = value
 
     def get_form_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété du formulaire courant """
-        return self.application["tables"][self.table_id]["forms"][self.form_id].get(prop, default)
+        return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]].get(prop, default)
 
     def get_form_elements(self):
         """ Obtenir la liste des champs du formulaire courant """
-        return self.application["tables"][self.table_id]["forms"][self.form_id]["elements"]
+        return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"]
 
     def set_form_prop(self, prop, value):
         """ Ajouter/mettre à jour une propriété du formulaire courant """
-        self.application["tables"][self.table_id]["forms"][self.form_id][prop] = value
+        self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]][prop] = value
 
     def get_element_prop(self, element, prop, default=""):
         """ Obtenir la valeur d'une propriété d'un élément (colonne) de la table courante """
-        return self.application["tables"][self.table_id]["elements"][element].get(prop, default)
+        return self.application["tables"][self.ctx["table_id"]]["elements"][element].get(prop, default)
 
     def set_element_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
-        self.application["tables"][self.table_id]["elements"][element][prop] = value
+        self.application["tables"][self.ctx["table_id"]]["elements"][element][prop] = value
 
     def get_column_prop(self, element, prop, default=""):
         """
@@ -209,12 +251,12 @@ class Crud(object):
         Si la propriété de la colonne n'est pas définie au niveau de la colonne
         on recherchera au niveau de la rubrique
         """
-        value = self.application["tables"][self.table_id]["views"][self.view_id]["elements"][element].get(prop, None)
+        value = self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"][element].get(prop, None)
         return self.get_element_prop(element, prop, default) if value is None else value
 
     def set_column_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'une colonne de la vue courante """
-        self.application["tables"][self.table_id]["views"][self.view_id]["elements"][element][prop] = value
+        self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"][element][prop] = value
 
     def get_field_prop(self, element, prop, default=""):
         """
@@ -222,12 +264,12 @@ class Crud(object):
         Si la propriété du champ n'est pas définie au niveau du champ
         on recherchera au niveau de la rubrique
         """
-        value = self.application["tables"][self.table_id]["forms"][self.form_id]["elements"][element].get(prop, None)
+        value = self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"][element].get(prop, None)
         return self.get_element_prop(element, prop, default) if value is None else value
 
     def set_field_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
-        self.application["tables"][self.table_id]["forms"][self.form_id]["elements"][element][prop] = value
+        self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"][element][prop] = value
 
 class NumberEntry(Gtk.Entry):
     """ Input numéric seulement """

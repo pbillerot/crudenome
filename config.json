@@ -3,7 +3,7 @@
     "name": "crudenome",
     "version": "0.1",
     "copyright": "(c) pbillerot",
-    "comments": "Le framework pour développer des applications GNome",
+    "comments": "Le framework pour développer des applications Gnome",
     "web_site": "https://github.com/pbillerot/crudenome",
     "logo": "crudenome.png",
     "smtp_host": "smtp.free.fr",

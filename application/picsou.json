@@ -2,6 +2,109 @@
     "title": "PICSOU en action",
     "desc": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
     "tables": {
+        "ptf": {
+            "basename": "/mnt/sandisk/data/picsou.sqlite",
+            "key": "ptf_id",
+            "elements": {
+                "ptf_id": {
+                    "label_long": "Valeur",
+                    "label_short": "Valeur",
+                    "type": "text"
+                },
+                "ptf_name": {
+                    "label_long": "Nom",
+                    "label_short": "Nom",
+                    "type": "text",
+                    "searchable": true,
+                    "col_width": 150
+                },
+                "ptf_date": {
+                    "label_long": "Date",
+                    "label_short": "Date",
+                    "type": "date",
+                    "sortable": true
+                },
+                "ptf_quote": {
+                    "label_long": "Cours",
+                    "label_short": "Cours",
+                    "type": "text",
+                    "col_align": "right",
+                    "format": "{:.2f} €"
+                },
+                "ptf_rsi": {
+                    "label_long": "RSI",
+                    "label_short": "RSI",
+                    "type": "float",
+                    "format": "{:.0f}",
+                    "col_align": "center",
+                    "sql_color": "case when ptf_rsi > 63 then '#006600' when ptf_rsi < 35 then '#FF0000' else '#000000' end"
+                },
+                "ptf_macd": {
+                    "label_long": "MACD",
+                    "label_short": "MACD",
+                    "type": "float",
+                    "format": "{:.2f}",
+                    "col_align": "right",
+                    "sortable": false,
+                    "sql_color": "case when ptf_macd > 0 then '#006600' else '#FF0000' end"
+                },
+                "ptf_inptf": {
+                    "label_long": "Prod",
+                    "label_short": "Prod",
+                    "type": "check",
+                    "sql_read": "case when ptf_inptf = 'PPP' then 'PPP' else '' end",
+                    "sql_write": "case when ptf_inptf = 'True' then 'PPP' else '' end"
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Les valeurs",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_inptf": {},
+                        "ptf_quote": {},
+                        "ptf_date": {},
+                        "ptf_rsi": {},
+                        "ptf_macd": {}
+                    }
+                },
+                "vopen": {
+                    "title": "En production",
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_inptf": {},
+                        "ptf_quote": {},
+                        "ptf_date": {},
+                        "ptf_rsi": {},
+                        "ptf_macd": {}
+                    },
+                    "sql_where": "ptf_inptf = 'PPP'"
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Ajout d'une valeur",
+                    "elements": {
+                        "ptf_id": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Mise à jour d'une valeur",
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {
+                            "read_only": true
+                        },
+                        "ptf_inptf": {}
+                    }
+                }
+            }
+        },
         "cours": {
             "basename": "/mnt/sandisk/data/picsou.sqlite",
             "key": "cours_id",
@@ -33,16 +136,20 @@
                 "cours_close": {
                     "label_long": "Cours",
                     "label_short": "Cours",
-                    "type": "text",
-                    "format": "{:.2f}"
+                    "type": "float",
+                    "format": "{:.2f} €"
+                },
+                "cours_macd": {
+                    "label_long": "MACD",
+                    "label_short": "MACD",
+                    "type": "float",
+                    "format": "{:.2f}",
+                    "sql_color": "case when cours_macd > 0 then '#006600' else '#FF0000' end"
                 }
             },
             "views": {
                 "vall": {
-                    "title": "Tous les cours",
-                    "form_add": "fadd",
-                    "form_edit": "fedit",
-                    "deletable": true,
+                    "title": "Les cours",
                     "elements": {
                         "cours_id": {},
                         "cours_ptf_id": {},
@@ -50,33 +157,14 @@
                         "cours_close": {
                             "sortable": true
                         },
+                        "cours_macd": {
+                            "sortable": true
+                        },
                         "cours_date": {}
-                    }
-                },
-                "vopen": {
-                    "title": "Les cours ouverts",
-                    "elements": {
-                        "cours_id": {},
-                        "cours_ptf_id": {}
                     }
                 }
             },
             "forms": {
-                "fadd": {
-                    "title": "Ajout d'un élément",
-                    "elements": {
-                        "cours_id": {},
-                        "cours_ptf_id": {}
-                    }
-                },
-                "fedit": {
-                    "title": "Edition d'un élément",
-                    "elements": {
-                        "cours_id": {},
-                        "cours_ptf_id": {"read_only": true},
-                        "cours_name": {}
-                    }
-                }
             }
         }
     }
