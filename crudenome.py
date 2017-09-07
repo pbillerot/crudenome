@@ -30,6 +30,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.store_filter_sort = None
         self.footerbar = None
         self.button_add = None
+        self.search_entry = None
         self.scroll_window = None
         self.select = None
 
@@ -39,92 +40,161 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_default_size(1200, 600)
         self.set_icon_from_file(self.crud.config["logo"])
 
-        self.box = Gtk.VBox(spacing=0) # box_main footerbar
+        # layout
+        self.layout_type = const.LAYOUT_MENU
+        self.box_one = Gtk.VBox(spacing=0) # box_application footerbar
 
+        # box_application
+        self.box_application = Gtk.HBox(spacing=0) # box_application_menu ou box_sidebar box_view
+        self.box_one.pack_start(self.box_application, False, True, 3)
+
+        # box_footerbar
         self.footerbar = Gtk.HBox(spacing=0)
-        self.box_main = Gtk.HBox(spacing=0) # box_sidebar box_view
+        self.box_one.pack_end(self.footerbar, False, True, 3)
 
-        self.box_sidebar = Gtk.VBox(spacing=0)
+        # box_menu
+        self.box_application_menu = Gtk.HBox(spacing=0)
+        self.box_application.pack_start(self.box_application_menu, False, True, 3)
 
+        # box_toolbar_home
+        self.box_toolbar_home = Gtk.HBox(spacing=0)
+
+        # box_toolbar_sidebar
+        self.box_toolbar_view = Gtk.HBox(spacing=0)
+
+        # box_toolbar_right
+        self.box_toolbar_right = Gtk.HBox(spacing=0)
+
+        # box_view_sidebar
+        self.box_view_sidebar = Gtk.VBox(spacing=0)
+        self.box_application.pack_start(self.box_view_sidebar, False, True, 3)
+
+        # box_view
         self.box_view = Gtk.VBox(spacing=0) # box_viewbar box_listview
-        self.box_viewbar = Gtk.HBox(spacing=0)
-        self.box_listview = Gtk.HBox(spacing=0)
-        
-        self.box_view.pack_start(self.box_viewbar, False, True, 3)
-        self.box_view.pack_end(self.box_listview, True, True, 3)
+        self.box_application.pack_end(self.box_view, False, True, 3)
 
-        self.box_main.pack_start(self.box_sidebar, False, True, 3)
-        self.box_main.pack_end(self.box_view, False, True, 3)
+        # box_viewbar
+        self.box_view_toolbar = Gtk.HBox(spacing=0)
+        self.box_view.pack_start(self.box_view_toolbar, False, True, 3)
+        # box_listview
+        self.box_view_list = Gtk.HBox(spacing=0)
+        self.box_view.pack_end(self.box_view_list, True, True, 3)
 
-        self.box.pack_start(self.box_main, False, True, 3)
-        self.box.pack_end(self.footerbar, False, True, 3)
+        self.add(self.box_one)
 
-        self.add(self.box)
-
-        self.create_sidebar()
+        self.create_application_menu()
+        # self.create_sidebar()
         self.create_toolbar()
-        self.create_viewbar()
-        self.create_listview()
+        # self.create_viewbar()
+        # self.create_listview()
         self.create_footerbar()
+
+        self.display_layout()
 
         self.show_all()
 
-        self.search_entry.grab_focus()
+    def display_layout(self):
+        """ Affichage du layout """
+        if self.layout_type == const.LAYOUT_MENU:
+            for widget in self.box_toolbar_view.get_children():
+                Gtk.Widget.destroy(widget)
+            for widget in self.box_view_sidebar.get_children():
+                Gtk.Widget.destroy(widget)
+            for widget in self.box_view_toolbar.get_children():
+                Gtk.Widget.destroy(widget)
+            for widget in self.box_view_list.get_children():
+                Gtk.Widget.destroy(widget)
+            self.headerbar.props.title = self.crud.config["title"]
+        elif self.layout_type == const.LAYOUT_VIEW_H:
+            for widget in self.box_application_menu.get_children():
+                Gtk.Widget.destroy(widget)
+            for widget in self.box_view_sidebar.get_children():
+                Gtk.Widget.destroy(widget)
+            self.box_view.show()
+            self.headerbar.props.title = self.crud.get_application_prop("title")
+            self.box_toolbar_right.show()
+        elif self.layout_type == const.LAYOUT_VIEW_V:
+            for widget in self.box_application_menu.get_children():
+                Gtk.Widget.destroy(widget)
+            for widget in self.box_view_toolbar.get_children():
+                Gtk.Widget.destroy(widget)
+            self.headerbar.props.title = self.crud.get_application_prop("title")
 
     def display(self, msg):
         """ Affichage de message dans la fenêtre des traces """
         print msg
 
+    def create_application_menu(self):
+        """ menu des applications """
+        file_list = self.crud.directory_list(self.crud.config["application_directory"])
+        for application_file in file_list:
+            application = self.crud.get_json_content(self.crud.config["application_directory"] + "/" + application_file)
+            self.crud.set_application(application)
+            button = Gtk.Button(self.crud.get_application_prop("title"))
+            button.connect("clicked", self.on_button_application_clicked, application_file)
+            self.box_application_menu.pack_start(button, True, True, 3)
+
     def create_toolbar(self):
         """ Toolbar avec la recherche et les boutons pour afficher les vues """
         self.headerbar = Gtk.HeaderBar()
         self.headerbar.set_show_close_button(True)
-        self.headerbar.props.title = self.crud.get_application_prop("title")
+        self.headerbar.props.title = self.crud.config["title"]
         self.set_titlebar(self.headerbar)
 
-        self.search_entry = Gtk.SearchEntry()
-        self.search_entry.connect("search-changed", self.on_search_changed)
-        self.headerbar.pack_end(self.search_entry)
+        self.button_home = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_HOME))
+        self.button_home.set_tooltip_text("Retour au menu général")
+        self.button_home.connect("clicked", self.on_button_home_clicked)
+        self.headerbar.pack_start(self.button_home)
+
+        self.headerbar.pack_start(self.box_toolbar_view)
 
     def create_footerbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
         footer_label = Gtk.Label()
-        footer_label.set_markup("<sub>Développé avec {} {} {}</sub>".format(self.crud.config["title"], self.crud.config["version"], self.crud.config["copyright"]))
+        footer_label.set_markup("<sub>Développé avec {} {} {}</sub>".format(self.crud.config["title"],
+                                self.crud.config["version"], self.crud.config["copyright"]))
         self.footerbar.pack_start(footer_label, False, True, 3)
 
-    def create_viewbar(self):
+    def create_view_toolbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
-        self.viewbar_label = Gtk.Label(self.crud.get_view_prop("title"))
-        self.box_viewbar.pack_start(self.viewbar_label, False, True, 3)
+        self.search_entry = Gtk.SearchEntry()
+        self.search_entry.connect("search-changed", self.on_search_changed)
+        self.box_view_toolbar.pack_start(self.search_entry, False, True, 3)
+        self.search_entry.grab_focus()
+        # Affichage du bouton d'ajout si formulaire d'ajout présent
         self.button_add = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
         self.button_add.connect("clicked", self.on_button_add_clicked)
-        self.box_viewbar.pack_end(self.button_add, False, True, 3)
-        self.button_add.set_sensitive(False)
+        self.box_view_toolbar.pack_end(self.button_add, False, True, 3)
+        self.crud.ctx["form_id"] = self.crud.get_view_prop("form_add", "")
+        if self.crud.ctx["form_id"] == "":
+            self.button_add.set_sensitive(False)
+        else:
+            self.button_add.set_tooltip_text(self.crud.get_form_prop("title"))
+            self.button_add.set_sensitive(True)
 
-    def create_sidebar(self):
+    def create_view_sidebar(self):
         """ Création des boutons d'activation des vues de l'application """
-        # Lecture des fichiers d'application
-        file_list = self.crud.directory_list(self.crud.config["application_directory"])
         table_first = None
         view_first = None
-        for application_file in file_list:
-            application_store = self.crud.get_json_content(
-                self.crud.config["application_directory"] + "/" + application_file)
-            self.crud.set_application(application_store)
-            for table_id in self.crud.get_application_tables():
-                self.crud.set_table_id(table_id)
-                if table_first is None:
-                    table_first = table_id
-                for view_id in self.crud.get_table_views():
-                    self.crud.set_view_id(view_id)
-                    if view_first is None:
-                        view_first = view_id
-                    # les boutons sont ajoutés dans le dictionnaire de la vue
-                    self.crud.set_view_prop("button", Gtk.Button(self.crud.get_view_prop("title")))
-                    self.crud.get_view_prop("button").connect("clicked",
-                                                             self.on_button_view_clicked,
-                                                             table_id, view_id)
-                    self.box_sidebar.pack_start(self.crud.get_view_prop("button"), False, False, 3)
+        for table_id in self.crud.get_application_tables():
+            self.crud.set_table_id(table_id)
+            if table_first is None:
+                table_first = table_id
+            for view_id in self.crud.get_table_views():
+                self.crud.set_view_id(view_id)
+                if view_first is None:
+                    view_first = view_id
+                # les boutons sont ajoutés dans le dictionnaire de la vue
+                self.crud.set_view_prop("button", Gtk.Button(self.crud.get_view_prop("title")))
+                self.crud.get_view_prop("button").connect("clicked",
+                                                          self.on_button_view_clicked,
+                                                          table_id, view_id)
+                if self.crud.get_application_prop("menu_orientation") == "horizontal":
+                    self.box_toolbar_view.pack_start(self.crud.get_view_prop("button"),
+                                                     False, False, 3)
+                if self.crud.get_application_prop("menu_orientation") == "vertical":
+                    self.box_view_sidebar.pack_start(self.crud.get_view_prop("button"),
+                                                     False, False, 3)
 
         # mise en relief du bouton vue courante
         self.crud.set_table_id(table_first)
@@ -132,20 +202,12 @@ class AppWindow(Gtk.ApplicationWindow):
         self.crud.set_key_id(self.crud.get_table_prop("key"))
         self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
 
-    def create_listview(self):
+    def create_view_list(self):
         """ Création de la vue """
-        if self.scroll_window is None:
-            self.scroll_window = Gtk.ScrolledWindow() # La scrollwindow va contenir la treeview
-            self.scroll_window.set_hexpand(True)
-            self.scroll_window.set_vexpand(True)
-            self.box_listview.pack_end(self.scroll_window, True, True, 3)
-        # Affichage du bouton d'ajout si formulaire d'ajout présent
-        self.crud.ctx["form_id"] = self.crud.get_view_prop("form_add", "")
-        if self.crud.ctx["form_id"] == "":
-            self.button_add.set_sensitive(False)
-        else:
-            self.button_add.set_tooltip_text(self.crud.get_form_prop("title"))
-            self.button_add.set_sensitive(True)
+        self.scroll_window = Gtk.ScrolledWindow() # La scrollwindow va contenir la treeview
+        self.scroll_window.set_hexpand(True)
+        self.scroll_window.set_vexpand(True)
+        self.box_view_list.pack_end(self.scroll_window, True, True, 3)
 
         self.create_liststore()
         self.create_treeview()
@@ -159,9 +221,6 @@ class AppWindow(Gtk.ApplicationWindow):
         #setting the filter function, note that we're not using the
         self.store_filter.set_visible_func(self.filter_func)
         self.store_filter_sort = Gtk.TreeModelSort(self.store_filter)
-
-        if self.treeview is not None:
-            self.scroll_window.remove(self.treeview)
 
         self.treeview = Gtk.TreeView.new_with_model(self.store_filter_sort)
 
@@ -347,6 +406,30 @@ class AppWindow(Gtk.ApplicationWindow):
                         bret = True
             return bret
 
+    def on_button_application_clicked(self, widget, application_file):
+        """ Activation d'une application """
+        application = self.crud.get_json_content(
+            self.crud.config["application_directory"] + "/" + application_file)
+        self.crud.set_application(application)
+        if self.crud.get_application_prop("menu_orientation", "horizontal") == "horizontal":
+            self.layout_type = const.LAYOUT_VIEW_H
+        else:
+            self.layout_type = const.LAYOUT_VIEW_V
+        self.display_layout()
+
+        self.create_view_sidebar()
+        self.create_view_toolbar()
+        self.create_view_list()
+
+        self.show_all()
+
+    def on_button_home_clicked(self, widget):
+        """ Retour au menu général """
+        self.layout_type = const.LAYOUT_MENU
+        self.create_application_menu()
+        self.display_layout()
+        self.show_all()
+
     def on_button_view_clicked(self, widget, table_id, view_id):
         """ Activation d'une vue """
         self.crud.get_view_prop("button").get_style_context().remove_class('button_selected')
@@ -355,7 +438,15 @@ class AppWindow(Gtk.ApplicationWindow):
         self.crud.set_view_id(view_id)
         self.crud.set_key_id(self.crud.get_table_prop("key"))
         self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
-        self.create_listview()
+        for widget in self.box_view_toolbar.get_children():
+            Gtk.Widget.destroy(widget)
+        for widget in self.box_view_list.get_children():
+            Gtk.Widget.destroy(widget)
+        self.display_layout()
+
+        self.create_view_toolbar()
+        self.create_view_list()
+        self.show_all()
 
     def on_button_add_clicked(self, widget):
         """ Ajout d'un élément """

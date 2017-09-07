@@ -14,3 +14,6 @@ GOBJECT_TYPE = {
     "check": GObject.TYPE_BOOLEAN,
     "button": GObject.TYPE_OBJECT
 }
+LAYOUT_MENU = 1
+LAYOUT_VIEW_H = 2
+LAYOUT_VIEW_V = 3

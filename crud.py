@@ -92,14 +92,14 @@ class Crud(object):
             if conn:
                 conn.close()
 
-    def sql_to_dict(self, db, sql, params):
+    def sql_to_dict(self, db_path, sql, params):
         """
         Chargement du résultat d'une requête sql dans dictionnaire
         """
         conn = None
         data = None
         try:
-            conn = sqlite3.connect(db)
+            conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             cursor.execute(sql, params)
             desc = cursor.description

@@ -1,5 +1,5 @@
 {
-    "title": "PICSOU en action",
+    "title": "BOURSE en action",
     "desc": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
     "menu_orientation": "vertical",
     "tables": {
@@ -104,68 +104,6 @@
                         "ptf_inptf": {}
                     }
                 }
-            }
-        },
-        "cours": {
-            "basename": "/mnt/sandisk/data/picsou.sqlite",
-            "key": "cours_id",
-            "elements": {
-                "cours_id": {
-                    "label_long": "id",
-                    "label_short": "id",
-                    "type": "int"
-                },
-                "cours_ptf_id": {
-                    "label_long": "Valeur",
-                    "label_short": "Valeur",
-                    "type": "text"
-                },
-                "cours_name": {
-                    "label_long": "Nom",
-                    "label_short": "Nom",
-                    "type": "text",
-                    "searchable": true,
-                    "expandable": false,
-                    "col_width": 150
-                },
-                "cours_date": {
-                    "label_long": "Date",
-                    "label_short": "Date",
-                    "type": "date",
-                    "sortable": true
-                },
-                "cours_close": {
-                    "label_long": "Cours",
-                    "label_short": "Cours",
-                    "type": "float",
-                    "format": "{:.2f} €"
-                },
-                "cours_macd": {
-                    "label_long": "MACD",
-                    "label_short": "MACD",
-                    "type": "float",
-                    "format": "{:.2f}",
-                    "sql_color": "case when cours_macd > 0 then '#006600' else '#FF0000' end"
-                }
-            },
-            "views": {
-                "vall": {
-                    "title": "Les cours",
-                    "elements": {
-                        "cours_id": {},
-                        "cours_ptf_id": {},
-                        "cours_name": {},
-                        "cours_close": {
-                            "sortable": true
-                        },
-                        "cours_macd": {
-                            "sortable": true
-                        },
-                        "cours_date": {}
-                    }
-                }
-            },
-            "forms": {
             }
         }
     }
