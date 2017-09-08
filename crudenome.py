@@ -160,16 +160,14 @@ class AppWindow(Gtk.ApplicationWindow):
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.connect("search-changed", self.on_search_changed)
         self.box_view_toolbar.pack_start(self.search_entry, False, True, 3)
+        if self.crud.get_view_prop("filter", "") != "":
+            self.search_entry.set_text(self.crud.get_view_prop("filter"))
         self.search_entry.grab_focus()
-        # Affichage du bouton d'ajout si formulaire d'ajout présent
-        self.button_add = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
-        self.button_add.connect("clicked", self.on_button_add_clicked)
-        self.box_view_toolbar.pack_end(self.button_add, False, True, 3)
-        self.crud.ctx["form_id"] = self.crud.get_view_prop("form_add", "")
-        if self.crud.ctx["form_id"] == "":
-            self.button_add.set_sensitive(False)
-        else:
-            self.button_add.set_tooltip_text(self.crud.get_form_prop("title"))
+        if self.crud.get_view_prop("form_add", "") != "":
+            # Affichage du bouton d'ajout si formulaire d'ajout présent
+            self.button_add = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
+            self.button_add.connect("clicked", self.on_button_add_clicked)
+            self.box_view_toolbar.pack_end(self.button_add, False, True, 3)
             self.button_add.set_sensitive(True)
 
     def create_view_sidebar(self):
@@ -450,7 +448,6 @@ class AppWindow(Gtk.ApplicationWindow):
 
     def on_button_add_clicked(self, widget):
         """ Ajout d'un élément """
-        print "on_button_add_clicked"
         self.crud.set_form_id(self.crud.get_view_prop("form_add"))
         self.crud.set_key_value(None)
         dialog = FormDlg(self, self.crud)
@@ -469,6 +466,8 @@ class AppWindow(Gtk.ApplicationWindow):
         if len(self.search_entry.get_text()) == 1:
             return
         self.current_filter = self.search_entry.get_text()
+        # mémorisation du filtre dans la vue
+        self.crud.set_view_prop("filter", self.current_filter)
         self.store_filter.refilter()
 
     def on_action_toggle(self, cell, path):

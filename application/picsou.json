@@ -1,7 +1,7 @@
 {
     "title": "PICSOU en action",
     "desc": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
-    "menu_orientation": "vertical",
+    "menu_orientation": "horizontal",
     "tables": {
         "ptf": {
             "basename": "/mnt/sandisk/data/picsou.sqlite",
@@ -10,7 +10,8 @@
                 "ptf_id": {
                     "label_long": "Valeur",
                     "label_short": "Valeur",
-                    "type": "text"
+                    "type": "text",
+                    "searchable": true
                 },
                 "ptf_name": {
                     "label_long": "Nom",
