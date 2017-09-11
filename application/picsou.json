@@ -11,6 +11,7 @@
                     "label_long": "Valeur",
                     "label_short": "Valeur",
                     "type": "text",
+                    "sortable": true,
                     "searchable": true
                 },
                 "ptf_name": {
@@ -18,6 +19,7 @@
                     "label_short": "Nom",
                     "type": "text",
                     "searchable": true,
+                    "sortable": true,
                     "col_width": 150
                 },
                 "ptf_date": {
@@ -31,7 +33,8 @@
                     "label_short": "Cours",
                     "type": "text",
                     "col_align": "right",
-                    "format": "{:.2f} €"
+                    "format": "{:.2f} €",
+                    "default": "0.0"
                 },
                 "ptf_rsi": {
                     "label_long": "RSI",
@@ -39,7 +42,8 @@
                     "type": "float",
                     "format": "{:.0f}",
                     "col_align": "center",
-                    "sql_color": "case when ptf_rsi > 63 then '#006600' when ptf_rsi < 35 then '#FF0000' else '#000000' end"
+                    "sql_color": "case when ptf_rsi > 63 then '#006600' when ptf_rsi < 35 then '#FF0000' else '#000000' end",
+                    "default": "0"
                 },
                 "ptf_macd": {
                     "label_long": "MACD",
@@ -48,14 +52,15 @@
                     "format": "{:.2f}",
                     "col_align": "right",
                     "sortable": false,
-                    "sql_color": "case when ptf_macd > 0 then '#006600' else '#FF0000' end"
+                    "sql_color": "case when ptf_macd > 0 then '#006600' else '#FF0000' end",
+                    "default": "0.0"
                 },
                 "ptf_inptf": {
-                    "label_long": "Prod",
+                    "label_long": "Valeur en Production",
                     "label_short": "Prod",
                     "type": "check",
-                    "sql_read": "case when ptf_inptf = 'PPP' then 'PPP' else '' end",
-                    "sql_write": "case when ptf_inptf = 'True' then 'PPP' else '' end"
+                    "sql_get": "case when ptf_inptf = 'PPP' then 'PPP' else '' end",
+                    "sql_put": "case when '{ptf_inptf}' = 'True' then 'PPP' else '' end"
                 }
             },
             "views": {
@@ -92,7 +97,13 @@
                 "fadd": {
                     "title": "Ajout d'une valeur",
                     "elements": {
-                        "ptf_id": {}
+                        "ptf_id": {},
+                        "ptf_name": {"hide": true},
+                        "ptf_inptf": {"hide": true},
+                        "ptf_quote": {"hide": true},
+                        "ptf_date": {"hide": true},
+                        "ptf_rsi": {"hide": true},
+                        "ptf_macd": {"hide": true}
                     }
                 },
                 "fedit": {

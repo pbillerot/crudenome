@@ -42,59 +42,49 @@ class FormDlg(Gtk.Dialog):
 
     def create_fields(self):
         """ Création affichage des champs du formulaire """
-        if self.crud.get_key_value() is None:
+        if self.crud.get_action() == "create":
             # formulaire d'ajout
             for element in self.crud.get_form_elements():
-                self.crud.set_element_prop(element, "value", "")
-        else:
-            # formulaire de mise à jour
-            # lecture des champs dans la base sql
-            sql = "SELECT "
-            b_first = True
-            id_row = 0
-            for element in self.crud.get_form_elements():
-                if b_first:
-                    sql += element
-                    b_first = False
-                else:
-                    sql += ", " + element
-                id_row += 1
+                self.crud.set_field_prop(element, "value", "")
+        elif self.crud.get_action() in ("read", "update", "delete"):
+            # remplissage des champs avec les colonnes
+            self.crud.sql_select_to_form()
 
-            sql += " FROM " + self.crud.get_table_id()
-            sql += " WHERE " + self.crud.get_key_id() + " = :key_value"
-            rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
-            # remplissage des champs 
-            for row in rows:
-                for element in self.crud.get_form_elements():
-                    self.crud.set_element_prop(element, "value", row[element])
-
-
-        # Création des champs
+        # Création des widgets
         box = self.get_content_area()
         # lecture des champs du formulaire form_id
         for element in self.crud.get_form_elements():
+            if self.crud.get_field_prop(element, "hide", False):
+                continue
             hbox = Gtk.HBox()
             label = Gtk.Label(self.crud.get_field_prop(element, "label_long"))
-            label.set_width_chars(10)
+            label.set_width_chars(20)
             if self.crud.get_field_prop(element, "type") == "int":
-                entry = Gtk.Entry()
-                entry.set_text(str(self.crud.get_field_prop(element, "value", "none")))
+                widget = Gtk.Entry()
+                widget.set_text(str(self.crud.get_field_prop(element, "value", "none")))
+                widget.set_width_chars(40)
+            elif self.crud.get_field_prop(element, "type") == "check":
+                widget = Gtk.CheckButton()
+                widget.set_label(self.crud.get_field_prop(element, "label_long"))
+                widget.set_active(self.crud.get_field_prop(element, "value", "none"))
             else:
                 # text par défaut
-                entry = Gtk.Entry()
-                entry.set_text(str(self.crud.get_field_prop(element, "value", "none")))
-
-            if element == self.crud.get_key_id():
-                entry.set_editable(False)
-                entry.get_style_context().add_class('read_only')
+                widget = Gtk.Entry()
+                widget.set_text(str(self.crud.get_field_prop(element, "value", "none")))
+                widget.set_width_chars(40)
             if self.crud.get_field_prop(element, "read_only", False):
-                entry.set_editable(False)
-                entry.get_style_context().add_class('read_only')
+                widget.set_editable(False)
+                widget.get_style_context().add_class('read_only')
             # Mémorisation du widget
-            self.crud.set_field_prop(element, "entry", entry)
-
-            hbox.pack_end(entry, False, False, 5)
-            hbox.pack_end(label, False, False, 5)
+            self.crud.set_field_prop(element, "widget", widget)
+            # arrangement
+            if self.crud.get_field_prop(element, "type") == "check":
+                label.set_label("")
+                hbox.pack_start(label, False, False, 5)
+                hbox.pack_start(widget, False, False, 5)
+            else:
+                hbox.pack_end(widget, False, False, 5)
+                hbox.pack_end(label, False, False, 5)
             box.pack_start(hbox, True, True, 5)
 
     def on_cancel_button_clicked(self, widget):
@@ -104,22 +94,25 @@ class FormDlg(Gtk.Dialog):
 
     def on_ok_button_clicked(self, widget):
         """ Validation du formulaire """
-        # print "on_ok_button_clicked"
         # remplissage des champs avec les valeurs saisies
         for element in self.crud.get_form_elements():
-            self.crud.set_field_prop(element, "value", self.crud.get_field_prop(element, "entry").get_text())
+            if self.crud.get_field_prop(element, "hide", False):
+                continue
+            if self.crud.get_field_prop(element, "type") == "check":
+                self.crud.set_field_prop(element\
+                    ,"value", self.crud.get_field_prop(element, "widget").get_active())
+            else:
+                self.crud.set_field_prop(element\
+                    ,"value", self.crud.get_field_prop(element, "widget").get_text())
+        # valeur par défaut
+        for element in self.crud.get_form_elements():
+            if self.crud.get_field_prop(element, "value", "") == ""\
+                and self.crud.get_field_prop(element, "default", "") != "":
+                self.crud.set_field_prop(element, "value", self.crud.get_field_prop(element, "default"))
 
-        if self.crud.get_key_value is None:
-            self.insert_record()
-        else:
-            self.update_record()
+        if self.crud.get_action() in ("create") :
+            self.crud.sql_insert_record()
+        elif self.crud.get_action() in ("update") :
+            self.crud.sql_update_record()
 
         self.response(Gtk.ResponseType.OK)
-
-    def update_record(self):
-        "Mise à jour de l'enregistrement"
-        print self.crud.get_form_elements()
-
-    def insert_record(self):
-        "Création de l'enregistrement"
-        print self.crud.get_form_elements()

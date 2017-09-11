@@ -4,10 +4,9 @@
 # https://gtk.developpez.com/doc/fr/gtk/gtk-Stock-Items.html
 import sys
 from pprint import pprint
-from crud import Ctx, Crud, NumberEntry
+from crud import Crud, NumberEntry
 from cruddlg import FormDlg
 import crudconst as const
-import collections
 import re
 
 import gi
@@ -29,10 +28,15 @@ class AppWindow(Gtk.ApplicationWindow):
         self.store_filter = None
         self.store_filter_sort = None
         self.footerbar = None
-        self.button_add = None
         self.search_entry = None
         self.scroll_window = None
         self.select = None
+        self.box_view_toolbar_select = None
+        self.button_home = None
+        self.button_add = None
+        self.button_edit = None
+        self.button_delete = None
+        self.label_select = None
 
         self.set_title(self.crud.config["name"])
         self.activate_focus()
@@ -46,7 +50,7 @@ class AppWindow(Gtk.ApplicationWindow):
 
         # box_application
         self.box_application = Gtk.HBox(spacing=0) # box_application_menu ou box_sidebar box_view
-        self.box_one.pack_start(self.box_application, False, True, 3)
+        self.box_one.pack_start(self.box_application, False, True, 0)
 
         # box_footerbar
         self.footerbar = Gtk.HBox(spacing=0)
@@ -54,7 +58,7 @@ class AppWindow(Gtk.ApplicationWindow):
 
         # box_menu
         self.box_application_menu = Gtk.HBox(spacing=0)
-        self.box_application.pack_start(self.box_application_menu, False, True, 3)
+        self.box_application.pack_start(self.box_application_menu, False, True, 0)
 
         # box_toolbar_home
         self.box_toolbar_home = Gtk.HBox(spacing=0)
@@ -67,7 +71,7 @@ class AppWindow(Gtk.ApplicationWindow):
 
         # box_view_sidebar
         self.box_view_sidebar = Gtk.VBox(spacing=0)
-        self.box_application.pack_start(self.box_view_sidebar, False, True, 3)
+        self.box_application.pack_start(self.box_view_sidebar, False, True, 0)
 
         # box_view
         self.box_view = Gtk.VBox(spacing=0) # box_viewbar box_listview
@@ -163,12 +167,30 @@ class AppWindow(Gtk.ApplicationWindow):
         if self.crud.get_view_prop("filter", "") != "":
             self.search_entry.set_text(self.crud.get_view_prop("filter"))
         self.search_entry.grab_focus()
+
+        self.box_view_toolbar_select = Gtk.HBox()
+        self.button_delete = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_REMOVE))
+        self.button_delete.connect("clicked", self.on_button_delete_clicked)
+        self.button_delete.set_tooltip_text("Supprimer la sélection")
+        self.box_view_toolbar_select.pack_end(self.button_delete, False, True, 3)
+        self.button_edit = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_EDIT))
+        self.button_edit.connect("clicked", self.on_button_edit_clicked)
+        self.button_edit.set_tooltip_text("Editer le sélection...")
+        self.box_view_toolbar_select.pack_end(self.button_edit, False, True, 3)
+        self.label_select = Gtk.Label("0 sélection")
+        self.box_view_toolbar_select.pack_end(self.label_select, False, True, 3)
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+
         if self.crud.get_view_prop("form_add", "") != "":
             # Affichage du bouton d'ajout si formulaire d'ajout présent
             self.button_add = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
             self.button_add.connect("clicked", self.on_button_add_clicked)
+            self.button_add.set_tooltip_text("Créer un nouvel enregistrement...")
             self.box_view_toolbar.pack_end(self.button_add, False, True, 3)
-            self.button_add.set_sensitive(True)
+
+        self.box_view_toolbar.pack_end(self.box_view_toolbar_select, False, True, 3)
 
     def create_view_sidebar(self):
         """ Création des boutons d'activation des vues de l'application """
@@ -287,12 +309,13 @@ class AppWindow(Gtk.ApplicationWindow):
             col_id += 1
 
         # colonne action
-        self.crud.set_view_prop("col_action_id", col_id)
-        renderer_action_id = Gtk.CellRendererToggle()
-        renderer_action_id.connect("toggled", self.on_action_toggle)
-        tvc = Gtk.TreeViewColumn("Action", renderer_action_id, active=col_id)
-        self.treeview.append_column(tvc)
-        col_id += 1
+        if self.crud.get_view_prop("deletable", False) or self.crud.get_view_prop("form_edit", None) :
+            self.crud.set_view_prop("col_action_id", col_id)
+            renderer_action_id = Gtk.CellRendererToggle()
+            renderer_action_id.connect("toggled", self.on_action_toggle)
+            tvc = Gtk.TreeViewColumn("Action", renderer_action_id, active=col_id)
+            self.treeview.append_column(tvc)
+            col_id += 1
         # dernière colonne vide
         tvc = Gtk.TreeViewColumn("", Gtk.CellRendererText(), text=col_id)
         self.treeview.append_column(tvc)
@@ -329,7 +352,8 @@ class AppWindow(Gtk.ApplicationWindow):
                 col_store_types.append(GObject.TYPE_STRING)
 
         # col_action_id
-        col_store_types.append(const.GOBJECT_TYPE["check"])
+        if self.crud.get_view_prop("deletable", False) or self.crud.get_view_prop("form_edit", None) :
+            col_store_types.append(const.GOBJECT_TYPE["check"])
         # dernière colonne vide
         col_store_types.append(const.GOBJECT_TYPE["text"])
         self.liststore = Gtk.ListStore(*col_store_types)
@@ -355,15 +379,16 @@ class AppWindow(Gtk.ApplicationWindow):
                 sql += element + " as " + element + "_sortable"
                 sql += ", "
             # colonnes affichées
-            if self.crud.get_column_prop(element, "sql_read", "") == "":
+            if self.crud.get_column_prop(element, "sql_get", "") == "":
                 sql += element
             else:
-                sql += self.crud.get_column_prop(element, "sql_read", "") + " as " + element
+                sql += self.crud.get_column_prop(element, "sql_get", "") + " as " + element
 
         sql += " FROM " + self.crud.get_table_id()
         if self.crud.get_view_prop("sql_where"):
             sql += " WHERE " + self.crud.get_view_prop("sql_where")
         sql += " LIMIT 2000"
+        # print sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         self.liststore.clear()
         row_id = 0
@@ -384,11 +409,17 @@ class AppWindow(Gtk.ApplicationWindow):
                 else:
                     store.append(display.format(row[element]))
             # col_action_id
-            store.append(False)
+            if self.crud.get_view_prop("deletable", False) or self.crud.get_view_prop("form_edit", None):
+                store.append(False)
             # dernière colonne vide
             store.append("")
             self.liststore.append(store)
             row_id += 1
+        # suppression de la sélection
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+        
 
     def filter_func(self, model, iter, data):
         """Tests if the text in the row is the one in the filter"""
@@ -420,6 +451,10 @@ class AppWindow(Gtk.ApplicationWindow):
         self.create_view_list()
 
         self.show_all()
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+        self.crud.remove_all_selection()
 
     def on_button_home_clicked(self, widget):
         """ Retour au menu général """
@@ -445,11 +480,16 @@ class AppWindow(Gtk.ApplicationWindow):
         self.create_view_toolbar()
         self.create_view_list()
         self.show_all()
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+        self.crud.remove_all_selection()
 
     def on_button_add_clicked(self, widget):
         """ Ajout d'un élément """
         self.crud.set_form_id(self.crud.get_view_prop("form_add"))
         self.crud.set_key_value(None)
+        self.crud.set_action("create")
         dialog = FormDlg(self, self.crud)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
@@ -459,6 +499,41 @@ class AppWindow(Gtk.ApplicationWindow):
         elif response == Gtk.ResponseType.CANCEL:
             # print("The Cancel button was clicked")
             pass
+        dialog.destroy()
+
+    def on_button_edit_clicked(self, widget):
+        """ Edition de l'élément sélectionné"""
+        print "Edition de", self.crud.get_selection()[0]
+        self.crud.set_key_value(self.crud.get_selection()[0])
+        self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
+        self.crud.set_action("update")
+        dialog = FormDlg(self, self.crud)
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            # print("The Ok button was clicked")
+            self.update_liststore()
+        elif response == Gtk.ResponseType.CANCEL:
+            # print("The Cancel button was clicked")
+            pass
+        dialog.destroy()
+
+    def on_button_delete_clicked(self, widget):
+        """ Suppression des éléments sélectionnés """
+        # print "Suppression de ", self.crud.get_selection()
+        dialog = Gtk.MessageDialog(parent=self,\
+            flags=Gtk.DialogFlags.MODAL,\
+            type=Gtk.MessageType.WARNING,\
+            buttons=Gtk.ButtonsType.OK_CANCEL,\
+            message_format="Confirmez-vous la suppression de\n{}".format(" ".join(self.crud.get_selection())))
+
+        response = dialog.run()
+
+        if response == Gtk.ResponseType.OK:
+            for key_value in self.crud.get_selection():
+                self.crud.sql_delete_record(key_value)
+
+            self.update_liststore()
+
         dialog.destroy()
 
     def on_search_changed(self, widget):
@@ -472,30 +547,56 @@ class AppWindow(Gtk.ApplicationWindow):
 
     def on_action_toggle(self, cell, path):
         """ Clic sur coche d'action"""
-        print "Action sur", self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
-        self.crud.ctx["key_value"] = self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        # print "Action sur", self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        key_id = self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
         row_id = self.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        if self.liststore[row_id][self.crud.get_view_prop("col_action_id")]:
+            self.crud.remove_selection(key_id)
+        else:
+            self.crud.add_selection(key_id)
+        qselect = len(self.crud.get_selection())
+        if qselect > 1:
+            self.label_select.set_markup("({}) sélections".format(qselect))
+            self.label_select.show()
+            self.button_edit.hide()
+            if self.crud.get_view_prop("deletable", False):
+                self.button_delete.show()
+        elif qselect == 1:
+            self.label_select.set_markup("{}".format(key_id))
+            self.label_select.show()
+            if self.crud.get_view_prop("form_edit", None):
+                self.button_edit.show()
+            if self.crud.get_view_prop("deletable", False):
+                self.button_delete.show()
+        else:
+            self.label_select.hide()
+            self.button_edit.hide()
+            self.button_delete.hide()
+
         self.liststore[row_id][self.crud.get_view_prop("col_action_id")]\
             = not self.liststore[row_id][self.crud.get_view_prop("col_action_id")]
 
     def on_tree_selection_changed(self, selection):
         """ Sélection d'une ligne """
         model, self.treeiter_selected = selection.get_selected()
-        if self.treeiter_selected:
-            print "Select", self.store_filter_sort[self.treeiter_selected][self.crud.get_view_prop("key_id")]
+        # if self.treeiter_selected:
+        #     print "Select", self.store_filter_sort[self.treeiter_selected][self.crud.get_view_prop("key_id")]
 
     def on_row_actived(self, widget, row, col):
         """ Double clic sur une ligne """
-        print "Activation", widget.get_model()[row][self.crud.get_view_prop("key_id")]
+        # print "Activation", widget.get_model()[row][self.crud.get_view_prop("key_id")]
         self.crud.set_key_value(widget.get_model()[row][self.crud.get_view_prop("key_id")])
         if self.crud.get_view_prop("form_edit", None) is not None:
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
+            self.crud.set_action("update")
             dialog = FormDlg(self, self.crud)
             response = dialog.run()
             if response == Gtk.ResponseType.OK:
-                print("The Ok button was clicked")
+                # print("The Ok button was clicked")
+                self.update_liststore()
             elif response == Gtk.ResponseType.CANCEL:
-                print("The Cancel button was clicked")
+                # print("The Cancel button was clicked")
+                pass
             dialog.destroy()
 
 class Application(Gtk.Application):

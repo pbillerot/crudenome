@@ -22,17 +22,7 @@ import itertools
 import smtplib
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GObject
-
-class Ctx(object):
-    """ Gestion du contexte du CRUD """
-    crud = None
-
-    def __init__(self, crud=None):
-        if crud is None:
-            self.crud = Crud()
-        else:
-            self.crud = crud
+from gi.repository import Gtk
 
 class Crud(object):
     """
@@ -44,7 +34,9 @@ class Crud(object):
         "view_id": None,
         "form_id": None,
         "key_id": None,
-        "key_value": None
+        "key_value": None,
+        "action": None, # create read update delete 
+        "selected": []
     }
     config = {}
 
@@ -72,13 +64,13 @@ class Crud(object):
             store = json.load(json_data_file, object_pairs_hook=OrderedDict)
         return store
 
-    def exec_sql(self, sql, params):
+    def exec_sql(self, db_path, sql, params):
         """
         Exécution d'un ordre sql
         """
         conn = None
         try:
-            conn = sqlite3.connect(self.config["db_name"])
+            conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             cursor.execute(sql, params)
             conn.commit()
@@ -96,6 +88,7 @@ class Crud(object):
         """
         Chargement du résultat d'une requête sql dans dictionnaire
         """
+        # print "Sql:", sql, params
         conn = None
         data = None
         try:
@@ -105,7 +98,6 @@ class Crud(object):
             desc = cursor.description
             column_names = [col[0] for col in desc]
             data = [dict(itertools.izip(column_names, row)) for row in cursor]
-
         except sqlite3.Error, exc:
             if conn:
                 conn.rollback()
@@ -165,6 +157,10 @@ class Crud(object):
         """ key_value """
         return self.ctx["key_value"]
 
+    def get_action(self):
+        """ action """
+        return self.ctx["action"]
+
     def set_table_id(self, val):
         """ set """
         self.ctx["table_id"] = val
@@ -188,6 +184,11 @@ class Crud(object):
     def set_application(self, application):
         """ Chargement du contexte de l'application """
         self.application = application
+
+    def set_action(self, val):
+        """ set """
+        self.ctx["action"] = val
+
 
     def get_application_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété de l'application courante """
@@ -270,6 +271,125 @@ class Crud(object):
     def set_field_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
         self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"][element][prop] = value
+
+    def add_selection(self, row_id):
+        """ ajouter un élément dans la sélection """
+        self.ctx["selected"].append(row_id)
+    def remove_selection(self, row_id):
+        """ supprimer un élément de la sélection """
+        self.ctx["selected"].remove(row_id)
+    def remove_all_selection(self):
+        """ supprimer un élément de la sélection """
+        self.ctx["selected"][:] = []
+    def get_selection(self):
+        """ Fournir les éléments de la sélection """
+        return self.ctx["selected"]
+
+    def replace_from_dict(self, text, word_dict):
+        """ Remplace par leur valeur les mots entre accolades {mot} trouvés dans le dictionnaire """
+        for key in word_dict:
+            text = text.replace("{" + key + "}", str(word_dict[key]))
+            # print key, str(word_dict[key]), text
+        return text
+
+    def sql_select_to_form(self):
+        """ Charger les champs du formulaire courant à partie de la base sql """
+        sql = "SELECT "
+        b_first = True
+        # ajout des colonnes de la table principale
+        for element in self.get_form_elements():
+            if element.startswith("_"):
+                continue
+            if b_first:
+                sql += element
+                b_first = False
+            else:
+                sql += ", " + element
+            # read_only ?
+            if self.get_action() in ("read"):
+                self.set_field_prop(element, "read_only", "True")
+            if element == self.get_key_id() and self.get_action() in ("update", "delete"):
+                self.set_field_prop(element, "read_only", "True")
+        # ajout des colonnes de jointure
+        for element in self.get_form_elements():
+            if self.get_field_prop(element, "type") == "jointure":
+                sql += self.get_field_prop(element, "jointure_select")
+        sql += " FROM " + self.get_table_id()
+        # ajout des tables de jointure
+        for element in self.get_form_elements():
+            if self.get_field_prop(element, "type") == "jointure":
+                sql += self.get_field_prop(element, "jointure_join")
+        # le WHERE
+        sql += " WHERE " + self.get_key_id() + " = :key_value"
+        # Go!
+        rows = self.sql_to_dict(self.get_table_prop("basename"), sql, self.ctx)
+        # remplissage des champs
+        # print "Record", rows
+        for row in rows:
+            for element in self.get_form_elements():
+                self.set_field_prop(element, "value", row[element])
+
+    def sql_update_record(self):
+        """ Mise à jour de l'enregistrement du formulaire courant """
+        sql = "UPDATE " + self.get_table_id() + " SET "
+        b_first = True
+        params = {}
+        for element in self.get_form_elements():
+            if element == self.get_key_id():
+                continue
+            if b_first:
+                b_first = False
+            else:
+                sql += ", "
+            if self.get_field_prop(element, "sql_put", None):
+                sql += element + " = " + self.get_field_prop(element, "sql_put")
+            else:
+                sql += element + " = :" + element
+            params[str(element)] = self.get_field_prop(element, "value")
+
+        sql += " WHERE " + self.get_key_id() + " = :key_value"
+        params["key_value"] = self.get_key_value()
+        # on remplace les {rubrique} par leur valeur
+        sql = self.replace_from_dict(sql, params)
+        # print sql, params
+        self.exec_sql(self.get_table_prop("basename"), sql, params)
+
+    def sql_insert_record(self):
+        """ Création de l'enregistrement du formulaire courant """
+        sql = "INSERT INTO " + self.get_table_id() + " ("
+        params = {}
+        b_first = True
+        for element in self.get_form_elements():
+            # if element == self.get_key_id():
+            #     continue
+            if b_first:
+                b_first = False
+            else:
+                sql += ", "
+            sql += element
+            params[str(element)] = self.get_field_prop(element, "value")
+        sql += ") VALUES ("
+        b_first = True
+        for element in self.get_form_elements():
+            # if element == self.get_key_id():
+            #     continue
+            if b_first:
+                b_first = False
+            else:
+                sql += ", "
+            sql += ":" + element
+        sql += ")"
+        # on remplace les {rubrique} par leur valeur
+        sql = self.replace_from_dict(sql, params)
+        # print sql, params
+        self.exec_sql(self.get_table_prop("basename"), sql, params)
+
+    def sql_delete_record(self, key_value):
+        """ Suppression d'un enregistrement de la vue courante """
+        sql = "DELETE FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :key_value"
+        params = {}
+        params["key_value"] = key_value
+        self.exec_sql(self.get_table_prop("basename"), sql, params)
 
 class NumberEntry(Gtk.Entry):
     """ Input numéric seulement """

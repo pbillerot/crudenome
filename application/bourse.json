@@ -1,7 +1,7 @@
 {
     "title": "BOURSE en action",
     "desc": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
-    "menu_orientation": "horizontal",
+    "menu_orientation": "vertical",
     "tables": {
         "ptf": {
             "basename": "/mnt/sandisk/data/picsou.sqlite",

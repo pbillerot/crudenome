@@ -1,5 +1,5 @@
 
-GtkEntry.invalid {
+.invalid {
     background: #ffaaaa;
 }
 
@@ -10,4 +10,7 @@ GtkEntry.invalid {
     /*background: #E5CD89;*/
     /*color: blue;*/
     font-weight: 900;
+}
+.action {
+    background: #ffaaaa;
 }
