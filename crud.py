@@ -348,11 +348,14 @@ class Crud(object):
             params[str(element)] = self.get_field_prop(element, "value")
 
         sql += " WHERE " + self.get_key_id() + " = :key_value"
-        params["key_value"] = self.get_key_value()
+        params[self.get_key_id()] = self.get_key_value()
         # on remplace les {rubrique} par leur valeur
         sql = self.replace_from_dict(sql, params)
         # print sql, params
         self.exec_sql(self.get_table_prop("basename"), sql, params)
+        if self.get_form_prop("sql_post", "") != "":
+            sql = self.replace_from_dict(self.get_form_prop("sql_post"), params)
+            self.exec_sql(self.get_table_prop("basename"), sql, params)
 
     def sql_insert_record(self):
         """ Création de l'enregistrement du formulaire courant """
@@ -360,8 +363,6 @@ class Crud(object):
         params = {}
         b_first = True
         for element in self.get_form_elements():
-            # if element == self.get_key_id():
-            #     continue
             if b_first:
                 b_first = False
             else:
@@ -371,8 +372,6 @@ class Crud(object):
         sql += ") VALUES ("
         b_first = True
         for element in self.get_form_elements():
-            # if element == self.get_key_id():
-            #     continue
             if b_first:
                 b_first = False
             else:
@@ -383,13 +382,28 @@ class Crud(object):
         sql = self.replace_from_dict(sql, params)
         # print sql, params
         self.exec_sql(self.get_table_prop("basename"), sql, params)
+        # post_sql
+        if self.get_form_prop("sql_post", "") != "":
+            sql = self.replace_from_dict(self.get_form_prop("sql_post"), params)
+            self.exec_sql(self.get_table_prop("basename"), sql, params)
 
     def sql_delete_record(self, key_value):
         """ Suppression d'un enregistrement de la vue courante """
-        sql = "DELETE FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :key_value"
+        sql = "DELETE FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :key_id"
         params = {}
-        params["key_value"] = key_value
+        params["key_id"] = key_value
         self.exec_sql(self.get_table_prop("basename"), sql, params)
+
+    def sql_exist_key(self):
+        """ Savoir si l'enregsitrement existe """
+        sql = "SELECT count(*) as count FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :key_id"
+        params = {}
+        params["key_id"] = self.get_field_prop(self.get_key_id(), "value")
+        rows = self.sql_to_dict(self.get_table_prop("basename"), sql, params)
+        if rows[0]["count"] > 0:
+            return True
+        else:
+            return False
 
 class NumberEntry(Gtk.Entry):
     """ Input numéric seulement """

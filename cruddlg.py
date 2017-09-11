@@ -111,7 +111,14 @@ class FormDlg(Gtk.Dialog):
                 self.crud.set_field_prop(element, "value", self.crud.get_field_prop(element, "default"))
 
         if self.crud.get_action() in ("create") :
-            self.crud.sql_insert_record()
+            if self.crud.sql_exist_key():
+                dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
+                    Gtk.ButtonsType.OK, "Cet enregistrement existe déjà")
+                dialog.run()
+                dialog.destroy()
+                return
+            else:
+                self.crud.sql_insert_record()
         elif self.crud.get_action() in ("update") :
             self.crud.sql_update_record()
 

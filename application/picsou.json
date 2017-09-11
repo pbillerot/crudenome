@@ -104,7 +104,8 @@
                         "ptf_date": {"hide": true},
                         "ptf_rsi": {"hide": true},
                         "ptf_macd": {"hide": true}
-                    }
+                    },
+                    "sql_post": "update ptf set ptf_macd = 2.3 where ptf_id = '{ptf_id}'"
                 },
                 "fedit": {
                     "title": "Mise à jour d'une valeur",
