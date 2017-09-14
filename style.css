@@ -1,8 +1,11 @@
 
-.invalid {
-    background: #ffaaaa;
+.field_invalid {
+    /*background: #ffaaaa;*/
+    border-color: #ffaaaa;
 }
-
+.error {
+    color: red;
+}
 .read_only {
     background: lightgrey;
 }

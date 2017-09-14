@@ -31,10 +31,15 @@ class FormDlg(Gtk.Dialog):
         ok_button.set_always_show_image(True)
         ok_button.connect("clicked", self.on_ok_button_clicked)
 
+
         hbox_button = Gtk.HBox()
         hbox_button.pack_end(ok_button, False, False, 3)
         hbox_button.pack_end(cancel_button, False, False, 3)
         self.get_content_area().pack_end(hbox_button, False, True, 0)
+
+        self.label_error = Gtk.Label()
+        self.label_error.get_style_context().add_class('error')
+        self.get_content_area().pack_end(self.label_error, False, False, 3)
 
         self.create_fields()
 
@@ -50,6 +55,11 @@ class FormDlg(Gtk.Dialog):
             # remplissage des champs avec les colonnes
             self.crud.sql_select_to_form()
 
+        # Calcul 
+        for element in self.crud.get_form_elements():
+            if self.crud.get_key_id() == element:
+                self.crud.set_field_prop(element, "required", True)
+
         # Création des widgets
         box = self.get_content_area()
         # lecture des champs du formulaire form_id
@@ -59,6 +69,8 @@ class FormDlg(Gtk.Dialog):
             hbox = Gtk.HBox()
             label = Gtk.Label(self.crud.get_field_prop(element, "label_long"))
             label.set_width_chars(20)
+            if self.crud.get_field_prop(element, "required", False):
+                label.set_text(label.get_text() + " *")
             if self.crud.get_field_prop(element, "type") == "int":
                 widget = Gtk.Entry()
                 widget.set_text(str(self.crud.get_field_prop(element, "value", "none")))
@@ -94,6 +106,7 @@ class FormDlg(Gtk.Dialog):
 
     def on_ok_button_clicked(self, widget):
         """ Validation du formulaire """
+        self.label_error.set_text("")
         # remplissage des champs avec les valeurs saisies
         for element in self.crud.get_form_elements():
             if self.crud.get_field_prop(element, "hide", False):
@@ -104,22 +117,39 @@ class FormDlg(Gtk.Dialog):
             else:
                 self.crud.set_field_prop(element\
                     ,"value", self.crud.get_field_prop(element, "widget").get_text())
+
         # valeur par défaut
         for element in self.crud.get_form_elements():
             if self.crud.get_field_prop(element, "value", "") == ""\
                 and self.crud.get_field_prop(element, "default", "") != "":
                 self.crud.set_field_prop(element, "value", self.crud.get_field_prop(element, "default"))
 
-        if self.crud.get_action() in ("create") :
-            if self.crud.sql_exist_key():
-                dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
-                    Gtk.ButtonsType.OK, "Cet enregistrement existe déjà")
-                dialog.run()
-                dialog.destroy()
-                return
-            else:
-                self.crud.sql_insert_record()
-        elif self.crud.get_action() in ("update") :
-            self.crud.sql_update_record()
+        # CONTROLE DE LA SAISIE
+        errors = []
+        # print self.crud.get_form_elements()
+        for element in self.crud.get_form_elements():
+            if self.crud.get_field_prop(element, "widget", None):
+                self.crud.get_field_prop(element, "widget").get_style_context().remove_class('field_invalid')
+                if self.crud.get_field_prop(element, "required", False)\
+                        and not self.crud.get_field_prop(element, "read_only", False)\
+                        and self.crud.get_field_prop(element, "value", "") == "":
+                    self.crud.get_field_prop(element, "widget").get_style_context().add_class('field_invalid')
+                    errors.append("<b>{}</b> est obligatoire".format(self.crud.get_field_prop(element, "label_long")))
+        if len(errors) > 0:
+            self.label_error.set_markup("\n".join(errors))
+            return
+        else:
+            if self.crud.get_action() in ("create") :
+                if self.crud.sql_exist_key():
+                    self.label_error.set_text("Cet enregistrement existe déjà")
+                    # dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
+                    #     Gtk.ButtonsType.OK, "Cet enregistrement existe déjà")
+                    # dialog.run()
+                    # dialog.destroy()
+                    return
+                else:
+                    self.crud.sql_insert_record()
+            elif self.crud.get_action() in ("update") :
+                self.crud.sql_update_record()
 
-        self.response(Gtk.ResponseType.OK)
+            self.response(Gtk.ResponseType.OK)
