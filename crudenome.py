@@ -367,6 +367,10 @@ class AppWindow(Gtk.ApplicationWindow):
         sql = "SELECT "
         b_first = True
         for element in self.crud.get_view_elements():
+            if element.startswith("_"):
+                continue
+            if self.crud.get_column_prop(element, "type") == "jointure":
+                continue
             if b_first:
                 b_first = False
             else:
@@ -376,20 +380,28 @@ class AppWindow(Gtk.ApplicationWindow):
                 sql += self.crud.get_column_prop(element, "sql_color") + " as " + element + "_color"
                 sql += ", "
             if self.crud.get_column_prop(element, "sortable", "") != "":
-                sql += element + " as " + element + "_sortable"
+                sql += self.crud.get_table_id() + "." + element + " as " + element + "_sortable"
                 sql += ", "
             # colonnes affichées
             if self.crud.get_column_prop(element, "sql_get", "") == "":
-                sql += element
+                sql += self.crud.get_table_id() + "." + element
             else:
                 sql += self.crud.get_column_prop(element, "sql_get", "") + " as " + element
-
+        # ajout des colonnes de jointure
+        for element in self.crud.get_view_elements():
+            if self.crud.get_column_prop(element, "type") == "jointure":
+                sql += ", " + self.crud.get_column_prop(element, "jointure_columns")
         sql += " FROM " + self.crud.get_table_id()
+        # ajout des tables de jointure
+        for element in self.crud.get_view_elements():
+            if self.crud.get_column_prop(element, "type") == "jointure":
+                sql += " " + self.crud.get_column_prop(element, "jointure_join")
         if self.crud.get_view_prop("sql_where"):
             sql += " WHERE " + self.crud.get_view_prop("sql_where")
         sql += " LIMIT 2000"
         # print sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
+        # print rows
         self.liststore.clear()
         row_id = 0
         for row in rows:
@@ -397,6 +409,7 @@ class AppWindow(Gtk.ApplicationWindow):
             # col_row_id
             store.append(row_id)
             for element in self.crud.get_view_elements():
+                # print element, row
                 # colonnes techniques
                 if self.crud.get_column_prop(element, "sql_color", "") != "":
                     store.append(row[element + "_color"])
@@ -405,7 +418,10 @@ class AppWindow(Gtk.ApplicationWindow):
                 # colonnes affichées
                 display = self.crud.get_column_prop(element, "format", "")
                 if display == "":
-                    store.append(row[element])
+                    if self.crud.get_column_prop(element, "type", "text") in ("text", "date", "jointure"):
+                        store.append(str(row[element]))
+                    else:
+                        store.append(row[element])
                 else:
                     store.append(display.format(row[element]))
             # col_action_id

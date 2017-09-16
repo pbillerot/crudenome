@@ -1,7 +1,8 @@
 TODO
 
-- rubrique list
-- tags
+- rubrique jointure + combo
+- rubrique counter
+- rubrique tags
 - rubrique radio
 - rubrique link
 - option colonne edit_online True

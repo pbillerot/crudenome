@@ -36,7 +36,8 @@ class Crud(object):
         "key_id": None,
         "key_value": None,
         "action": None, # create read update delete 
-        "selected": []
+        "selected": [],
+        "errors": []
     }
     config = {}
 
@@ -137,141 +138,66 @@ class Crud(object):
             file_list.append(filename)
         return file_list
 
+    # GETTER SETTER
+    
+    # table_id
     def get_table_id(self):
         """ table_id """
         return self.ctx["table_id"]
-
-    def get_view_id(self):
-        """ view_id """
-        return self.ctx["view_id"]
-
-    def get_form_id(self):
-        """ form_id """
-        return self.ctx["form_id"]
-
-    def get_key_id(self):
-        """ key_id """
-        return self.ctx["key_id"]
-
-    def get_key_value(self):
-        """ key_value """
-        return self.ctx["key_value"]
-
-    def get_action(self):
-        """ action """
-        return self.ctx["action"]
-
     def set_table_id(self, val):
         """ set """
         self.ctx["table_id"] = val
 
+    # view_id
+    def get_view_id(self):
+        """ view_id """
+        return self.ctx["view_id"]
     def set_view_id(self, val):
         """ set """
         self.ctx["view_id"] = val
 
+    # form_id
+    def get_form_id(self):
+        """ form_id """
+        return self.ctx["form_id"]
     def set_form_id(self, val):
         """ set """
         self.ctx["form_id"] = val
 
+    # key
+    def get_key_id(self):
+        """ key_id """
+        return self.ctx["key_id"]
     def set_key_id(self, val):
         """ set """
         self.ctx["key_id"] = val
-
+    def get_key_value(self):
+        """ key_value """
+        return self.ctx["key_value"]
     def set_key_value(self, val):
         """ set """
         self.ctx["key_value"] = val
 
-    def set_application(self, application):
-        """ Chargement du contexte de l'application """
-        self.application = application
-
+    # action
+    def get_action(self):
+        """ action """
+        return self.ctx["action"]
     def set_action(self, val):
         """ set """
         self.ctx["action"] = val
 
+    # errors
+    def get_errors(self):
+        """ get """
+        self.ctx["errors"]
+    def add_error(self, label_error):
+        """ add """
+        self.ctx["errors"].append(label_error)
+    def remove_all_errors(self):
+        """ remove """
+        self.ctx["errors"][:] = []
 
-    def get_application_prop(self, prop, default=""):
-        """ Obtenir la valeur d'une propriété de l'application courante """
-        return self.application.get(prop, default)
-
-    def get_application_tables(self):
-        """ Obtenir la liste des tables de l'application courante """
-        return self.application["tables"]
-
-    def get_table_views(self):
-        """ Obtenir la liste des vues de la table courante """
-        return self.application["tables"][self.ctx["table_id"]]["views"]
-
-    def get_table_forms(self):
-        """ Obtenir la liste des formulaire de la table courante """
-        return self.application["tables"][self.ctx["table_id"]]["forms"]
-
-    def get_table_prop(self, prop, default=""):
-        """ Obtenir la valeur d'une propriété de la table courante """
-        return self.application["tables"][self.ctx["table_id"]].get(prop, default)
-
-    def get_table_elements(self):
-        """ Obtenir la liste des rubriques de la table courante """
-        return self.application["tables"][self.ctx["table_id"]]["elements"]
-
-    def get_view_prop(self, prop, default=""):
-        """ Obtenir la valeur d'une propriété de la vue courante """
-        return self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]].get(prop, default)
-
-    def get_view_elements(self):
-        """ Obtenir la liste des colonnes de la vue courante """
-        return self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"]
-
-    def set_view_prop(self, prop, value):
-        """ Ajouter/mettre à jour une propriété de la vue courante """
-        self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]][prop] = value
-
-    def get_form_prop(self, prop, default=""):
-        """ Obtenir la valeur d'une propriété du formulaire courant """
-        return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]].get(prop, default)
-
-    def get_form_elements(self):
-        """ Obtenir la liste des champs du formulaire courant """
-        return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"]
-
-    def set_form_prop(self, prop, value):
-        """ Ajouter/mettre à jour une propriété du formulaire courant """
-        self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]][prop] = value
-
-    def get_element_prop(self, element, prop, default=""):
-        """ Obtenir la valeur d'une propriété d'un élément (colonne) de la table courante """
-        return self.application["tables"][self.ctx["table_id"]]["elements"][element].get(prop, default)
-
-    def set_element_prop(self, element, prop, value):
-        """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
-        self.application["tables"][self.ctx["table_id"]]["elements"][element][prop] = value
-
-    def get_column_prop(self, element, prop, default=""):
-        """
-        Obtenir la valeur d'une propriété d'une colonne de la vue courante
-        Si la propriété de la colonne n'est pas définie au niveau de la colonne
-        on recherchera au niveau de la rubrique
-        """
-        value = self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"][element].get(prop, None)
-        return self.get_element_prop(element, prop, default) if value is None else value
-
-    def set_column_prop(self, element, prop, value):
-        """ Ajouter/mettre à jour une propriété d'une colonne de la vue courante """
-        self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"][element][prop] = value
-
-    def get_field_prop(self, element, prop, default=""):
-        """
-        Obtenir la valeur d'une propriété d'un champ du formulaire courant
-        Si la propriété du champ n'est pas définie au niveau du champ
-        on recherchera au niveau de la rubrique
-        """
-        value = self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"][element].get(prop, None)
-        return self.get_element_prop(element, prop, default) if value is None else value
-
-    def set_field_prop(self, element, prop, value):
-        """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
-        self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"][element][prop] = value
-
+    # selection
     def add_selection(self, row_id):
         """ ajouter un élément dans la sélection """
         self.ctx["selected"].append(row_id)
@@ -284,6 +210,87 @@ class Crud(object):
     def get_selection(self):
         """ Fournir les éléments de la sélection """
         return self.ctx["selected"]
+
+    # application
+    def set_application(self, application):
+        """ Chargement du contexte de l'application """
+        self.application = application
+    def get_application_prop(self, prop, default=""):
+        """ Obtenir la valeur d'une propriété de l'application courante """
+        return self.application.get(prop, default)
+    def get_application_tables(self):
+        """ Obtenir la liste des tables de l'application courante """
+        return self.application["tables"]
+
+    # table
+    def get_table_views(self):
+        """ Obtenir la liste des vues de la table courante """
+        return self.application["tables"][self.ctx["table_id"]]["views"]
+    def get_table_forms(self):
+        """ Obtenir la liste des formulaire de la table courante """
+        return self.application["tables"][self.ctx["table_id"]]["forms"]
+    def get_table_prop(self, prop, default=""):
+        """ Obtenir la valeur d'une propriété de la table courante """
+        return self.application["tables"][self.ctx["table_id"]].get(prop, default)
+    def get_table_elements(self):
+        """ Obtenir la liste des rubriques de la table courante """
+        return self.application["tables"][self.ctx["table_id"]]["elements"]
+
+    # view
+    def get_view_prop(self, prop, default=""):
+        """ Obtenir la valeur d'une propriété de la vue courante """
+        return self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]].get(prop, default)
+    def get_view_elements(self):
+        """ Obtenir la liste des colonnes de la vue courante """
+        return self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"]
+    def set_view_prop(self, prop, value):
+        """ Ajouter/mettre à jour une propriété de la vue courante """
+        self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]][prop] = value
+
+    # form
+    def get_form_prop(self, prop, default=""):
+        """ Obtenir la valeur d'une propriété du formulaire courant """
+        return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]].get(prop, default)
+    def get_form_elements(self):
+        """ Obtenir la liste des champs du formulaire courant """
+        return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"]
+    def set_form_prop(self, prop, value):
+        """ Ajouter/mettre à jour une propriété du formulaire courant """
+        self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]][prop] = value
+
+    # element
+    def get_element_prop(self, element, prop, default=""):
+        """ Obtenir la valeur d'une propriété d'un élément (colonne) de la table courante """
+        return self.application["tables"][self.ctx["table_id"]]["elements"][element].get(prop, default)
+    def set_element_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
+        self.application["tables"][self.ctx["table_id"]]["elements"][element][prop] = value
+
+    # column
+    def get_column_prop(self, element, prop, default=""):
+        """
+        Obtenir la valeur d'une propriété d'une colonne de la vue courante
+        Si la propriété de la colonne n'est pas définie au niveau de la colonne
+        on recherchera au niveau de la rubrique
+        """
+        value = self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"][element].get(prop, None)
+        return self.get_element_prop(element, prop, default) if value is None else value
+    def set_column_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'une colonne de la vue courante """
+        self.application["tables"][self.ctx["table_id"]]["views"][self.ctx["view_id"]]["elements"][element][prop] = value
+
+    # field
+    def get_field_prop(self, element, prop, default=""):
+        """
+        Obtenir la valeur d'une propriété d'un champ du formulaire courant
+        Si la propriété du champ n'est pas définie au niveau du champ
+        on recherchera au niveau de la rubrique
+        """
+        value = self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"][element].get(prop, None)
+        return self.get_element_prop(element, prop, default) if value is None else value
+    def set_field_prop(self, element, prop, value):
+        """ Ajouter/mettre à jour une propriété d'un champ du formulaire courant """
+        self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"][element][prop] = value
 
     def replace_from_dict(self, text, word_dict):
         """ Remplace par leur valeur les mots entre accolades {mot} trouvés dans le dictionnaire """
@@ -301,10 +308,10 @@ class Crud(object):
             if element.startswith("_"):
                 continue
             if b_first:
-                sql += element
+                sql += self.get_table_id() + "." + element
                 b_first = False
             else:
-                sql += ", " + element
+                sql += ", " + self.get_table_id() + "." + element
             # read_only ?
             if self.get_action() in ("read"):
                 self.set_field_prop(element, "read_only", "True")
@@ -313,12 +320,12 @@ class Crud(object):
         # ajout des colonnes de jointure
         for element in self.get_form_elements():
             if self.get_field_prop(element, "type") == "jointure":
-                sql += self.get_field_prop(element, "jointure_select")
+                sql += ", " + self.get_field_prop(element, "jointure_columns")
         sql += " FROM " + self.get_table_id()
         # ajout des tables de jointure
         for element in self.get_form_elements():
             if self.get_field_prop(element, "type") == "jointure":
-                sql += self.get_field_prop(element, "jointure_join")
+                sql += " " + self.get_field_prop(element, "jointure_join")
         # le WHERE
         sql += " WHERE " + self.get_key_id() + " = :key_value"
         # Go!

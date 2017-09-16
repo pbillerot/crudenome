@@ -1,0 +1,129 @@
+{
+    "title": "The Hospital",
+    "desc": "Hospital Activities",
+    "menu_orientation": "vertical",
+    "tables": {
+        "Department": {
+            "basename": "./data/hospital.sqlite",
+            "key": "DepartmentID",
+            "elements": {
+                "DepartmentID": {
+                    "label_long": "ID",
+                    "label_short": "ID",
+                    "type": "int"
+                },
+                "Name": {
+                    "label_long": "Department",
+                    "label_short": "Department",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true,
+                    "col_width": 150
+                },
+                "Head": {
+                    "label_long": "Head",
+                    "label_short": "Head",
+                    "type": "jointure",
+                    "sql_select": "select EmployeeID as Head, Name, Position from Physician order by Name",
+                    "jointure_columns": "Physician.Name as Head",
+                    "jointure_join": "LEFT OUTER JOIN Physician ON Physician.EmployeeID = Department.Head"
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Departments",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "DepartmentID": {},
+                        "Name": {},
+                        "Head": {}
+                    }
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add a department",
+                    "elements": {
+                        "DepartmentID": {},
+                        "Name": {},
+                        "Head": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "DepartmentID": {},
+                        "Name": {},
+                        "Head": {}
+                    }
+                }
+            }
+        },
+        "Physician": {
+            "basename": "./data/hospital.sqlite",
+            "key": "EmployeeID",
+            "elements": {
+                "EmployeeID": {
+                    "label_long": "ID",
+                    "label_short": "ID",
+                    "type": "int"
+                },
+                "Name": {
+                    "label_long": "Physician",
+                    "label_short": "Physician",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true,
+                    "col_width": 150
+                },
+                "Position": {
+                    "label_long": "Position",
+                    "label_short": "Position",
+                    "type": "text"
+                },
+                "SSN": {
+                    "label_long": "SSN",
+                    "label_short": "SSN",
+                    "type": "text",
+                    "searchable": true
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Physicians",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "EmployeeID": {},
+                        "Name": {},
+                        "Position": {},
+                        "SSN": {}
+                    }
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add a physician",
+                    "elements": {
+                        "EmployeeID": {},
+                        "Name": {},
+                        "Position": {},
+                        "SSN": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "EmployeeID": {},
+                        "Name": {},
+                        "Position": {},
+                        "SSN": {}
+                    }
+                }
+            }
+        }
+    }
+}
