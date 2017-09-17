@@ -24,7 +24,8 @@
                     "label_long": "Head",
                     "label_short": "Head",
                     "type": "jointure",
-                    "sql_select": "select EmployeeID as Head, Name, Position from Physician order by Name",
+                    "combo_column_type": "int, text, text",
+                    "combo_select": "select EmployeeID as Head, Name, Position from Physician order by Name",
                     "jointure_columns": "Physician.Name as Head",
                     "jointure_join": "LEFT OUTER JOIN Physician ON Physician.EmployeeID = Department.Head"
                 }

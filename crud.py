@@ -139,7 +139,7 @@ class Crud(object):
         return file_list
 
     # GETTER SETTER
-    
+
     # table_id
     def get_table_id(self):
         """ table_id """
@@ -411,6 +411,16 @@ class Crud(object):
             return True
         else:
             return False
+
+    # def create_combo(self, element):
+    #     """ création du widget Gtk.ComboBox """
+    #     types = []
+    #     for type in self.get_field_prop(element, "combo_column_type", [])
+    #         types.append(const.GOBJECT_TYPE[type])
+
+    #     store = Gtk.ListStore(*types)
+    #     sql = self.replace_from_dict(self.get_field_prop(element, "combo_select"))
+    #     rows = self.sql_to_dict(self.get_table_prop("basename"), self.get_field_prop(element, "combo_select"), {})
 
 class NumberEntry(Gtk.Entry):
     """ Input numéric seulement """

@@ -9,7 +9,6 @@ COL_COLOR_RED = "#006600"
 GOBJECT_TYPE = {
     "button": GObject.TYPE_OBJECT,
     "check": GObject.TYPE_BOOLEAN,
-    "combo": GObject.TYPE_OBJECT,
     "counter": GObject.TYPE_INT,
     "date": GObject.TYPE_STRING,
     "float": GObject.TYPE_FLOAT,

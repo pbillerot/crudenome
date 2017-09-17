@@ -79,6 +79,10 @@ class FormDlg(Gtk.Dialog):
                 widget = Gtk.CheckButton()
                 widget.set_label(self.crud.get_field_prop(element, "label_long"))
                 widget.set_active(self.crud.get_field_prop(element, "value", "none"))
+            # elif self.crud.get_field_prop(element, "type") == "jointure":
+            #     widget = Gtk.CheckButton()
+            #     widget.set_label(self.crud.get_field_prop(element, "label_long"))
+            #     widget.set_active(self.crud.get_field_prop(element, "value", "none"))
             else:
                 # text par défaut
                 widget = Gtk.Entry()
