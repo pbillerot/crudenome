@@ -60,7 +60,7 @@
                     "label_short": "Prod",
                     "type": "check",
                     "sql_get": "case when ptf_inptf = 'PPP' then 'PPP' else '' end",
-                    "sql_put": "case when '{ptf_inptf}' = 'True' then 'PPP' else '' end"
+                    "sql_put": "case when :ptf_inptf = 'True' then 'PPP' else '' end"
                 }
             },
             "views": {

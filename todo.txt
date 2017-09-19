@@ -14,3 +14,19 @@ x rubrique check
 x insert update
 x update_record
 x coche action - bouton edit si seulement 1 sélection, supprimer
+
+class CrudApplication
+    une seule instance
+
+class CrudView
+    n instance
+
+class CrudForm
+    n instance
+
+Class CrudColumn
+
+Class CrudField
+
+calss CrudElement
+

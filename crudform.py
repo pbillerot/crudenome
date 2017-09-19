@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 # -*- coding:Utf-8 -*-
 # http://python-gtk-3-tutorial.readthedocs.io/en/latest/index.html
-import sqlite3
-import os
-import urllib2
-import time
-from datetime import datetime
-import re
-import sys
-import itertools
+# from __future__ import unicode_literals
+# import sqlite3
+# import os
+# import urllib2
+# import time
+# from datetime import datetime
+# import re
+# import sys
+# import itertools
 import crudconst as const
 from crud import Crud
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GdkPixbuf, Gio, GLib
 
-class FormDlg(Gtk.Dialog):
+class CrudForm(Gtk.Dialog):
     """ Gestion des Formulaires du CRUD """
     def __init__(self, parent, crud):
         self.crud = Crud(crud)
@@ -79,10 +80,10 @@ class FormDlg(Gtk.Dialog):
                 widget = Gtk.CheckButton()
                 widget.set_label(self.crud.get_field_prop(element, "label_long"))
                 widget.set_active(self.crud.get_field_prop(element, "value", "none"))
-            # elif self.crud.get_field_prop(element, "type") == "jointure":
-            #     widget = Gtk.CheckButton()
-            #     widget.set_label(self.crud.get_field_prop(element, "label_long"))
-            #     widget.set_active(self.crud.get_field_prop(element, "value", "none"))
+            elif self.crud.get_field_prop(element, "type") == "jointure":
+                # widget = self.crud.create_widget_combo(element)
+                # widget = MyCombo(self.crud, element)
+                widget = MyComboBoxText(self.crud, element)
             else:
                 # text par défaut
                 widget = Gtk.Entry()
@@ -96,6 +97,9 @@ class FormDlg(Gtk.Dialog):
             # arrangement
             if self.crud.get_field_prop(element, "type") == "check":
                 label.set_label("")
+                hbox.pack_start(label, False, False, 5)
+                hbox.pack_start(widget, False, False, 5)
+            elif self.crud.get_field_prop(element, "type") == "jointure":
                 hbox.pack_start(label, False, False, 5)
                 hbox.pack_start(widget, False, False, 5)
             else:
@@ -139,7 +143,7 @@ class FormDlg(Gtk.Dialog):
                         and self.crud.get_field_prop(element, "value", "") == "":
                     self.crud.get_field_prop(element, "widget").get_style_context().add_class('field_invalid')
                     errors.append("<b>{}</b> est obligatoire".format(self.crud.get_field_prop(element, "label_long")))
-        if len(errors) > 0:
+        if errors:
             self.label_error.set_markup("\n".join(errors))
             return
         else:
@@ -157,3 +161,53 @@ class FormDlg(Gtk.Dialog):
                 self.crud.sql_update_record()
 
             self.response(Gtk.ResponseType.OK)
+
+class MyComboBoxText(Gtk.ComboBoxText):
+    """ Combobox """
+    def __init__(self, crud, element):
+        Gtk.ComboBoxText.__init__(self)
+        self.crud = crud
+        self.element = element
+        self.text = self.crud.get_field_prop(element, "value")
+        # Remplacement des variables
+        sql = self.crud.replace_from_dict(self.crud.get_field_prop(element, "combo_select")\
+            , self.crud.get_form_values())
+        rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, {})
+        # remplissage du combo
+        self.set_entry_text_column(0)
+        index = 0
+        index_selected = None
+        for row in rows:
+            # une seule colonne
+            for key in row:
+                text = str(row[key])
+                key = self.crud.get_key_from_bracket(text)
+                self.append_text(text)
+                if key is None:
+                    if text == self.crud.get_field_prop(element, "value"):
+                        index_selected = index
+                else:
+                    if key == self.crud.get_field_prop(element, "value"):
+                        index_selected = index
+
+            index += 1
+
+        self.connect('changed', self.on_changed_combo, element)
+        if index_selected:
+            self.set_active(index_selected)
+
+    def on_changed_combo(self, widget, element):
+        """ l'item sélectionné a changé """
+        text = widget.get_active_text()
+        key = self.crud.get_key_from_bracket(text)
+        if text is not None:
+            if key:
+                self.crud.set_field_prop(element, "value", key)
+                self.text = key
+            else:
+                self.crud.set_field_prop(element, "value", text)
+                self.text = text
+
+    def get_text(self):
+        """ Fourniture du texte de l'item sélectionné """
+        return self.text

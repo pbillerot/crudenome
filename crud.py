@@ -4,6 +4,7 @@
 """
     Fonctions utiles regroupées dans une classe
 """
+# from __future__ import unicode_literals
 from email.mime.text import MIMEText
 # from logging.handlers import RotatingFileHandler
 # import logging
@@ -16,11 +17,12 @@ from collections import OrderedDict
 # import urllib2
 # import time
 # from datetime import datetime
-# import re
+import re
 import sys
 import itertools
 import smtplib
 import gi
+import crudconst as const
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
@@ -73,7 +75,7 @@ class Crud(object):
         try:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
-            cursor.execute(sql, params)
+            cursor.execute(sql, [param.decode("utf-8") for param in params])
             conn.commit()
         except sqlite3.Error, exc:
             if conn:
@@ -98,7 +100,7 @@ class Crud(object):
             cursor.execute(sql, params)
             desc = cursor.description
             column_names = [col[0] for col in desc]
-            data = [dict(itertools.izip(column_names, row)) for row in cursor]
+            data = [OrderedDict(itertools.izip(column_names, row)) for row in cursor]
         except sqlite3.Error, exc:
             if conn:
                 conn.rollback()
@@ -251,6 +253,11 @@ class Crud(object):
     def get_form_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété du formulaire courant """
         return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]].get(prop, default)
+    def get_form_values(self, dico={}):
+        """ Remplir "dict" avec les valeurs des champs du formulaire courant """
+        for element in self.get_form_elements():
+            dico[element] = self.get_field_prop(element, "value")
+        return dico
     def get_form_elements(self):
         """ Obtenir la liste des champs du formulaire courant """
         return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"]
@@ -295,8 +302,13 @@ class Crud(object):
     def replace_from_dict(self, text, word_dict):
         """ Remplace par leur valeur les mots entre accolades {mot} trouvés dans le dictionnaire """
         for key in word_dict:
-            text = text.replace("{" + key + "}", str(word_dict[key]))
-            # print key, str(word_dict[key]), text
+            # print key, word_dict[key], type(word_dict[key])
+            if isinstance(word_dict[key], int):
+                text = text.replace("{" + key + "}", str(word_dict[key]))
+            elif isinstance(word_dict[key], bool):
+                text = text.replace("{" + key + "}", str(word_dict[key]))
+            else:
+                text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
         return text
 
     def sql_select_to_form(self):
@@ -317,15 +329,15 @@ class Crud(object):
                 self.set_field_prop(element, "read_only", "True")
             if element == self.get_key_id() and self.get_action() in ("update", "delete"):
                 self.set_field_prop(element, "read_only", "True")
-        # ajout des colonnes de jointure
-        for element in self.get_form_elements():
-            if self.get_field_prop(element, "type") == "jointure":
-                sql += ", " + self.get_field_prop(element, "jointure_columns")
+        # # ajout des colonnes de jointure
+        # for element in self.get_form_elements():
+        #     if self.get_field_prop(element, "type") == "jointure":
+        #         sql += ", " + self.get_field_prop(element, "jointure_columns")
         sql += " FROM " + self.get_table_id()
-        # ajout des tables de jointure
-        for element in self.get_form_elements():
-            if self.get_field_prop(element, "type") == "jointure":
-                sql += " " + self.get_field_prop(element, "jointure_join")
+        # # ajout des tables de jointure
+        # for element in self.get_form_elements():
+        #     if self.get_field_prop(element, "type") == "jointure":
+        #         sql += " " + self.get_field_prop(element, "jointure_join")
         # le WHERE
         sql += " WHERE " + self.get_key_id() + " = :key_value"
         # Go!
@@ -334,7 +346,8 @@ class Crud(object):
         # print "Record", rows
         for row in rows:
             for element in self.get_form_elements():
-                self.set_field_prop(element, "value", row[element])
+                self.set_field_prop(element, "value",\
+                    str(row[element]) if isinstance(row[element], int) else row[element].encode("utf-8") )
 
     def sql_update_record(self):
         """ Mise à jour de l'enregistrement du formulaire courant """
@@ -354,7 +367,7 @@ class Crud(object):
                 sql += element + " = :" + element
             params[str(element)] = self.get_field_prop(element, "value")
 
-        sql += " WHERE " + self.get_key_id() + " = :key_value"
+        sql += " WHERE " + self.get_key_id() + " = :" + self.get_key_id()
         params[self.get_key_id()] = self.get_key_value()
         # on remplace les {rubrique} par leur valeur
         sql = self.replace_from_dict(sql, params)
@@ -412,15 +425,8 @@ class Crud(object):
         else:
             return False
 
-    # def create_combo(self, element):
-    #     """ création du widget Gtk.ComboBox """
-    #     types = []
-    #     for type in self.get_field_prop(element, "combo_column_type", [])
-    #         types.append(const.GOBJECT_TYPE[type])
-
-    #     store = Gtk.ListStore(*types)
-    #     sql = self.replace_from_dict(self.get_field_prop(element, "combo_select"))
-    #     rows = self.sql_to_dict(self.get_table_prop("basename"), self.get_field_prop(element, "combo_select"), {})
+    def get_key_from_bracket(self, text):
+        return re.search('.*\((.*)\).*', text).group(1)
 
 class NumberEntry(Gtk.Entry):
     """ Input numéric seulement """

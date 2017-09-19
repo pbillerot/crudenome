@@ -12,3 +12,5 @@ https://en.wikibooks.org/w/index.php?title=SQL_Exercises/The_Hospital&stable=1
 
 https://www.w3resource.com/sql-exercises/hospital-database-exercise/index.php
 
+## La base Chinook
+http://www.sqlitetutorial.net/sqlite-sample-database/
