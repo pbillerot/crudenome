@@ -1,0 +1,101 @@
+{
+    "title": "Chinook",
+    "desc": "Chinook sample database",
+    "menu_orientation": "vertical",
+    "tables": {
+        "artists": {
+            "basename": "./data/chinook.sqlite",
+            "key": "ArtistId",
+            "elements": {
+                "ArtistId": {
+                    "label_long": "ID",
+                    "label_short": "ID",
+                    "type": "counter"
+                },
+                "Name": {
+                    "label_long": "Name",
+                    "label_short": "Name",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true,
+                    "col_width": 150
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Artists",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "ArtistId": {},
+                        "Name": {}
+                    }
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add an artist",
+                    "elements": {
+                        "ArtistId": {},
+                        "Name": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "ArtistId": {},
+                        "Name": {}
+                    }
+                }
+            }
+        },
+        "media_types": {
+            "basename": "./data/chinook.sqlite",
+            "key": "MediaTypeId",
+            "elements": {
+                "MediaTypeId": {
+                    "label_long": "ID",
+                    "label_short": "ID",
+                    "type": "counter"
+                },
+                "Name": {
+                    "label_long": "Name",
+                    "label_short": "Name",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true,
+                    "col_width": 150
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Media Types",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "MediaTypeId": {},
+                        "Name": {}
+                    }
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add a media type",
+                    "elements": {
+                        "MediaTypeId": {},
+                        "Name": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "MediaTypeId": {},
+                        "Name": {}
+                    }
+                }
+            }
+        }
+    }
+}

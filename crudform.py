@@ -1,7 +1,9 @@
-#!/usr/bin/env python
 # -*- coding:Utf-8 -*-
-# http://python-gtk-3-tutorial.readthedocs.io/en/latest/index.html
-# from __future__ import unicode_literals
+"""
+    Gestion des formulaires
+"""
+# from crud import Crud
+
 # import sqlite3
 # import os
 # import urllib2
@@ -10,17 +12,18 @@
 # import re
 # import sys
 # import itertools
-import crudconst as const
-from crud import Crud
+# import crudconst as const
+
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GdkPixbuf, Gio, GLib
+from gi.repository import Gtk, GdkPixbuf
 
 class CrudForm(Gtk.Dialog):
     """ Gestion des Formulaires du CRUD """
     def __init__(self, parent, crud):
-        self.crud = Crud(crud)
-        # print self.crud.ctx
+        self.crud = crud
+        self.parent = parent
+
         Gtk.Dialog.__init__(self, self.crud.get_form_prop("title"), parent, 0, None)
         # self.set_default_size(300, 150)
 
@@ -60,6 +63,8 @@ class CrudForm(Gtk.Dialog):
         for element in self.crud.get_form_elements():
             if self.crud.get_key_id() == element:
                 self.crud.set_field_prop(element, "required", True)
+            if self.crud.get_field_prop(element, "type") == "counter":
+                self.crud.set_field_prop(element, "read_only", True)
 
         # Création des widgets
         box = self.get_content_area()
@@ -83,7 +88,7 @@ class CrudForm(Gtk.Dialog):
             elif self.crud.get_field_prop(element, "type") == "jointure":
                 # widget = self.crud.create_widget_combo(element)
                 # widget = MyCombo(self.crud, element)
-                widget = MyComboBoxText(self.crud, element)
+                widget = CrudComboBoxText(self.crud, element)
             else:
                 # text par défaut
                 widget = Gtk.Entry()
@@ -162,7 +167,7 @@ class CrudForm(Gtk.Dialog):
 
             self.response(Gtk.ResponseType.OK)
 
-class MyComboBoxText(Gtk.ComboBoxText):
+class CrudComboBoxText(Gtk.ComboBoxText):
     """ Combobox """
     def __init__(self, crud, element):
         Gtk.ComboBoxText.__init__(self)
@@ -211,3 +216,14 @@ class MyComboBoxText(Gtk.ComboBoxText):
     def get_text(self):
         """ Fourniture du texte de l'item sélectionné """
         return self.text
+
+class CrudNumberEntry(Gtk.Entry):
+    """ Input numéric seulement """
+    def __init__(self):
+        Gtk.Entry.__init__(self)
+        self.connect('changed', self.on_changed_number_entry)
+
+    def on_changed_number_entry(self):
+        """ Ctrl de la saisie """
+        text = self.get_text().strip()
+        self.set_text(''.join([i for i in text if i in '0123456789']))

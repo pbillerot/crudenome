@@ -1,5 +1,7 @@
-#!/usr/bin/env python
 # -*- coding:Utf-8 -*-
+"""
+    Gestion des Vues
+"""
 # http://python-gtk-3-tutorial.readthedocs.io/en/latest/index.html
 # from __future__ import unicode_literals
 # import sqlite3
@@ -15,12 +17,16 @@ from crud import Crud
 from crudform import CrudForm
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, Gio, GObject
+from gi.repository import Gtk, GObject
 
 class CrudView():
-    """ Gestion des vues du CRUD """
-    def __init__(self, parent, crud):
-        self.crud = Crud(crud)
+    """ Gestion des vues du CRUD
+    crud         : le contexte applicatif
+    inform=True  : la vue est affichée dans la fenêtre principale
+           False : la vue est affichée dans un formulaire en tant que widget
+    """
+    def __init__(self, parent, crud, inform=False):
+        self.crud = crud
         self.parent = parent
 
         # Déclaration des variables globales
@@ -37,6 +43,15 @@ class CrudView():
         self.button_delete = None
         self.label_select = None
 
+        self.create_view_sidebar()
+        self.create_view_toolbar()
+        self.create_view_list()
+
+        self.parent.show_all()
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+        self.crud.remove_all_selection()
 
     def create_view_toolbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
@@ -293,7 +308,10 @@ class CrudView():
                 display = self.crud.get_column_prop(element, "format", "")
                 if display == "":
                     if self.crud.get_column_prop(element, "type", "text") in ("text", "date", "jointure"):
-                        store.append(str(row[element].encode("utf-8")))
+                        if isinstance(row[element], int):
+                            store.append(str(row[element]))
+                        else:
+                            store.append(str(row[element].encode("utf-8")))
                     else:
                         store.append(row[element])
                 else:
@@ -328,18 +346,23 @@ class CrudView():
         """ Activation d'une vue """
         self.crud.get_view_prop("button").get_style_context().remove_class('button_selected')
 
+        # init ctx
         self.crud.set_table_id(table_id)
         self.crud.set_view_id(view_id)
         self.crud.set_key_id(self.crud.get_table_prop("key"))
         self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
+        # raz view_toolbar
         for widget in self.parent.box_view_toolbar.get_children():
             Gtk.Widget.destroy(widget)
+        # raz view_list
         for widget in self.parent.box_view_list.get_children():
             Gtk.Widget.destroy(widget)
+
         self.parent.display_layout()
 
         self.create_view_toolbar()
         self.create_view_list()
+
         self.parent.show_all()
         self.label_select.hide()
         self.button_edit.hide()
@@ -351,7 +374,7 @@ class CrudView():
         self.crud.set_form_id(self.crud.get_view_prop("form_add"))
         self.crud.set_key_value(None)
         self.crud.set_action("create")
-        dialog = CrudForm(self, self.crud)
+        dialog = CrudForm(self.parent, self.crud)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             # print("The Ok button was clicked")
@@ -368,7 +391,7 @@ class CrudView():
         self.crud.set_key_value(self.crud.get_selection()[0])
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
-        dialog = CrudForm(self, self.crud)
+        dialog = CrudForm(self.parent, self.crud)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             # print("The Ok button was clicked")
@@ -380,12 +403,12 @@ class CrudView():
 
     def on_button_delete_clicked(self, widget):
         """ Suppression des éléments sélectionnés """
-        # print "Suppression de ", self.crud.get_selection()
-        dialog = Gtk.MessageDialog(parent=self,\
+        print "Suppression de ", self.crud.get_selection()
+        dialog = Gtk.MessageDialog(parent=self.parent,\
             flags=Gtk.DialogFlags.MODAL,\
             type=Gtk.MessageType.WARNING,\
             buttons=Gtk.ButtonsType.OK_CANCEL,\
-            message_format="Confirmez-vous la suppression de\n{}".format(" ".join(self.crud.get_selection())))
+            message_format="Confirmez-vous la suppression de\n{}".format(" ".join(str(self.crud.get_selection()))))
 
         response = dialog.run()
 
@@ -450,7 +473,7 @@ class CrudView():
         if self.crud.get_view_prop("form_edit", None) is not None:
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
-            dialog = CrudForm(self, self.crud)
+            dialog = CrudForm(self.parent, self.crud)
             response = dialog.run()
             if response == Gtk.ResponseType.OK:
                 # print("The Ok button was clicked")

@@ -75,7 +75,13 @@ class Crud(object):
         try:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
-            cursor.execute(sql, [param.decode("utf-8") for param in params])
+            pp = {}
+            for param in params:
+                if isinstance(params[param], int):
+                    pp[param] = params[param]
+                else:
+                    pp[param] = params[param].decode("utf-8")
+            cursor.execute(sql, pp)
             conn.commit()
         except sqlite3.Error, exc:
             if conn:
@@ -365,13 +371,13 @@ class Crud(object):
                 sql += element + " = " + self.get_field_prop(element, "sql_put")
             else:
                 sql += element + " = :" + element
-            params[str(element)] = self.get_field_prop(element, "value")
+            params[element] = self.get_field_prop(element, "value")
 
         sql += " WHERE " + self.get_key_id() + " = :" + self.get_key_id()
         params[self.get_key_id()] = self.get_key_value()
         # on remplace les {rubrique} par leur valeur
         sql = self.replace_from_dict(sql, params)
-        # print sql, params
+        print sql, params
         self.exec_sql(self.get_table_prop("basename"), sql, params)
         if self.get_form_prop("sql_post", "") != "":
             sql = self.replace_from_dict(self.get_form_prop("sql_post"), params)
@@ -383,15 +389,19 @@ class Crud(object):
         params = {}
         b_first = True
         for element in self.get_form_elements():
+            if self.get_field_prop(element, "type") == "counter":
+                continue
             if b_first:
                 b_first = False
             else:
                 sql += ", "
             sql += element
-            params[str(element)] = self.get_field_prop(element, "value")
+            params[element] = self.get_field_prop(element, "value")
         sql += ") VALUES ("
         b_first = True
         for element in self.get_form_elements():
+            if self.get_field_prop(element, "type") == "counter":
+                continue
             if b_first:
                 b_first = False
             else:
@@ -400,7 +410,7 @@ class Crud(object):
         sql += ")"
         # on remplace les {rubrique} par leur valeur
         sql = self.replace_from_dict(sql, params)
-        # print sql, params
+        print sql, params
         self.exec_sql(self.get_table_prop("basename"), sql, params)
         # post_sql
         if self.get_form_prop("sql_post", "") != "":
@@ -409,9 +419,10 @@ class Crud(object):
 
     def sql_delete_record(self, key_value):
         """ Suppression d'un enregistrement de la vue courante """
-        sql = "DELETE FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :key_id"
+        sql = "DELETE FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :" + self.get_key_id()
         params = {}
-        params["key_id"] = key_value
+        params[self.get_key_id()] = key_value
+        print sql, params
         self.exec_sql(self.get_table_prop("basename"), sql, params)
 
     def sql_exist_key(self):
@@ -427,14 +438,3 @@ class Crud(object):
 
     def get_key_from_bracket(self, text):
         return re.search('.*\((.*)\).*', text).group(1)
-
-class NumberEntry(Gtk.Entry):
-    """ Input numéric seulement """
-    def __init__(self):
-        Gtk.Entry.__init__(self)
-        self.connect('changed', self.on_changed_number_entry)
-
-    def on_changed_number_entry(self):
-        """ Ctrl de la saisie """
-        text = self.get_text().strip()
-        self.set_text(''.join([i for i in text if i in '0123456789']))

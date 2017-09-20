@@ -1,13 +1,13 @@
 TODO
 
 - rubrique jointure + combo
-- rubrique counter
 - rubrique tags
 - rubrique radio
 - rubrique link
 - option colonne edit_online True
 - sql_ctrl
 
+x rubrique counter
 x sql_post
 x delete record(s) aprés confirmation
 x rubrique check
@@ -15,18 +15,20 @@ x insert update
 x update_record
 x coche action - bouton edit si seulement 1 sélection, supprimer
 
-class CrudApplication
-    une seule instance
-
 class CrudView
     n instance
 
 class CrudForm
     n instance
 
-Class CrudColumn
-
-Class CrudField
-
-calss CrudElement
+class CrudElement
+Class CrudButton
+Class CrudCheck
+Class CrudCounter
+Class CrudDate
+Class CrudFloat
+Class CrudInt
+Class CrudJointure
+Class CrudText
+Class CrudUid
 
