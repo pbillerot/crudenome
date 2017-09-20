@@ -22,11 +22,10 @@ import sys
 import itertools
 import smtplib
 import gi
-import crudconst as const
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
-class Crud(object):
+class Crud:
     """
     Fonctions utiles regroupées dans une classe
     """
@@ -352,8 +351,8 @@ class Crud(object):
         # print "Record", rows
         for row in rows:
             for element in self.get_form_elements():
-                self.set_field_prop(element, "value",\
-                    str(row[element]) if isinstance(row[element], int) else row[element].encode("utf-8") )
+                crudel = self.get_field_prop(element, "crudel")
+                crudel.set_value_sql(row[element])
 
     def sql_update_record(self):
         """ Mise à jour de l'enregistrement du formulaire courant """
