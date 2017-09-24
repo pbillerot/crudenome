@@ -19,64 +19,47 @@ from gi.repository import Gtk, GObject
 
 class Crudel():
     """ Gestion des Elements """
+    CRUD_PARENT_VIEW = 1
+    CRUD_PARENT_FORM = 2
 
-    def __init__(self, parent, crud, element):
+    def __init__(self, parent, crud, element, crud_parent=1):
         self.crud = crud
         self.parent = parent
         self.element = element
         self.widget = None
+        self.crud_parent = crud_parent
 
         # Cast class
-        if crud.get_field_prop(element, "type", "text") == "button":
+        if crud.get_element_prop(element, "type", "text") == "button":
             self.__class__ = CrudButton
-        elif crud.get_field_prop(element, "type", "text") == "check":
+        elif crud.get_element_prop(element, "type", "text") == "check":
             self.__class__ = CrudCheck
-        elif crud.get_field_prop(element, "type", "text") == "date":
+        elif crud.get_element_prop(element, "type", "text") == "counter":
+            self.__class__ = CrudCounter
+        elif crud.get_element_prop(element, "type", "text") == "date":
             self.__class__ = CrudDate
-        elif crud.get_field_prop(element, "type", "text") == "float":
+        elif crud.get_element_prop(element, "type", "text") == "float":
             self.__class__ = CrudFloat
-        elif crud.get_field_prop(element, "type", "text") == "int":
+        elif crud.get_element_prop(element, "type", "text") == "int":
             self.__class__ = CrudInt
-        elif crud.get_field_prop(element, "type", "text") == "jointure":
+        elif crud.get_element_prop(element, "type", "text") == "jointure":
             self.__class__ = CrudJointure
-        elif crud.get_field_prop(element, "type", "text") == "uid":
+        elif crud.get_element_prop(element, "type", "text") == "uid":
             self.__class__ = CrudUid
         else:
             self.__class__ = CrudText
-
-        # Initialisation de l'élément
-        self.init_value()
 
     def get_type_gdk(self):
         """ Type d'objet du GDK """
         return GObject.TYPE_STRING
 
-    def get_instance(parent, crud, element):
-        """ Création d'une instance d'un élément int, text ou autre"""
-        if crud.get_field_prop(element, "type", "text") == "button":
-            return CrudText(parent, crud, element)
-        elif crud.get_field_prop(element, "type", "text") == "check":
-            return CrudCheck(parent, crud, element)
-        elif crud.get_field_prop(element, "type", "text") == "date":
-            return CrudDate(parent, crud, element)
-        elif crud.get_field_prop(element, "type", "text") == "float":
-            return CrudFloat(parent, crud, element)
-        elif crud.get_field_prop(element, "type", "text") == "int":
-            return CrudInt(parent, crud, element)
-        elif crud.get_field_prop(element, "type", "text") == "jointure":
-            return CrudJointure(parent, crud, element)
-        elif crud.get_field_prop(element, "type", "text") == "uid":
-            return CrudUid(parent, crud, element)
-        else:
-            return CrudText(parent, crud, element)
-
     def init_value(self):
         """ initialisation de la valeur """
-        self.crud.set_field_prop(self.element, "value", u"")
+        self.crud.set_element_prop(self.element, "value", u"")
 
     def set_value_sql(self, value_sql):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
-        self.crud.set_field_prop(self.element, "value",\
+        self.crud.set_element_prop(self.element, "value",\
             str(value_sql) if isinstance(value_sql, int) else value_sql.encode("utf-8"))
 
     def is_virtual(self):
@@ -93,23 +76,78 @@ class Crudel():
 
     def get_label_short(self):
         """ Label de l'élément utilisé dans une vue """
-        return self.crud.get_field_prop(self.element, "label_short", "")
+        return self.crud.get_column_prop(self.element, "label_short", "")
 
-    def get_type(self):
+    def get_type(self, type="text"):
         """ type d''élément du crud """
-        return self.crud.get_field_prop(self.element, "type", "text")
+        return self.crud.get_element_prop(self.element, "type", type)
+
+    def get_format(self):
+        """ modèle de présentation de la chaîne
+        "{:2f}€" par exemple pour présenter un montant en €
+        """
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "format", "")
+        else:
+            return self.crud.get_field_prop(self.element, "format", "")
 
     def get_col_width(self):
-        """ Label de l'élément utilisé dans une vue """
-        return self.crud.get_field_prop(self.element, "col_width", "")
+        """ largeur de la colonne """
+        return self.crud.get_column_prop(self.element, "col_width", None)
+
+    def get_col_align(self):
+        """ alignement du texte dans la colonne """
+        return self.crud.get_column_prop(self.element, "col_align", "")
+
+    def get_sql_color(self):
+        """ Couleur du texte dans la colonne """
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "sql_color", "")
+        else:
+            return self.crud.get_field_prop(self.element, "sql_color", "")
+
+    def get_sql_get(self):
+        """ l'instruction sql dans le select pour lire la colonne """
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "sql_get", "")
+        else:
+            return self.crud.get_field_prop(self.element, "sql_get", "")
+
+    def get_sql_put(self):
+        """ l'instruction sql pour écrire la colonne """
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "sql_put", "")
+        else:
+            return self.crud.get_field_prop(self.element, "sql_put", "")
+
+    def get_sql_where(self):
+        """ le where de sélection de la vue """
+        return self.crud.get_sql_where(self.element, "sql_put", "")
 
     def get_value(self):
         """ valeur interne de l'élément """
-        return self.crud.get_field_prop(self.element, "value", "")
+        return self.crud.get_element_prop(self.element, "value", "")
+
+    def get_jointure_columns(self):
+        """ la partie selecct de la jointure """
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "jointure_columns", "")
+        else:
+            return self.crud.get_field_prop(self.element, "jointure_columns", "")
+
+    def get_jointure_join(self):
+        """ la partie liaison evec la table principale """
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "jointure_join", "")
+        else:
+            return self.crud.get_field_prop(self.element, "jointure_join", "")
 
     def get_value_format(self):
         """ valeur formatée de l'élément """
-        display = self.crud.get_field_prop(self.element, "format", None)
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            display = self.crud.get_column_prop(self.element, "format", None)
+        else:
+            display = self.crud.get_field_prop(self.element, "format", None)
         if display:
             return display.format(self.get_value())
         else:
@@ -133,9 +171,63 @@ class Crudel():
             label.set_text(label.get_text() + " *")
         return label
 
+    def add_tree_view_column(self, treeview, col_id):
+        """ Cellule de la colonne dans la vue 
+        """
+        renderer = self._get_renderer()
+        if self.get_col_align() == "left":
+            renderer.set_property('xalign', 0.1)
+        elif self.get_col_align() == "right":
+            renderer.set_property('xalign', 1.0)
+        elif self.get_col_align() == "center":
+            renderer.set_property('xalign', 0.5)
+
+        # if self.get_sql_color() != "":
+        #     tvc = Gtk.TreeViewColumn(self.element + "_color", Gtk.CellRendererText(), text=col_id + 100)
+        #     tvc.set_visible(False)
+        #     treeview.append_column(tvc)
+        #     print self.element + "_color", col_id + 100
+        # if self.is_sortable():
+        #     tvc = Gtk.TreeViewColumn(self.element + "_sortable", Gtk.CellRendererText(), text=col_id + 200)
+        #     tvc.set_visible(False)
+        #     treeview.append_column(tvc)
+        #     print self.element + "_sortable", col_id + 200
+
+        tvc = self._get_tvc(renderer, col_id)
+
+        if self.get_sql_color() != "":
+            tvc.add_attribute(renderer, "foreground", col_id)
+        if self.is_sortable():
+            tvc.set_sort_column_id(col_id)
+        if self.get_col_width():
+            tvc.set_min_width(self.get_col_width())
+
+        treeview.append_column(tvc)
+
+        # on ajoute les colonnes techniques
+        if self.get_sql_color() != "":
+            col_id += 1
+        if self.is_sortable():
+            col_id += 1
+        return col_id
+
+    def _get_renderer(self):
+        """ Renderer de la cellule """
+        renderer = Gtk.CellRendererText()
+        return renderer
+
+    def _get_tvc(self, renderer, col_id):
+        """ TreeViewColumn de la cellule """
+        tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, text=col_id)
+        return tvc
+
     def is_hide(self):
         """ élément caché """
         return self.crud.get_field_prop(self.element, "hide", False)
+
+    def is_col_hide(self):
+        """ élément caché """
+        return self.crud.get_column_prop(self.element, "hide", False)
 
     def is_read_only(self):
         """ élément en lecture seule """
@@ -143,11 +235,11 @@ class Crudel():
 
     def is_searchable(self):
         """ le contenu de la colonne sera lue par le moteur de recharche """
-        return self.crud.get_field_prop(self.element, "searchable", False)
+        return self.crud.get_column_prop(self.element, "searchable", False)
 
     def is_sortable(self):
         """ La colonne pourra être triée en cliquant sur le titre de la colonne """
-        return self.crud.get_field_prop(self.element, "sortable", False)
+        return self.crud.get_column_prop(self.element, "sortable", False)
 
     def is_required(self):
         """ La saisie du champ est obligatoire """
@@ -207,6 +299,14 @@ class CrudCheck(Crudel):
         hbox.pack_start(widget, False, False, 5)
         return hbox
 
+    def _get_renderer(self):
+        renderer = Gtk.CellRendererToggle()
+        return renderer
+
+    def _get_tvc(self, renderer, col_id):
+        tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, active=col_id)
+        return tvc
+
 class CrudCounter(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
 
@@ -232,6 +332,12 @@ class CrudCounter(Crudel):
         hbox.pack_end(widget, False, False, 5)
         hbox.pack_end(label, False, False, 5)
         return hbox
+
+    def _get_renderer(self):
+        """ Renderer de la cellule """
+        renderer = Gtk.CellRendererText()
+        renderer.set_property('xalign', 1.0)
+        return renderer
 
 class CrudDate(Crudel):
     """ Gestion des colonnes et champs de type date """
@@ -265,7 +371,10 @@ class CrudFloat(Crudel):
         Crudel.__init__(self, parent, crud, element)
 
     def get_type_gdk(self):
-        return GObject.TYPE_FLOAT
+        if self.get_value_format() == "":
+            return GObject.TYPE_FLOAT
+        else:
+            return GObject.TYPE_STRING
 
     def init_value(self):
         Crudel.init_value(self)
@@ -283,6 +392,12 @@ class CrudFloat(Crudel):
         hbox.pack_end(label, False, False, 5)
         return hbox
 
+    def _get_renderer(self):
+        """ Renderer de la cellule """
+        renderer = Gtk.CellRendererText()
+        renderer.set_property('xalign', 1.0)
+        return renderer
+
 class CrudInt(Crudel):
     """ Gestion des colonnes et champs de type entier """
 
@@ -291,7 +406,10 @@ class CrudInt(Crudel):
         self.widget = None
 
     def get_type_gdk(self):
-        return GObject.TYPE_INT
+        if self.get_value_format() == "":
+            return GObject.TYPE_INT
+        else:
+            return GObject.TYPE_STRING
 
     def init_value(self):
         Crudel.init_value(self)
@@ -309,6 +427,12 @@ class CrudInt(Crudel):
         hbox.pack_end(self.widget, False, False, 5)
         hbox.pack_end(label, False, False, 5)
         return hbox
+
+    def _get_renderer(self):
+        """ Renderer de la cellule """
+        renderer = Gtk.CellRendererText()
+        renderer.set_property('xalign', 1.0)
+        return renderer
 
     def on_changed_number_entry(self):
         """ Ctrl de la saisie """
@@ -335,8 +459,9 @@ class CrudJointure(Crudel):
         widget = Gtk.ComboBoxText()
 
         # Remplacement des variables
+        params = {}
         sql = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "combo_select")\
-            , self.crud.get_form_values())
+            , self.crud.get_form_values(params))
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, {})
         # remplissage du combo
         widget.set_entry_text_column(0)

@@ -258,7 +258,7 @@ class Crud:
     def get_form_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété du formulaire courant """
         return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]].get(prop, default)
-    def get_form_values(self, dico={}):
+    def get_form_values(self, dico):
         """ Remplir "dict" avec les valeurs des champs du formulaire courant """
         for element in self.get_form_elements():
             dico[element] = self.get_field_prop(element, "value")
@@ -346,6 +346,7 @@ class Crud:
         # le WHERE
         sql += " WHERE " + self.get_key_id() + " = :key_value"
         # Go!
+        print sql, self.ctx
         rows = self.sql_to_dict(self.get_table_prop("basename"), sql, self.ctx)
         # remplissage des champs
         # print "Record", rows
@@ -436,4 +437,7 @@ class Crud:
             return False
 
     def get_key_from_bracket(self, text):
+        """ Retourne la clé entre parenthèses 
+        "Label bla bla (key)" va retourner "key"
+        """
         return re.search('.*\((.*)\).*', text).group(1)

@@ -16,9 +16,9 @@
                     "label_long": "Department",
                     "label_short": "Department",
                     "type": "text",
-                    "searchable": true,
+                    "col_width": 150,
                     "sortable": true,
-                    "col_width": 150
+                    "searchable": true
                 },
                 "Head": {
                     "label_long": "Head",
@@ -37,8 +37,7 @@
                     "deletable": true,
                     "elements": {
                         "DepartmentID": {},
-                        "Name": {},
-                        "Head": {}
+                        "Name": {}
                     }
                 }
             },
@@ -68,14 +67,13 @@
                 "EmployeeID": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "int"
+                    "type": "int",
+                    "sortable": true
                 },
                 "Name": {
                     "label_long": "Physician",
                     "label_short": "Physician",
                     "type": "text",
-                    "searchable": true,
-                    "sortable": true,
                     "col_width": 150
                 },
                 "Position": {
@@ -94,8 +92,6 @@
                 "vall": {
                     "title": "Physicians",
                     "form_add": "fadd",
-                    "form_edit": "fedit",
-                    "deletable": true,
                     "elements": {
                         "EmployeeID": {},
                         "Name": {},

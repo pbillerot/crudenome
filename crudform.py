@@ -42,11 +42,20 @@ class CrudForm(Gtk.Dialog):
 
         self.show_all()
 
+        # positionnement du curseur sur le 1er champ en saisie
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_field_prop(element, "crudel")
+            if not crudel.is_hide() and not crudel.is_read_only():
+                widget = self.crud.get_field_prop(element, "widget")
+                widget.grab_focus()
+                break
+
     def create_fields(self):
         """ Création affichage des champs du formulaire """
         # Création des crudel
         for element in self.crud.get_form_elements():
-            crudel = Crudel(self.parent, self.crud, element)
+            crudel = Crudel(self.parent, self.crud, element, Crudel.CRUD_PARENT_FORM)
+            crudel.init_value()
             self.crud.set_field_prop(element, "crudel", crudel)
 
         # remplissage des champs avec les colonnes
