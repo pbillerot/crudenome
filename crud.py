@@ -440,4 +440,8 @@ class Crud:
         """ Retourne la clé entre parenthèses 
         "Label bla bla (key)" va retourner "key"
         """
-        return re.search('.*\((.*)\).*', text).group(1)
+        res = re.search('.*\((.*)\).*', text)
+        if res:
+            return res.group(1)
+        else:
+            return text

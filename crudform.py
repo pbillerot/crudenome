@@ -68,7 +68,7 @@ class CrudForm(Gtk.Dialog):
             crudel = self.crud.get_field_prop(element, "crudel")
             if crudel.is_hide():
                 continue
-            crudel.dump()
+            # crudel.dump()
             box.pack_start(crudel.get_widget_box(), True, True, 5)
 
     def on_cancel_button_clicked(self, widget):

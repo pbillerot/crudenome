@@ -511,18 +511,22 @@ class CrudJointure(Crudel):
         index = 0
         index_selected = None
         for row in rows:
-            # une seule colonne
+            key = None
+            text = None
             for col in row:
-                text = str(row[col])
-                key = self.crud.get_key_from_bracket(text)
-                widget.append_text(text)
                 if key is None:
-                    if text == self.get_value():
-                        index_selected = index
-                else:
-                    if str(key) == str(self.get_value()):
-                        index_selected = index
-                # print col, text, key, self.get_value(), index_selected
+                    key = str(row[col])
+                text = str(row[col])
+            if key is None:
+                # une seule colonne
+                if text == self.get_value():
+                    index_selected = index
+                widget.append_text("%s (%s)" % (text, key))
+            else:
+                if str(key) == str(self.get_value()):
+                    index_selected = index
+                widget.append_text("%s" % text)
+            # print key, text, self.get_value(), index_selected
 
             index += 1
 

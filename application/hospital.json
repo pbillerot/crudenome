@@ -25,7 +25,8 @@
                     "label_long": "Head",
                     "label_short": "Head",
                     "type": "jointure",
-                    "combo_select": "select Name || ' (' || EmployeeID || ')' as item from Physician order by Name",
+                    "combo_select": "select Name from Physician order by Name",
+                    "combo_select1": "select EmployeeID, Name from Physician order by Name",
                     "jointure_columns": "Physician.Name as Head",
                     "jointure_join": "LEFT OUTER JOIN Physician ON Physician.EmployeeID = Department.Head"
                 }
