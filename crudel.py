@@ -60,7 +60,8 @@ class Crudel():
     def set_value_sql(self, value_sql):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
         self.crud.set_element_prop(self.element, "value",\
-            str(value_sql) if isinstance(value_sql, int) else value_sql.encode("utf-8"))
+            value_sql if isinstance(value_sql, int) else value_sql.encode("utf-8"))
+        # print "set_value_sql", self.element, value_sql, self.crud.get_element_prop(self.element, "value")
 
     def is_virtual(self):
         """ Les colonnes préfixées par _ ne sont pas dans la table """
@@ -82,14 +83,21 @@ class Crudel():
         """ type d''élément du crud """
         return self.crud.get_element_prop(self.element, "type", type)
 
-    def get_format(self):
+    def get_display(self):
         """ modèle de présentation de la chaîne
-        "{:2f}€" par exemple pour présenter un montant en €
+        https://www.tutorialspoint.com/python/python_strings.htm
+        "%3.2d €" par exemple pour présenter un montant en 0.00 €
+        "%5s" pour représenter une chaîne en remplissant de blancs à gauche si la longueur < 5c
         """
         if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
-            return self.crud.get_column_prop(self.element, "format", "")
+            display = self.crud.get_column_prop(self.element, "display")
         else:
-            return self.crud.get_field_prop(self.element, "format", "")
+            display = self.crud.get_field_prop(self.element, "display")
+        # print "display", self.element, self.crud.get_column_prop(self.element, "value"), self.get_value()
+        if display == "":
+            return str(self.get_value())
+        else:
+            return display % (self.get_value())
 
     def get_col_width(self):
         """ largeur de la colonne """
@@ -141,17 +149,6 @@ class Crudel():
             return self.crud.get_column_prop(self.element, "jointure_join", "")
         else:
             return self.crud.get_field_prop(self.element, "jointure_join", "")
-
-    def get_value_format(self):
-        """ valeur formatée de l'élément """
-        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
-            display = self.crud.get_column_prop(self.element, "format", None)
-        else:
-            display = self.crud.get_field_prop(self.element, "format", None)
-        if display:
-            return display.format(self.get_value())
-        else:
-            return self.get_value()
 
     def _get_widget_entry(self):
         """ champ de saisie """
@@ -245,6 +242,18 @@ class Crudel():
         """ La saisie du champ est obligatoire """
         return self.crud.get_field_prop(self.element, "required", False)
 
+    def dump(self):
+        """ print des propriétés de l'élément """
+        prop = {}
+        prop.update(self.crud.get_table_elements()[self.element])
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            prop.update(self.crud.get_view_elements()[self.element])
+        else:
+            prop.update(self.crud.get_form_elements()[self.element])
+        for p in prop:
+            print "%s.%s = %s" % (self.element, p, prop[p])
+
+
 class CrudButton(Crudel):
     """ Gestion des colonnes et champs de type bouton """
 
@@ -270,6 +279,9 @@ class CrudButton(Crudel):
         hbox.pack_end(widget, False, False, 5)
         hbox.pack_end(label, False, False, 5)
         return hbox
+
+    def get_display(self):
+        return self.get_value()
 
 class CrudCheck(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
@@ -339,6 +351,9 @@ class CrudCounter(Crudel):
         renderer.set_property('xalign', 1.0)
         return renderer
 
+    def get_display(self):
+        return self.get_value()
+
 class CrudDate(Crudel):
     """ Gestion des colonnes et champs de type date """
 
@@ -371,7 +386,11 @@ class CrudFloat(Crudel):
         Crudel.__init__(self, parent, crud, element)
 
     def get_type_gdk(self):
-        if self.get_value_format() == "":
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            display = self.crud.get_column_prop(self.element, "display")
+        else:
+            display = self.crud.get_field_prop(self.element, "display")
+        if display == "":
             return GObject.TYPE_FLOAT
         else:
             return GObject.TYPE_STRING
@@ -398,6 +417,16 @@ class CrudFloat(Crudel):
         renderer.set_property('xalign', 1.0)
         return renderer
 
+    def get_display(self):
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            display = self.crud.get_column_prop(self.element, "display")
+        else:
+            display = self.crud.get_field_prop(self.element, "display")
+        if display == "":
+            return self.get_value()
+        else:
+            return display % (self.get_value())
+
 class CrudInt(Crudel):
     """ Gestion des colonnes et champs de type entier """
 
@@ -406,7 +435,11 @@ class CrudInt(Crudel):
         self.widget = None
 
     def get_type_gdk(self):
-        if self.get_value_format() == "":
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            display = self.crud.get_column_prop(self.element, "display")
+        else:
+            display = self.crud.get_field_prop(self.element, "display")
+        if display == "":
             return GObject.TYPE_INT
         else:
             return GObject.TYPE_STRING
@@ -439,6 +472,16 @@ class CrudInt(Crudel):
         text = self.widget.get_text().strip()
         self.widget.set_text(''.join([i for i in text if i in '0123456789']))
 
+    def get_display(self):
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            display = self.crud.get_column_prop(self.element, "display")
+        else:
+            display = self.crud.get_field_prop(self.element, "display")
+        if display == "":
+            return self.get_value()
+        else:
+            return display % (self.get_value())
+
 class CrudJointure(Crudel):
     """ Gestion des colonnes et champs de type jointure entre 2 tables """
 
@@ -469,16 +512,17 @@ class CrudJointure(Crudel):
         index_selected = None
         for row in rows:
             # une seule colonne
-            for key in row:
-                text = str(row[key])
+            for col in row:
+                text = str(row[col])
                 key = self.crud.get_key_from_bracket(text)
                 widget.append_text(text)
                 if key is None:
-                    if text == self.crud.get_field_prop(self.element, "value"):
+                    if text == self.get_value():
                         index_selected = index
                 else:
-                    if key == self.crud.get_field_prop(self.element, "value"):
+                    if str(key) == str(self.get_value()):
                         index_selected = index
+                # print col, text, key, self.get_value(), index_selected
 
             index += 1
 

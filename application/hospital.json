@@ -6,11 +6,12 @@
         "Department": {
             "basename": "./data/hospital.sqlite",
             "key": "DepartmentID",
+            "key_display": "{Name}",
             "elements": {
                 "DepartmentID": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "int"
+                    "type": "counter"
                 },
                 "Name": {
                     "label_long": "Department",
@@ -37,7 +38,8 @@
                     "deletable": true,
                     "elements": {
                         "DepartmentID": {},
-                        "Name": {}
+                        "Name": {},
+                        "Head": {}
                     }
                 }
             },
@@ -67,7 +69,7 @@
                 "EmployeeID": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "int",
+                    "type": "counter",
                     "sortable": true
                 },
                 "Name": {
@@ -92,6 +94,8 @@
                 "vall": {
                     "title": "Physicians",
                     "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
                     "elements": {
                         "EmployeeID": {},
                         "Name": {},

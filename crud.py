@@ -334,19 +334,19 @@ class Crud:
                 self.set_field_prop(element, "read_only", "True")
             if element == self.get_key_id() and self.get_action() in ("update", "delete"):
                 self.set_field_prop(element, "read_only", "True")
-        # # ajout des colonnes de jointure
+        # ajout des colonnes de jointure
         # for element in self.get_form_elements():
         #     if self.get_field_prop(element, "type") == "jointure":
         #         sql += ", " + self.get_field_prop(element, "jointure_columns")
         sql += " FROM " + self.get_table_id()
-        # # ajout des tables de jointure
+        # ajout des tables de jointure
         # for element in self.get_form_elements():
         #     if self.get_field_prop(element, "type") == "jointure":
         #         sql += " " + self.get_field_prop(element, "jointure_join")
         # le WHERE
         sql += " WHERE " + self.get_key_id() + " = :key_value"
         # Go!
-        print sql, self.ctx
+        # print sql, self.ctx
         rows = self.sql_to_dict(self.get_table_prop("basename"), sql, self.ctx)
         # remplissage des champs
         # print "Record", rows

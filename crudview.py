@@ -265,29 +265,17 @@ class CrudView():
                 crudel = self.crud.get_column_prop(element, "crudel")
                 if crudel.is_virtual():
                     continue
+                # Mémorisation dans crudel value
+                crudel.set_value_sql(row[element])
                 # colonnes techniques
                 if crudel.get_sql_color() != "":
                     store.append(row[element + "_color"])
                 if crudel.is_sortable():
-                    if crudel.get_type() in ("text", "date", "jointure"):
-                        if isinstance(row[element], int):
-                            store.append(str(row[element]))
-                        else:
-                            store.append(str(row[element].encode("utf-8")))
-                    else:
-                        store.append(row[element])
+                   store.append(crudel.get_value())
                 # colonnes crudel
-                display = crudel.get_format()
-                if display == "":
-                    if crudel.get_type() in ("text", "date", "jointure"):
-                        if isinstance(row[element], int):
-                            store.append(str(row[element]))
-                        else:
-                            store.append(str(row[element].encode("utf-8")))
-                    else:
-                        store.append(row[element])
-                else:
-                    store.append(display.format(row[element]))
+                display = crudel.get_display()
+                # print element, display
+                store.append(display)
             # col_action_id
             if self.crud.get_view_prop("deletable", False)\
                 or self.crud.get_view_prop("form_edit", None) is not None:

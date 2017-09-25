@@ -33,14 +33,14 @@
                     "label_short": "Cours",
                     "type": "text",
                     "col_align": "right",
-                    "format": "{:.2f} €",
+                    "display": "%3.2f €",
                     "default": "0.0"
                 },
                 "ptf_rsi": {
                     "label_long": "RSI",
                     "label_short": "RSI",
                     "type": "float",
-                    "format": "{:.0f}",
+                    "display": "%1.0f",
                     "col_align": "center",
                     "sql_color": "case when ptf_rsi > 63 then '#006600' when ptf_rsi < 35 then '#FF0000' else '#000000' end",
                     "default": "0"
@@ -49,7 +49,7 @@
                     "label_long": "MACD",
                     "label_short": "MACD",
                     "type": "float",
-                    "format": "{:.2f}",
+                    "display": "%3.2f",
                     "col_align": "right",
                     "sortable": false,
                     "sql_color": "case when ptf_macd > 0 then '#006600' else '#FF0000' end",
@@ -151,13 +151,13 @@
                     "label_long": "Cours",
                     "label_short": "Cours",
                     "type": "float",
-                    "format": "{:.2f} €"
+                    "display": "%3.2f €"
                 },
                 "cours_macd": {
                     "label_long": "MACD",
                     "label_short": "MACD",
                     "type": "float",
-                    "format": "{:.2f}",
+                    "display": "%3.2f",
                     "sql_color": "case when cours_macd > 0 then '#006600' else '#FF0000' end"
                 }
             },
