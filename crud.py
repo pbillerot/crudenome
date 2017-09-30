@@ -43,7 +43,7 @@ class Crud:
     config = {}
 
 
-    def __init__(self, crud=None):
+    def __init__(self, crud=None, duplicate=False):
         """
         Chargement du dictionnaire config.json
         """
@@ -53,9 +53,14 @@ class Crud:
             with open("config.json") as json_data_file:
                 self.config = json.load(json_data_file)
         else:
-            self.application = crud.application
-            self.ctx = crud.ctx
-            self.config = crud.config
+            if duplicate:
+                self.application = dict(crud.application)
+                self.ctx = dict(crud.ctx)
+                self.config = crud.config
+            else:
+                self.application = crud.application
+                self.ctx = crud.ctx
+                self.config = crud.config
 
     def get_json_content(self, path):
         """
@@ -76,7 +81,7 @@ class Crud:
             cursor = conn.cursor()
             pp = {}
             for param in params:
-                if isinstance(params[param], int):
+                if isinstance(params[param], int) or isinstance(params[param], float):
                     pp[param] = params[param]
                 else:
                     pp[param] = params[param].decode("utf-8")
@@ -353,6 +358,8 @@ class Crud:
         for row in rows:
             for element in self.get_form_elements():
                 crudel = self.get_field_prop(element, "crudel")
+                if crudel.is_virtual():
+                    continue
                 crudel.set_value_sql(row[element])
 
     def sql_update_record(self):

@@ -18,7 +18,16 @@
                     "type": "text",
                     "searchable": true,
                     "sortable": true,
-                    "col_width": 150
+                    "col_width": 250
+                },
+                "_valbums": {
+                    "label_long": "Albums",
+                    "label_short": "Albums",
+                    "type": "view",
+                    "height": 200,
+                    "view_table": "albums",
+                    "view_view": "valbums",
+                    "sql_where": "albums.ArtistId = {ArtistId}"
                 }
             },
             "views": {
@@ -45,7 +54,83 @@
                     "title": "Edit",
                     "elements": {
                         "ArtistId": {},
-                        "Name": {}
+                        "Name": {},
+                        "_valbums": {}
+                    }
+                }
+            }
+        },
+        "albums": {
+            "basename": "./data/chinook.sqlite",
+            "key": "AlbumId",
+            "elements": {
+                "AlbumId": {
+                    "label_long": "ID",
+                    "label_short": "ID",
+                    "type": "counter"
+                },
+                "Title": {
+                    "label_long": "Album",
+                    "label_short": "Album",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true,
+                    "col_width": 250
+                },
+                "ArtistId": {
+                    "label_long": "Artist",
+                    "label_short": "Artist",
+                    "type": "jointure",
+                    "combo_select": "select ArtistId, Name from artists order by Name",
+                    "jointure_columns": "artists.Name as ArtistId",
+                    "jointure_join": "left outer join artists on artists.ArtistId = albums.ArtistId",
+                    "searchable": true,
+                    "sortable": true,
+                    "col_width": 250
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Albums",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "ArtistId": {},
+                        "AlbumId": {},
+                        "Title": {}
+                    }
+                },
+                "valbums": {
+                    "title": "Albums",
+                    "hide": true,
+                    "elements": {
+                        "ArtistId": {
+                            "hide": true
+                        },
+                        "AlbumId": {
+                            "hide": true
+                        },
+                        "Title": {}
+                    },
+                    "sql_where": "1 = 1"
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add an album",
+                    "elements": {
+                        "ArtistId": {},
+                        "AlbumId": {},
+                        "Title": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "ArtistId": {},
+                        "AlbumId": {},
+                        "Title": {}
                     }
                 }
             }
@@ -65,7 +150,7 @@
                     "type": "text",
                     "searchable": true,
                     "sortable": true,
-                    "col_width": 150
+                    "col_width": 250
                 }
             },
             "views": {

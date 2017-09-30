@@ -42,7 +42,10 @@ class CrudForm(Gtk.Dialog):
 
         self.show_all()
 
-        # positionnement du curseur sur le 1er champ en saisie
+        # Initialisation des widgets
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel.init_widget()
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
             if not crudel.is_hide() and not crudel.is_read_only():

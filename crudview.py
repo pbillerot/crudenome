@@ -28,7 +28,7 @@ class CrudView():
     inform=True  : la vue est affichée dans la fenêtre principale
            False : la vue est affichée dans un formulaire en tant que widget
     """
-    def __init__(self, parent, crud, inform=False):
+    def __init__(self, parent, crud):
         self.crud = crud
         self.parent = parent
 
@@ -99,6 +99,8 @@ class CrudView():
                 table_first = table_id
             for view_id in self.crud.get_table_views():
                 self.crud.set_view_id(view_id)
+                if self.crud.get_view_prop("hide", False):
+                    continue
                 if view_first is None:
                     view_first = view_id
                 # les boutons sont ajoutés dans le dictionnaire de la vue
@@ -249,7 +251,7 @@ class CrudView():
             if crudel.get_type() == "jointure":
                 sql += " " + crudel.get_jointure_join()
         if self.crud.get_view_prop("sql_where"):
-            sql += " WHERE " + crudel.get_sql_where()
+            sql += " WHERE " + self.crud.get_view_prop("sql_where")
         sql += " LIMIT 2000"
         # print sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
@@ -271,7 +273,7 @@ class CrudView():
                 if crudel.get_sql_color() != "":
                     store.append(row[element + "_color"])
                 if crudel.is_sortable():
-                   store.append(crudel.get_value())
+                    store.append(crudel.get_value())
                 # colonnes crudel
                 display = crudel.get_display()
                 # print element, display
