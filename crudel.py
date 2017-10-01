@@ -3,6 +3,7 @@
     Gestion des éléments
 """
 from crud import Crud
+# from crudform import CrudForm
 # import sqlite3
 # import os
 # import urllib2
@@ -23,8 +24,9 @@ class Crudel():
     CRUD_PARENT_VIEW = 1
     CRUD_PARENT_FORM = 2
 
-    def __init__(self, parent, crud, element, crud_parent=1):
+    def __init__(self, app_window, parent, crud, element, crud_parent=1):
         self.crud = crud
+        self.app_window = app_window
         self.parent = parent
         self.element = element
         self.widget = None
@@ -272,7 +274,7 @@ class CrudButton(Crudel):
     """ Gestion des colonnes et champs de type bouton """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
 
     def get_type_gdk(self):
         return GObject.TYPE_OBJECT
@@ -301,7 +303,7 @@ class CrudCheck(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
 
     def get_type_gdk(self):
         return GObject.TYPE_BOOLEAN
@@ -337,7 +339,7 @@ class CrudCounter(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
 
     def get_type_gdk(self):
         return GObject.TYPE_INT
@@ -372,7 +374,7 @@ class CrudDate(Crudel):
     """ Gestion des colonnes et champs de type date """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
 
     def get_type_gdk(self):
         return GObject.TYPE_STRING
@@ -397,7 +399,7 @@ class CrudFloat(Crudel):
     """ Gestion des colonnes et champs de type décimal """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
 
     def get_type_gdk(self):
         if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
@@ -445,7 +447,7 @@ class CrudInt(Crudel):
     """ Gestion des colonnes et champs de type entier """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
         self.widget = None
 
     def get_type_gdk(self):
@@ -500,7 +502,7 @@ class CrudJointure(Crudel):
     """ Gestion des colonnes et champs de type jointure entre 2 tables """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
 
     def get_type_gdk(self):
         return GObject.TYPE_STRING
@@ -576,7 +578,7 @@ class CrudUid(Crudel):
     """ Gestion des colonnes et champs de type Unique IDentifier """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
 
     def get_type_gdk(self):
         return GObject.TYPE_STRING
@@ -601,7 +603,7 @@ class CrudText(Crudel):
     """ Gestion des colonnes et champs de type texte """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
 
     def get_type_gdk(self):
         return GObject.TYPE_STRING
@@ -628,7 +630,7 @@ class CrudView(Crudel):
     """ Gestion d'une vue à l'intérieur d'un formulaire """
 
     def __init__(self, parent, crud, element):
-        Crudel.__init__(self, parent, crud, element)
+        Crudel.__init__(self.app_window, self, parent, crud, element)
         self.widget_view = None
 
     def get_type_gdk(self):
@@ -642,7 +644,7 @@ class CrudView(Crudel):
         hbox = Gtk.VBox()
         label = self._get_widget_label()
 
-        self.widget_view = WidgetView(self.parent, self)
+        self.widget_view = WidgetView(self.app_window, self, self)
         widget = self.widget_view.get_widget()
         # Mémorisation du widget
         self.crud.set_field_prop(self.element, "widget", widget)
@@ -658,9 +660,10 @@ class CrudView(Crudel):
 class WidgetView():
     """ Création d'une ListView """
 
-    def __init__(self, parent, crudel):
+    def __init__(self, app_window, parent, crudel):
         self.parent = parent
         self.crudel = crudel
+        self.app_window = app_window
 
         # clonage du crud et en particulier du contexte
         self.crud = Crud(self.crudel.crud, duplicate=True)
@@ -813,7 +816,7 @@ class WidgetView():
         col_store_types.append(GObject.TYPE_INT)
         for element in self.crud.get_view_elements():
             # Création du crudel
-            crudel = Crudel(self.parent, self.crud, element, Crudel.CRUD_PARENT_VIEW)
+            crudel = Crudel(self.app_window, self.parent, self.crud, element, Crudel.CRUD_PARENT_VIEW)
             self.crud.set_column_prop(element, "crudel", crudel)
 
             # colonnes techniques color et sortable
@@ -1054,12 +1057,12 @@ class WidgetView():
         if self.crud.get_view_prop("form_edit", None) is not None:
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
-            # dialog = CrudForm(self.parent, self.crud)
-            # response = dialog.run()
-            # if response == Gtk.ResponseType.OK:
-            #     # print("The Ok button was clicked")
-            #     self.update_liststore()
-            # elif response == Gtk.ResponseType.CANCEL:
-            #     # print("The Cancel button was clicked")
-            #     pass
-            # dialog.destroy()
+            dialog = CrudForm(self.parent, self.crud)
+            response = dialog.run()
+            if response == Gtk.ResponseType.OK:
+                # print("The Ok button was clicked")
+                self.update_liststore()
+            elif response == Gtk.ResponseType.CANCEL:
+                # print("The Cancel button was clicked")
+                pass
+            dialog.destroy()

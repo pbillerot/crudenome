@@ -1,12 +1,14 @@
 TODO
 
-- rubrique jointure + combo
+- page portail crudform -> crudportail
+  WidgetView sans crudel
 - rubrique tags
 - rubrique radio
 - rubrique link
 - option colonne edit_online True
 - sql_ctrl
 
+x rubrique jointure + combo
 x rubrique counter
 x sql_post
 x delete record(s) aprés confirmation

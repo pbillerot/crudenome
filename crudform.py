@@ -12,12 +12,13 @@ gi.require_version('Gtk', '3.0')
 
 class CrudForm(Gtk.Dialog):
     """ Gestion des Formulaires du CRUD """
-    def __init__(self, parent, crud):
+    def __init__(self, app_window, crud_view, crud):
         self.crud = crud
         self.crud.__class__ = Crud
-        self.parent = parent
+        self.crud_view = crud_view
+        self.app_window = app_window
 
-        Gtk.Dialog.__init__(self, self.crud.get_form_prop("title"), parent, 0, None)
+        Gtk.Dialog.__init__(self, self.crud.get_form_prop("title"), self.app_window, 0, None)
         # self.set_default_size(300, 150)
 
         cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
@@ -57,7 +58,7 @@ class CrudForm(Gtk.Dialog):
         """ Création affichage des champs du formulaire """
         # Création des crudel
         for element in self.crud.get_form_elements():
-            crudel = Crudel(self.parent, self.crud, element, Crudel.CRUD_PARENT_FORM)
+            crudel = Crudel(self.app_window, self, self.crud, element, Crudel.CRUD_PARENT_FORM)
             crudel.init_value()
             self.crud.set_field_prop(element, "crudel", crudel)
 

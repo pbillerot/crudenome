@@ -104,6 +104,7 @@
                 "valbums": {
                     "title": "Albums",
                     "hide": true,
+                    "form_edit": "fedit",
                     "elements": {
                         "ArtistId": {
                             "hide": true

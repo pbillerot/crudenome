@@ -10,11 +10,9 @@
 # import time
 # from datetime import datetime
 import re
-from collections import OrderedDict
 # import sys
 # import itertools
 
-# import crudconst as const
 from crudform import CrudForm
 from crudel import Crudel
 
@@ -28,9 +26,10 @@ class CrudView():
     inform=True  : la vue est affichée dans la fenêtre principale
            False : la vue est affichée dans un formulaire en tant que widget
     """
-    def __init__(self, parent, crud):
+    def __init__(self, app_window, crud_portail, crud):
         self.crud = crud
-        self.parent = parent
+        self.crud_portail = crud_portail
+        self.app_window = app_window
 
         # Déclaration des variables globales
         self.treeview = None
@@ -50,7 +49,7 @@ class CrudView():
         self.create_view_toolbar()
         self.create_view_list()
 
-        self.parent.show_all()
+        self.app_window.show_all()
         self.label_select.hide()
         self.button_edit.hide()
         self.button_delete.hide()
@@ -60,22 +59,22 @@ class CrudView():
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.connect("search-changed", self.on_search_changed)
-        self.parent.box_view_toolbar.pack_start(self.search_entry, False, True, 3)
+        self.crud_portail.box_view_toolbar.pack_start(self.search_entry, False, True, 3)
         if self.crud.get_view_prop("filter", "") != "":
             self.search_entry.set_text(self.crud.get_view_prop("filter"))
         self.search_entry.grab_focus()
 
-        self.parent.box_view_toolbar_select = Gtk.HBox()
+        self.crud_portail.box_view_toolbar_select = Gtk.HBox()
         self.button_delete = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_REMOVE))
         self.button_delete.connect("clicked", self.on_button_delete_clicked)
         self.button_delete.set_tooltip_text("Supprimer la sélection")
-        self.parent.box_view_toolbar_select.pack_end(self.button_delete, False, True, 3)
+        self.crud_portail.box_view_toolbar_select.pack_end(self.button_delete, False, True, 3)
         self.button_edit = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_EDIT))
         self.button_edit.connect("clicked", self.on_button_edit_clicked)
         self.button_edit.set_tooltip_text("Editer le sélection...")
-        self.parent.box_view_toolbar_select.pack_end(self.button_edit, False, True, 3)
+        self.crud_portail.box_view_toolbar_select.pack_end(self.button_edit, False, True, 3)
         self.label_select = Gtk.Label("0 sélection")
-        self.parent.box_view_toolbar_select.pack_end(self.label_select, False, True, 3)
+        self.crud_portail.box_view_toolbar_select.pack_end(self.label_select, False, True, 3)
         self.label_select.hide()
         self.button_edit.hide()
         self.button_delete.hide()
@@ -85,9 +84,9 @@ class CrudView():
             self.button_add = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
             self.button_add.connect("clicked", self.on_button_add_clicked)
             self.button_add.set_tooltip_text("Créer un nouvel enregistrement...")
-            self.parent.box_view_toolbar.pack_end(self.button_add, False, True, 3)
+            self.crud_portail.box_view_toolbar.pack_end(self.button_add, False, True, 3)
 
-        self.parent.box_view_toolbar.pack_end(self.parent.box_view_toolbar_select, False, True, 3)
+        self.crud_portail.box_view_toolbar.pack_end(self.crud_portail.box_view_toolbar_select, False, True, 3)
 
     def create_view_sidebar(self):
         """ Création des boutons d'activation des vues de l'application """
@@ -109,10 +108,10 @@ class CrudView():
                                                           self.on_button_view_clicked,
                                                           table_id, view_id)
                 if self.crud.get_application_prop("menu_orientation") == "horizontal":
-                    self.parent.box_toolbar_view.pack_start(self.crud.get_view_prop("button"),
+                    self.crud_portail.box_toolbar_view.pack_start(self.crud.get_view_prop("button"),
                                                      False, False, 3)
                 if self.crud.get_application_prop("menu_orientation") == "vertical":
-                    self.parent.box_view_sidebar.pack_start(self.crud.get_view_prop("button"),
+                    self.crud_portail.box_view_sidebar.pack_start(self.crud.get_view_prop("button"),
                                                      False, False, 3)
 
         # mise en relief du bouton vue courante
@@ -126,7 +125,7 @@ class CrudView():
         self.scroll_window = Gtk.ScrolledWindow() # La scrollwindow va contenir la treeview
         self.scroll_window.set_hexpand(True)
         self.scroll_window.set_vexpand(True)
-        self.parent.box_view_list.pack_end(self.scroll_window, True, True, 3)
+        self.crud_portail.box_view_list.pack_end(self.scroll_window, True, True, 3)
 
         self.create_liststore()
         self.create_treeview()
@@ -191,7 +190,7 @@ class CrudView():
         col_store_types.append(GObject.TYPE_INT)
         for element in self.crud.get_view_elements():
             # Création du crudel
-            crudel = Crudel(self.parent, self.crud, element, Crudel.CRUD_PARENT_VIEW)
+            crudel = Crudel(self.app_window, self.crud_portail, self.crud, element, Crudel.CRUD_PARENT_VIEW)
             self.crud.set_column_prop(element, "crudel", crudel)
 
             # colonnes techniques color et sortable
@@ -318,18 +317,18 @@ class CrudView():
         self.crud.set_key_id(self.crud.get_table_prop("key"))
         self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
         # raz view_toolbar
-        for widget in self.parent.box_view_toolbar.get_children():
+        for widget in self.crud_portail.box_view_toolbar.get_children():
             Gtk.Widget.destroy(widget)
         # raz view_list
-        for widget in self.parent.box_view_list.get_children():
+        for widget in self.crud_portail.box_view_list.get_children():
             Gtk.Widget.destroy(widget)
 
-        self.parent.display_layout()
+        self.crud_portail.display_layout()
 
         self.create_view_toolbar()
         self.create_view_list()
 
-        self.parent.show_all()
+        self.app_window.show_all()
         self.label_select.hide()
         self.button_edit.hide()
         self.button_delete.hide()
@@ -340,7 +339,7 @@ class CrudView():
         self.crud.set_form_id(self.crud.get_view_prop("form_add"))
         self.crud.set_key_value(None)
         self.crud.set_action("create")
-        dialog = CrudForm(self.parent, self.crud)
+        dialog = CrudForm(self.app_window, self, self.crud)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             # print("The Ok button was clicked")
@@ -357,7 +356,7 @@ class CrudView():
         self.crud.set_key_value(self.crud.get_selection()[0])
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
-        dialog = CrudForm(self.parent, self.crud)
+        dialog = CrudForm(self.app_window, self, self.crud)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             # print("The Ok button was clicked")
@@ -370,7 +369,7 @@ class CrudView():
     def on_button_delete_clicked(self, widget):
         """ Suppression des éléments sélectionnés """
         print "Suppression de ", self.crud.get_selection()
-        dialog = Gtk.MessageDialog(parent=self.parent,\
+        dialog = Gtk.MessageDialog(parent=self.app_window,\
             flags=Gtk.DialogFlags.MODAL,\
             type=Gtk.MessageType.WARNING,\
             buttons=Gtk.ButtonsType.OK_CANCEL,\
@@ -439,7 +438,7 @@ class CrudView():
         if self.crud.get_view_prop("form_edit", None) is not None:
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
-            dialog = CrudForm(self.parent, self.crud)
+            dialog = CrudForm(self.app_window, self, self.crud)
             response = dialog.run()
             if response == Gtk.ResponseType.OK:
                 # print("The Ok button was clicked")
