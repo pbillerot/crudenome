@@ -1,36 +1,11 @@
 TODO
 
-- page portail crudform -> crudportail
-  WidgetView sans crudel
+- formulaire dans box_view
+- WidgetView sans crudel
 - rubrique tags
 - rubrique radio
 - rubrique link
 - option colonne edit_online True
 - sql_ctrl
 
-x rubrique jointure + combo
-x rubrique counter
-x sql_post
-x delete record(s) aprés confirmation
-x rubrique check
-x insert update
-x update_record
-x coche action - bouton edit si seulement 1 sélection, supprimer
-
-class CrudView
-    n instance
-
-class CrudForm
-    n instance
-
-class CrudElement
-Class CrudButton
-Class CrudCheck
-Class CrudCounter
-Class CrudDate
-Class CrudFloat
-Class CrudInt
-Class CrudJointure
-Class CrudText
-Class CrudUid
 

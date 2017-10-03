@@ -34,6 +34,7 @@ class Crud:
         "table_id": None,
         "view_id": None,
         "form_id": None,
+        "row_id": None,
         "key_id": None,
         "key_value": None,
         "action": None, # create read update delete 
@@ -175,6 +176,14 @@ class Crud:
     def set_form_id(self, val):
         """ set """
         self.ctx["form_id"] = val
+
+    # row_id
+    def get_row_id(self):
+        """ row_id """
+        return self.ctx["row_id"]
+    def set_row_id(self, val):
+        """ set """
+        self.ctx["row_id"] = val
 
     # key
     def get_key_id(self):

@@ -9,13 +9,15 @@ import gi
 gi.require_version('Gtk', '3.0')
 
 
-class CrudForm():
+class CrudDialog(Gtk.Dialog):
     """ Gestion des Formulaires du CRUD """
-    def __init__(self, app_window, crud_portail, crud):
+    def __init__(self, app_window, box, crud):
         self.crud = crud
         self.crud.__class__ = Crud
         self.app_window = app_window
-        self.crud_portail = crud_portail
+
+        Gtk.Dialog.__init__(self, self.crud.get_form_prop("title"), self.app_window, 0, None)
+        # self.set_default_size(300, 150)
 
         cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         cancel_button.set_always_show_image(True)
@@ -25,24 +27,19 @@ class CrudForm():
         ok_button.set_always_show_image(True)
         ok_button.connect("clicked", self.on_ok_button_clicked)
 
-        form_title = Gtk.Label()
-        form_title.set_markup("<b>%s</b>" % self.crud.get_form_prop("title"))
 
-        self.crud_portail.box_toolbar.pack_start(form_title, True, True, 3)
-        self.crud_portail.box_toolbar.pack_end(ok_button, False, True, 3)
-        self.crud_portail.box_toolbar.pack_end(cancel_button, False, True, 3)
+        hbox_button = Gtk.HBox()
+        hbox_button.pack_end(ok_button, False, False, 3)
+        hbox_button.pack_end(cancel_button, False, False, 3)
+        self.get_content_area().pack_end(hbox_button, False, True, 0)
 
-        self.box_form = Gtk.VBox()
-        # self.crud_portail.box_content.pack_start(self.box_form, False, True, 3)
-        self.crud_portail.scroll_window.add(self.box_form)
-        
         self.label_error = Gtk.Label()
         self.label_error.get_style_context().add_class('error')
-        self.box_form.pack_end(self.label_error, False, False, 3)
+        self.get_content_area().pack_end(self.label_error, False, False, 3)
 
         self.create_fields()
 
-        self.app_window.show_all()
+        self.show_all()
 
         # Initialisation des widgets
         for element in self.crud.get_form_elements():
@@ -68,18 +65,18 @@ class CrudForm():
             self.crud.sql_select_to_form()
 
         # Création des widget dans la box de la dialog
+        box = self.get_content_area()
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
             if crudel.is_hide():
                 continue
             # crudel.dump()
-            self.box_form.pack_start(crudel.get_widget_box(), False, False, 5)
+            box.pack_start(crudel.get_widget_box(), True, True, 5)
 
     def on_cancel_button_clicked(self, widget):
         """ Cancel """
         # print "on_cancel_button_clicked"
-        # self.response(Gtk.ResponseType.CANCEL)
-        self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())
+        self.response(Gtk.ResponseType.CANCEL)
 
     def on_ok_button_clicked(self, widget):
         """ Validation du formulaire """
@@ -129,4 +126,4 @@ class CrudForm():
             elif self.crud.get_action() in ("update") :
                 self.crud.sql_update_record()
 
-            # self.response(Gtk.ResponseType.OK)
+            self.response(Gtk.ResponseType.OK)

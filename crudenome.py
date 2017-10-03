@@ -3,18 +3,12 @@
 """
     Module principal, c'est le point d'entrée
 """
-# https://gtk.developpez.com/doc/fr/gtk/gtk-Stock-Items.html
-# from __future__ import unicode_literals
-import sys
-
 from crud import Crud
 from crudportail import CrudPortail
-import crudconst as const
-
+import sys
 from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
 import gi
 gi.require_version('Gtk', '3.0')
-
 
 class AppWindow(Gtk.ApplicationWindow):
     """ La fenêtre principale du Gtk """

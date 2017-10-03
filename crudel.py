@@ -2,19 +2,9 @@
 """
     Gestion des éléments
 """
-from crud import Crud
-# from crudform import CrudForm
-# import sqlite3
-# import os
-# import urllib2
-# import time
-# from datetime import datetime
 import re
-# import sys
-# import itertools
-
 import uuid
-
+from crud import Crud
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
