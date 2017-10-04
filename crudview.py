@@ -264,6 +264,7 @@ class CrudView():
         self.crud.set_form_id(self.crud.get_view_prop("form_add"))
         self.crud.set_key_value(None)
         self.crud.set_action("create")
+        self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         dialog = CrudForm(self.app_window, self.crud_portail, self.crud)
         self.app_window.show_all()
 
@@ -273,6 +274,7 @@ class CrudView():
         self.crud.set_key_value(self.crud.get_selection()[0])
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
+        self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         dialog = CrudForm(self.app_window, self.crud_portail, self.crud)
         self.app_window.show_all()
 

@@ -55,12 +55,19 @@ class Crudel():
     def set_value_sql(self, value_sql):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
         self.crud.set_element_prop(self.element, "value",\
-            value_sql if isinstance(value_sql, int) or isinstance(value_sql, float) else value_sql.encode("utf-8"))
-        # print "set_value_sql", self.element, value_sql, self.crud.get_element_prop(self.element, "value")
+            value_sql if isinstance(value_sql, int) or isinstance(value_sql, float)\
+                else value_sql.encode("utf-8"))
 
-    def is_virtual(self):
-        """ Les colonnes préfixées par _ ne sont pas dans la table """
-        return self.element.startswith("_")
+    def set_value_widget(self):
+        """ valorisation à partir de la saisie dans le widget """
+        self.crud.set_element_prop(self.element\
+                    ,"value", self.crud.get_field_prop(self.element, "widget").get_text())
+
+    def set_value_default(self):
+        """ valorisation avec la valeur par défaut si valeur '' """
+        if self.crud.get_field_prop(self.element, "value", "") == ""\
+            and self.crud.get_field_prop(self.element, "default", "") != "":
+            self.crud.set_element_prop(self.element, "value", self.crud.get_field_prop(element, "default"))
 
     def get_widget_box(self):
         """ Création du widget dans une hbox """
@@ -135,7 +142,7 @@ class Crudel():
         return self.crud.get_element_prop(self.element, "value", "")
 
     def get_jointure_columns(self):
-        """ la partie selecct de la jointure """
+        """ la partie select de la jointure """
         if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
             return self.crud.get_column_prop(self.element, "jointure_columns", "")
         else:
@@ -156,6 +163,40 @@ class Crudel():
         """ nom de la vue de la rubrique view """
         return self.crud.get_field_prop(self.element, "view_view", "")
 
+    def get_height(self):
+        """ Hauteur du widget """
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "height", -1)
+        else:
+            return self.crud.get_field_prop(self.element, "height", -1)
+
+    def is_virtual(self):
+        """ Les colonnes préfixées par _ ne sont pas dans la table """
+        return self.element.startswith("_")
+
+    def is_hide(self):
+        """ élément caché """
+        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "hide", False)
+        else:
+            return self.crud.get_field_prop(self.element, "hide", False)
+
+    def is_read_only(self):
+        """ élément en lecture seule """
+        return self.crud.get_field_prop(self.element, "read_only", False)
+
+    def is_searchable(self):
+        """ le contenu de la colonne sera lue par le moteur de recharche """
+        return self.crud.get_column_prop(self.element, "searchable", False)
+
+    def is_sortable(self):
+        """ La colonne pourra être triée en cliquant sur le titre de la colonne """
+        return self.crud.get_column_prop(self.element, "sortable", False)
+
+    def is_required(self):
+        """ La saisie du champ est obligatoire """
+        return self.crud.get_field_prop(self.element, "required", False)
+
     def _get_widget_entry(self):
         """ champ de saisie """
         widget = Gtk.Entry()
@@ -170,16 +211,9 @@ class Crudel():
         """ Label du widget normalement à gauche du champ dans le formulaire """
         label = Gtk.Label(self.get_label_long())
         label.set_width_chars(20)
-        if self.is_required:
+        if self.is_required():
             label.set_text(label.get_text() + " *")
         return label
-
-    def get_height(self):
-        """ Hauteur du widget """
-        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
-            return self.crud.get_column_prop(self.element, "height", -1)
-        else:
-            return self.crud.get_field_prop(self.element, "height", -1)
 
     def add_tree_view_column(self, treeview, col_id):
         """ Cellule de la colonne dans la vue 
@@ -225,28 +259,12 @@ class Crudel():
         """ Pour afficher ou cacher des objets graphiques """
         pass
 
-    def is_hide(self):
-        """ élément caché """
-        if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
-            return self.crud.get_column_prop(self.element, "hide", False)
-        else:
-            return self.crud.get_field_prop(self.element, "hide", False)
-
-    def is_read_only(self):
-        """ élément en lecture seule """
-        return self.crud.get_field_prop(self.element, "read_only", False)
-
-    def is_searchable(self):
-        """ le contenu de la colonne sera lue par le moteur de recharche """
-        return self.crud.get_column_prop(self.element, "searchable", False)
-
-    def is_sortable(self):
-        """ La colonne pourra être triée en cliquant sur le titre de la colonne """
-        return self.crud.get_column_prop(self.element, "sortable", False)
-
-    def is_required(self):
-        """ La saisie du champ est obligatoire """
-        return self.crud.get_field_prop(self.element, "required", False)
+    def check(self):
+        """ Contrôle de la saisie """
+        self.crud.get_field_prop(self.element, "widget").get_style_context().remove_class('field_invalid')
+        if self.is_required() and not self.is_read_only() and self.get_value() == "":
+            self.crud.get_field_prop(self.element, "widget").get_style_context().add_class('field_invalid')
+            self.crud.add_error("<b>{}</b> est obligatoire".format(self.get_label_long()))
 
     def dump(self):
         """ print des propriétés de l'élément """
@@ -258,7 +276,6 @@ class Crudel():
             prop.update(self.crud.get_form_elements()[self.element])
         for p in prop:
             print "%s.%s = %s" % (self.element, p, prop[p])
-
 
 class CrudButton(Crudel):
     """ Gestion des colonnes et champs de type bouton """
@@ -325,6 +342,10 @@ class CrudCheck(Crudel):
         tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, active=col_id)
         return tvc
 
+    def set_value_widget(self):
+        self.crud.set_element_prop(self.element\
+                    ,"value", self.crud.get_field_prop(self.element, "widget").get_active())
+
 class CrudCounter(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
 
@@ -359,6 +380,9 @@ class CrudCounter(Crudel):
 
     def get_display(self):
         return self.get_value()
+
+    def set_value_widget(self):
+        pass
 
 class CrudDate(Crudel):
     """ Gestion des colonnes et champs de type date """
@@ -488,6 +512,10 @@ class CrudInt(Crudel):
         else:
             return display % (self.get_value())
 
+    def set_value_widget(self):
+        self.crud.set_element_prop(self.element\
+                , "value", int(self.crud.get_field_prop(self.element, "widget").get_text()))
+
 class CrudJointure(Crudel):
     """ Gestion des colonnes et champs de type jointure entre 2 tables """
 
@@ -560,9 +588,12 @@ class CrudJointure(Crudel):
         key = self.crud.get_key_from_bracket(text)
         if text is not None:
             if key:
-                self.crud.set_field_prop(element, "value", key)
+                self.crud.set_element_prop(element, "value", key)
             else:
-                self.crud.set_field_prop(element, "value", text)
+                self.crud.set_element_prop(element, "value", text)
+
+    def set_value_widget(self):
+        pass
 
 class CrudUid(Crudel):
     """ Gestion des colonnes et champs de type Unique IDentifier """
@@ -588,6 +619,9 @@ class CrudUid(Crudel):
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(widget, False, False, 5)
         return hbox
+
+    def set_value_widget(self):
+        pass
 
 class CrudText(Crudel):
     """ Gestion des colonnes et champs de type texte """
@@ -646,6 +680,8 @@ class CrudView(Crudel):
     def init_widget(self):
         self.widget_view.init_widget()
 
+    def set_value_widget(self):
+        pass
 
 class WidgetView():
     """ Création d'une ListView """

@@ -149,6 +149,7 @@
                     "label_long": "Name",
                     "label_short": "Name",
                     "type": "text",
+                    "required": true,
                     "searchable": true,
                     "sortable": true,
                     "col_width": 250

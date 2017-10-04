@@ -93,7 +93,8 @@ class Crud:
                 conn.rollback()
 
             print "Error", exc.args[0], sql, params
-            sys.exit(1)
+            self.add_error("%s %s %s" % (exc.args[0], sql, params))
+            # sys.exit(1)
         finally:
             if conn:
                 conn.close()
@@ -117,7 +118,8 @@ class Crud:
                 conn.rollback()
 
             print "Error", exc.args[0], sql, params
-            sys.exit(1)
+            self.add_error("%s %s %s" % (exc.args[0], sql, params))
+            # sys.exit(1)
         finally:
             if conn:
                 conn.close()
@@ -210,7 +212,7 @@ class Crud:
     # errors
     def get_errors(self):
         """ get """
-        self.ctx["errors"]
+        return self.ctx["errors"]
     def add_error(self, label_error):
         """ add """
         self.ctx["errors"].append(label_error)

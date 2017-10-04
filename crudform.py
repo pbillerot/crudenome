@@ -35,7 +35,7 @@ class CrudForm():
         self.box_form = Gtk.VBox()
         # self.crud_portail.box_content.pack_start(self.box_form, False, True, 3)
         self.crud_portail.scroll_window.add(self.box_form)
-        
+
         self.label_error = Gtk.Label()
         self.label_error.get_style_context().add_class('error')
         self.box_form.pack_end(self.label_error, False, False, 3)
@@ -86,47 +86,37 @@ class CrudForm():
         self.label_error.set_text("")
         # remplissage des champs avec les valeurs saisies
         for element in self.crud.get_form_elements():
-            if self.crud.get_field_prop(element, "hide", False):
+            crudel = self.crud.get_field_prop(element, "crudel")
+            if crudel.is_hide():
                 continue
-            if self.crud.get_field_prop(element, "type") == "check":
-                self.crud.set_field_prop(element\
-                    ,"value", self.crud.get_field_prop(element, "widget").get_active())
-            else:
-                self.crud.set_field_prop(element\
-                    ,"value", self.crud.get_field_prop(element, "widget").get_text())
-
-        # valeur par défaut
-        for element in self.crud.get_form_elements():
-            if self.crud.get_field_prop(element, "value", "") == ""\
-                and self.crud.get_field_prop(element, "default", "") != "":
-                self.crud.set_field_prop(element, "value", self.crud.get_field_prop(element, "default"))
+            crudel.set_value_widget()
+            crudel.set_value_default()
 
         # CONTROLE DE LA SAISIE
-        errors = []
-        # print self.crud.get_form_elements()
         for element in self.crud.get_form_elements():
-            if self.crud.get_field_prop(element, "widget", None):
-                self.crud.get_field_prop(element, "widget").get_style_context().remove_class('field_invalid')
-                if self.crud.get_field_prop(element, "required", False)\
-                        and not self.crud.get_field_prop(element, "read_only", False)\
-                        and self.crud.get_field_prop(element, "value", "") == "":
-                    self.crud.get_field_prop(element, "widget").get_style_context().add_class('field_invalid')
-                    errors.append("<b>{}</b> est obligatoire".format(self.crud.get_field_prop(element, "label_long")))
-        if errors:
-            self.label_error.set_markup("\n".join(errors))
+            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel.check()
+
+        if self.crud.get_errors():
+            self.label_error.set_markup("\n".join(self.crud.get_errors()))
+            self.crud.remove_all_errors()
             return
         else:
             if self.crud.get_action() in ("create") :
                 if self.crud.sql_exist_key():
-                    self.label_error.set_text("Cet enregistrement existe déjà")
+                    self.crud.add_error("Cet enregistrement existe déjà")
                     # dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
                     #     Gtk.ButtonsType.OK, "Cet enregistrement existe déjà")
                     # dialog.run()
                     # dialog.destroy()
-                    return
                 else:
                     self.crud.sql_insert_record()
             elif self.crud.get_action() in ("update") :
                 self.crud.sql_update_record()
 
-            # self.response(Gtk.ResponseType.OK)
+        if self.crud.get_errors():
+            self.label_error.set_markup("\n".join(self.crud.get_errors()))
+            self.crud.remove_all_errors()
+            return
+
+        self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())
