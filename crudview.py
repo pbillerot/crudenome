@@ -132,7 +132,9 @@ class CrudView():
         # Connection au double-clic sur une ligne
         self.treeview.connect("row-activated", self.on_row_actived)
 
-        self.crud_portail.scroll_window.add(self.treeview)
+        self.frame = Gtk.Frame()
+        self.frame.add(self.treeview)
+        self.crud_portail.scroll_window.add(self.frame)
         self.crud_portail.scroll_window.show_all()
 
     def create_liststore(self):
@@ -226,7 +228,7 @@ class CrudView():
                 if crudel.is_sortable():
                     store.append(crudel.get_value())
                 # colonnes crudel
-                display = crudel.get_display()
+                display = crudel.get_cell()
                 # print element, display
                 store.append(display)
             # col_action_id

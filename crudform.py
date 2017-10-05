@@ -32,9 +32,12 @@ class CrudForm():
         self.crud_portail.box_toolbar.pack_end(ok_button, False, True, 3)
         self.crud_portail.box_toolbar.pack_end(cancel_button, False, True, 3)
 
+
         self.box_form = Gtk.VBox()
-        # self.crud_portail.box_content.pack_start(self.box_form, False, True, 3)
-        self.crud_portail.scroll_window.add(self.box_form)
+        self.box_form.set_border_width(6)
+        self.frame = Gtk.Frame()
+        self.frame.add(self.box_form)
+        self.crud_portail.scroll_window.add(self.frame)
 
         self.label_error = Gtk.Label()
         self.label_error.get_style_context().add_class('error')
@@ -102,7 +105,7 @@ class CrudForm():
             self.crud.remove_all_errors()
             return
         else:
-            if self.crud.get_action() in ("create") :
+            if self.crud.get_action() in ("create"):
                 if self.crud.sql_exist_key():
                     self.crud.add_error("Cet enregistrement existe déjà")
                     # dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
@@ -111,7 +114,7 @@ class CrudForm():
                     # dialog.destroy()
                 else:
                     self.crud.sql_insert_record()
-            elif self.crud.get_action() in ("update") :
+            elif self.crud.get_action() in ("update"):
                 self.crud.sql_update_record()
 
         if self.crud.get_errors():

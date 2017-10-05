@@ -183,6 +183,51 @@
                     }
                 }
             }
+        },
+        "genres": {
+            "basename": "./data/chinook.sqlite",
+            "key": "GenreId",
+            "elements": {
+                "GenreId": {
+                    "label_long": "ID",
+                    "label_short": "ID",
+                    "type": "counter"
+                },
+                "Name": {
+                    "label_long": "Name",
+                    "label_short": "Name",
+                    "type": "text",
+                    "required": true
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Genre",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "GenreId": {},
+                        "Name": {}
+                    }
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add a genre",
+                    "elements": {
+                        "GenreId": {},
+                        "Name": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "GenreId": {},
+                        "Name": {}
+                    }
+                }
+            }
         }
     }
 }

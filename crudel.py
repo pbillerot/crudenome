@@ -69,6 +69,14 @@ class Crudel():
             and self.crud.get_field_prop(self.element, "default", "") != "":
             self.crud.set_element_prop(self.element, "value", self.crud.get_field_prop(element, "default"))
 
+    def get_value(self):
+        """ valeur interne de l'élément """
+        return self.crud.get_element_prop(self.element, "value", "")
+
+    def get_value_sql(self):
+        """ valeur à enregistrer dans la colonne de l'élément """
+        return self.crud.get_element_prop(self.element, "value", "")
+
     def get_widget_box(self):
         """ Création du widget dans une hbox """
         return None
@@ -85,7 +93,7 @@ class Crudel():
         """ type d''élément du crud """
         return self.crud.get_element_prop(self.element, "type", type)
 
-    def get_display(self):
+    def get_cell(self):
         """ modèle de présentation de la chaîne
         https://www.tutorialspoint.com/python/python_strings.htm
         "%3.2d €" par exemple pour présenter un montant en 0.00 €
@@ -211,6 +219,7 @@ class Crudel():
         """ Label du widget normalement à gauche du champ dans le formulaire """
         label = Gtk.Label(self.get_label_long())
         label.set_width_chars(20)
+        label.set_xalign(0.9)
         if self.is_required():
             label.set_text(label.get_text() + " *")
         return label
@@ -303,7 +312,7 @@ class CrudButton(Crudel):
         hbox.pack_start(widget, False, False, 5)
         return hbox
 
-    def get_display(self):
+    def get_cell(self):
         return self.get_value()
 
 class CrudCheck(Crudel):
@@ -318,6 +327,10 @@ class CrudCheck(Crudel):
     def init_value(self):
         Crudel.init_value(self)
         self.set_value_sql(False)
+
+    def get_cell(self):
+        """ représentation en colonne """
+        return self.get_value()
 
     def get_widget_box(self):
         # todo
@@ -345,6 +358,39 @@ class CrudCheck(Crudel):
     def set_value_widget(self):
         self.crud.set_element_prop(self.element\
                     ,"value", self.crud.get_field_prop(self.element, "widget").get_active())
+
+    def get_value_sql(self):
+        if self.crud.get_element_prop(self.element, "value", False) == True:
+            return "1"
+        elif self.crud.get_element_prop(self.element, "value", False) == False:
+            return "0"
+        elif self.crud.get_element_prop(self.element, "value", "") == "1":
+            return "1"
+        elif self.crud.get_element_prop(self.element, "value", "") == "0":
+            return "0"
+        elif self.crud.get_element_prop(self.element, "value", "") == "":
+            return "0"
+        else:
+            return "1"
+
+    def set_value_sql(self, value_sql):
+        """ Valorisation de l'élément avec le contenu de la colonne de la table """
+        if value_sql == "True":
+            self.crud.set_element_prop(self.element, "value", True)
+        elif value_sql == "False":
+            self.crud.set_element_prop(self.element, "value", False)
+        elif value_sql == 1:
+            self.crud.set_element_prop(self.element, "value", True)
+        elif value_sql == 0:
+            self.crud.set_element_prop(self.element, "value", False)
+        elif value_sql == "1":
+            self.crud.set_element_prop(self.element, "value", True)
+        elif value_sql == "0":
+            self.crud.set_element_prop(self.element, "value", False)
+        elif value_sql == "":
+            self.crud.set_element_prop(self.element, "value", False)
+        else:
+            self.crud.set_element_prop(self.element, "value", True)
 
 class CrudCounter(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
@@ -378,7 +424,7 @@ class CrudCounter(Crudel):
         renderer.set_property('xalign', 1.0)
         return renderer
 
-    def get_display(self):
+    def get_cell(self):
         return self.get_value()
 
     def set_value_widget(self):
@@ -447,7 +493,7 @@ class CrudFloat(Crudel):
         renderer.set_property('xalign', 1.0)
         return renderer
 
-    def get_display(self):
+    def get_cell(self):
         if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
             display = self.crud.get_column_prop(self.element, "display")
         else:
@@ -502,7 +548,7 @@ class CrudInt(Crudel):
         text = self.widget.get_text().strip()
         self.widget.set_text(''.join([i for i in text if i in '0123456789']))
 
-    def get_display(self):
+    def get_cell(self):
         if self.crud_parent == Crudel.CRUD_PARENT_VIEW:
             display = self.crud.get_column_prop(self.element, "display")
         else:
@@ -946,7 +992,7 @@ class WidgetView():
                 if crudel.is_sortable():
                     store.append(crudel.get_value())
                 # colonnes crudel
-                display = crudel.get_display()
+                display = crudel.get_cell()
                 # print element, display
                 store.append(display)
             # col_action_id

@@ -124,6 +124,75 @@
                     }
                 }
             }
+        },
+        "Room": {
+            "basename": "./data/hospital.sqlite",
+            "key": "Number",
+            "elements": {
+                "Number": {
+                    "label_long": "Number",
+                    "label_short": "Number",
+                    "type": "int",
+                    "sortable": true
+                },
+                "Type": {
+                    "label_long": "Type",
+                    "label_short": "Type",
+                    "type": "text"
+                },
+                "BlockFloor": {
+                    "label_long": "Block Floor",
+                    "label_short": "Block Floor",
+                    "type": "int"
+                },
+                "BlockCode": {
+                    "label_long": "Block Code",
+                    "label_short": "Block Code",
+                    "type": "int"
+                },
+                "Unavailable": {
+                    "label_long": "Unavailable",
+                    "label_short": "Unavailable",
+                    "type": "check"
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Rooms",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "Number": {},
+                        "Type": {},
+                        "BlockFloor": {},
+                        "BlockCode": {},
+                        "Unavailable": {}
+                    }
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add a Room",
+                    "elements": {
+                        "Number": {},
+                        "Type": {},
+                        "BlockFloor": {},
+                        "BlockCode": {},
+                        "Unavailable": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "Number": {},
+                        "Type": {},
+                        "BlockFloor": {},
+                        "BlockCode": {},
+                        "Unavailable": {}
+                    }
+                }
+            }
         }
     }
 }

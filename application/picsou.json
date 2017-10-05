@@ -59,8 +59,8 @@
                     "label_long": "Valeur en Production",
                     "label_short": "Prod",
                     "type": "check",
-                    "sql_get": "case when ptf_inptf = 'PPP' then 'PPP' else '' end",
-                    "sql_put": "case when :ptf_inptf = 'True' then 'PPP' else '' end"
+                    "sql_get": "case when ptf_inptf = 'PPP' then 1 else 0 end",
+                    "sql_put": "case when :ptf_inptf = 1 then 'PPP' else '' end"
                 }
             },
             "views": {

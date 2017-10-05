@@ -3,6 +3,7 @@
     Gestion du portail, layout
 """
 from crudview import CrudView
+from crudwindow import MyWindow
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
@@ -67,7 +68,10 @@ class CrudPortail():
 
         # box_toolbar
         self.box_toolbar = Gtk.HBox(spacing=0)
-        self.box_main.pack_start(self.box_toolbar, False, False, 3)
+        self.box_toolbar.set_border_width(6)
+        self.frame = Gtk.Frame()
+        self.frame.add(self.box_toolbar)
+        self.box_main.pack_start(self.frame, False, False, 3)
 
         # box_content
         self.box_content = Gtk.VBox(spacing=0)
