@@ -3,6 +3,7 @@
     Gestion du portail, layout
 """
 from crudview import CrudView
+from crudform import CrudForm
 from crudwindow import MyWindow
 import gi
 gi.require_version('Gtk', '3.0')
@@ -210,7 +211,7 @@ class CrudPortail():
         self.crud.set_application(application)
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         self.create_sidebar()
-        self.crud_view = CrudView(self.app_window, self, self.crud)
+        self.crud_view = CrudView(self.app_window, self, self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
 
     def on_button_home_clicked(self, widget):
         """ Retour au menu général """
@@ -234,4 +235,12 @@ class CrudPortail():
 
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         
-        self.crud_view = CrudView(self.app_window, self, self.crud)
+        self.crud_view = CrudView(self.app_window, self, self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
+
+    def do_form(self, crud_view, crud):
+        """ Demande d'activation d'un formulaire """
+        # raz view_toolbar
+        for widget in self.box_toolbar.get_children():
+            Gtk.Widget.destroy(widget)
+        self.set_layout(CrudPortail.LAYOUT_FORM)
+        CrudForm(self.app_window, self, crud_view, crud, None)

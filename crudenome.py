@@ -3,9 +3,9 @@
 """
     Module principal, c'est le point d'entrée
 """
+import sys
 from crud import Crud
 from crudportail import CrudPortail
-import sys
 from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
 import gi
 gi.require_version('Gtk', '3.0')

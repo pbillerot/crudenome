@@ -56,7 +56,7 @@ class CrudDialog(Gtk.Dialog):
         """ Création affichage des champs du formulaire """
         # Création des crudel
         for element in self.crud.get_form_elements():
-            crudel = Crudel(self.app_window, self, self.crud, element, Crudel.CRUD_PARENT_FORM)
+            crudel = Crudel(self.app_window, self, self.crud, element, Crudel.TYPE_PARENT_FORM)
             crudel.init_value()
             self.crud.set_field_prop(element, "crudel", crudel)
 

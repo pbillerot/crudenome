@@ -24,7 +24,7 @@
                     "label_long": "Albums",
                     "label_short": "Albums",
                     "type": "view",
-                    "height": 200,
+                    "height": 300,
                     "view_table": "albums",
                     "view_view": "valbums",
                     "sql_where": "albums.ArtistId = {ArtistId}"

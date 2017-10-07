@@ -2,23 +2,54 @@
 """
     Gestion des Vues
 """
-from crudform import CrudForm
-from crudel import Crudel
 import re
+
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
 
-class CrudView():
+from crudform import CrudForm
+from crudel import Crudel
+from crud import Crud
+
+class CrudView(GObject.GObject):
     """ Gestion des vues du CRUD
+    app_window   : la fenêtre parent Gnome
+    crud_portail : l'objet CrudPortail
     crud         : le contexte applicatif
-    inform=True  : la vue est affichée dans la fenêtre principale
-           False : la vue est affichée dans un formulaire en tant que widget
+    crudel       : la rubrique appelante de la vue éventuelle
     """
-    def __init__(self, app_window, crud_portail, crud):
-        self.crud = crud
+
+    __gsignals__ = {
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (int,))
+    }
+    def do_init_widget(self, arg):
+        """ Traitement du signal """
+        print "do_init_widget", arg
+        self.crud.remove_all_selection()
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+
+    def __init__(self, app_window, crud_portail, crud\
+            , box_main, box_toolbar, scroll_window, crudel=None):
+
+        GObject.GObject.__init__(self)
+
         self.crud_portail = crud_portail
         self.app_window = app_window
+        self.box_main = box_main
+        self.box_toolbar = box_toolbar
+        self.scroll_window = scroll_window
+        self.crudel = crudel
+        if crudel:
+            # clonage du crud et en particulier du contexte
+            self.crud = Crud(self.crudel.crud, duplicate=True)
+            # set de la table et vue à afficher dans le widget
+            self.crud.set_view_id(self.crudel.get_view_view())
+            self.crud.set_table_id(self.crudel.get_view_table())
+        else:
+            self.crud = crud
 
         # Déclaration des variables globales
         self.treeview = None
@@ -39,49 +70,56 @@ class CrudView():
         self.create_treeview()
 
         self.app_window.show_all()
-        self.label_select.hide()
-        self.button_edit.hide()
-        self.button_delete.hide()
-        if len(self.crud.get_selection()) == 1:
+        
+        if len(self.crud.get_selection()) == 1 and not crudel:
             # au retour d'un formulaire, on remet la sélection sur la ligne
             row_id = self.crud.get_row_id()
             self.treeview.set_cursor(Gtk.TreePath(row_id), None)
             self.treeview.grab_focus()
-        self.crud.remove_all_selection()
+
+        # self.crud.remove_all_selection()
+        # self.label_select.hide()
+        # self.button_edit.hide()
+        # self.button_delete.hide()
+        # print "crudview init end"
+        self.emit("init_widget", 1)
+
+    def get_widget(self):
+        """ retourne le container de la vue toolbar + list """
+        # print "get_widget"
+        return self.box_main
 
     def create_view_toolbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.connect("search-changed", self.on_search_changed)
-        self.crud_portail.box_toolbar.pack_start(self.search_entry, False, True, 3)
+        self.box_toolbar.pack_start(self.search_entry, False, True, 3)
         if self.crud.get_view_prop("filter", "") != "":
             self.search_entry.set_text(self.crud.get_view_prop("filter"))
-        self.search_entry.grab_focus()
+        if not self.crudel:
+            self.search_entry.grab_focus()
 
-        self.crud_portail.box_toolbar_select = Gtk.HBox()
+        self.box_toolbar_select = Gtk.HBox()
         self.button_delete = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_REMOVE))
         self.button_delete.connect("clicked", self.on_button_delete_clicked)
         self.button_delete.set_tooltip_text("Supprimer la sélection")
-        self.crud_portail.box_toolbar_select.pack_end(self.button_delete, False, True, 3)
+        self.box_toolbar_select.pack_end(self.button_delete, False, True, 3)
         self.button_edit = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_EDIT))
         self.button_edit.connect("clicked", self.on_button_edit_clicked)
         self.button_edit.set_tooltip_text("Editer le sélection...")
-        self.crud_portail.box_toolbar_select.pack_end(self.button_edit, False, True, 3)
+        self.box_toolbar_select.pack_end(self.button_edit, False, True, 3)
         self.label_select = Gtk.Label("0 sélection")
-        self.crud_portail.box_toolbar_select.pack_end(self.label_select, False, True, 3)
-        self.label_select.hide()
-        self.button_edit.hide()
-        self.button_delete.hide()
+        self.box_toolbar_select.pack_end(self.label_select, False, True, 3)
 
         if self.crud.get_view_prop("form_add", "") != "":
             # Affichage du bouton d'ajout si formulaire d'ajout présent
             self.button_add = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
             self.button_add.connect("clicked", self.on_button_add_clicked)
             self.button_add.set_tooltip_text("Créer un nouvel enregistrement...")
-            self.crud_portail.box_toolbar.pack_end(self.button_add, False, True, 3)
+            self.box_toolbar.pack_end(self.button_add, False, True, 3)
 
-        self.crud_portail.box_toolbar.pack_end(self.crud_portail.box_toolbar_select, False, True, 3)
-
+        self.box_toolbar.pack_end(self.box_toolbar_select, False, True, 3)
+        
     def create_treeview(self):
         """ Création/mise à jour de la treeview associée au liststore """
         # Treview sort and filter
@@ -134,8 +172,8 @@ class CrudView():
 
         self.frame = Gtk.Frame()
         self.frame.add(self.treeview)
-        self.crud_portail.scroll_window.add(self.frame)
-        self.crud_portail.scroll_window.show_all()
+        self.scroll_window.add(self.frame)
+        self.scroll_window.show_all()
 
     def create_liststore(self):
         """ Création de la structure du liststore à partir du dictionnaire des données """
@@ -144,7 +182,7 @@ class CrudView():
         col_store_types.append(GObject.TYPE_INT)
         for element in self.crud.get_view_elements():
             # Création du crudel
-            crudel = Crudel(self.app_window, self.crud_portail, self.crud, element, Crudel.CRUD_PARENT_VIEW)
+            crudel = Crudel(self.app_window, self.crud_portail, self, None, self.crud, element, Crudel.TYPE_PARENT_VIEW)
             self.crud.set_column_prop(element, "crudel", crudel)
 
             # colonnes techniques color et sortable
@@ -242,9 +280,7 @@ class CrudView():
             row_id += 1
 
         # suppression de la sélection
-        self.label_select.hide()
-        self.button_edit.hide()
-        self.button_delete.hide()
+        self.emit("init_widget", 10)
 
     def filter_func(self, model, iter, data):
         """Tests if the text in the row is the one in the filter"""
@@ -267,8 +303,9 @@ class CrudView():
         self.crud.set_key_value(None)
         self.crud.set_action("create")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-        dialog = CrudForm(self.app_window, self.crud_portail, self.crud)
+        form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
         self.app_window.show_all()
+        form.emit("init_widget", "on_button_add_clicked")
 
     def on_button_edit_clicked(self, widget):
         """ Edition de l'élément sélectionné"""
@@ -277,8 +314,9 @@ class CrudView():
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-        dialog = CrudForm(self.app_window, self.crud_portail, self.crud)
+        form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
         self.app_window.show_all()
+        form.emit("init_widget", "on_button_edit_clicked")
 
     def on_button_delete_clicked(self, widget):
         """ Suppression des éléments sélectionnés """
@@ -341,6 +379,7 @@ class CrudView():
 
     def on_tree_selection_changed(self, selection):
         """ Sélection d'une ligne """
+        # print "on_tree_selection_changed"
         model, self.treeiter_selected = selection.get_selected()
         if self.treeiter_selected:
             # key_id = self.store_filter_sort[self.treeiter_selected][self.crud.get_view_prop("key_id")]
@@ -361,5 +400,6 @@ class CrudView():
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
             self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-            dialog = CrudForm(self.app_window, self.crud_portail, self.crud)
+            form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
             self.app_window.show_all()
+            form.emit("init_widget", "on_row_actived")

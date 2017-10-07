@@ -1,5 +1,6 @@
 TODO
 
+- bug formulaire d'ajout
 - WidgetView sans crudel
 - rubrique tags
 - rubrique radio

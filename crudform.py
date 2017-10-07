@@ -4,18 +4,39 @@
 """
 from crud import Crud
 from crudel import Crudel
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 import gi
 gi.require_version('Gtk', '3.0')
 
 
-class CrudForm():
+class CrudForm(GObject.GObject):
     """ Gestion des Formulaires du CRUD """
-    def __init__(self, app_window, crud_portail, crud):
+    __gsignals__ = {
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str,))
+    }
+    def do_init_widget(self, arg):
+        """ Traitement du signal """
+        print "crudform do_init_widget", arg
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel.init_widget()
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_field_prop(element, "crudel")
+            if not crudel.is_hide() and not crudel.is_read_only():
+                widget = self.crud.get_field_prop(element, "widget")
+                widget.grab_focus()
+                break
+
+    def __init__(self, app_window, crud_portail, crud_view, crud, crudel=None):
+        
+        GObject.GObject.__init__(self)
+
         self.crud = crud
         self.crud.__class__ = Crud
         self.app_window = app_window
         self.crud_portail = crud_portail
+        self.crud_view = crud_view
+        self.crudel = crudel
 
         cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         cancel_button.set_always_show_image(True)
@@ -32,7 +53,6 @@ class CrudForm():
         self.crud_portail.box_toolbar.pack_end(ok_button, False, True, 3)
         self.crud_portail.box_toolbar.pack_end(cancel_button, False, True, 3)
 
-
         self.box_form = Gtk.VBox()
         self.box_form.set_border_width(6)
         self.frame = Gtk.Frame()
@@ -47,22 +67,11 @@ class CrudForm():
 
         self.app_window.show_all()
 
-        # Initialisation des widgets
-        for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
-            crudel.init_widget()
-        for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
-            if not crudel.is_hide() and not crudel.is_read_only():
-                widget = self.crud.get_field_prop(element, "widget")
-                widget.grab_focus()
-                break
-
     def create_fields(self):
         """ Création affichage des champs du formulaire """
         # Création des crudel
         for element in self.crud.get_form_elements():
-            crudel = Crudel(self.app_window, self, self.crud, element, Crudel.CRUD_PARENT_FORM)
+            crudel = Crudel(self.app_window, self.crud_portail, self.crud_view, self, self.crud, element, Crudel.TYPE_PARENT_FORM)
             crudel.init_value()
             self.crud.set_field_prop(element, "crudel", crudel)
 
@@ -80,9 +89,10 @@ class CrudForm():
 
     def on_cancel_button_clicked(self, widget):
         """ Cancel """
-        # print "on_cancel_button_clicked"
-        # self.response(Gtk.ResponseType.CANCEL)
-        self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())
+        if self.crudel:
+            self.crud_portail.do_form(self.crudel.crud_view, self.crudel.crud)
+        else:
+            self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())
 
     def on_ok_button_clicked(self, widget):
         """ Validation du formulaire """
