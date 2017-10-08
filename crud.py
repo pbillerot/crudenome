@@ -37,7 +37,7 @@ class Crud:
         "row_id": None,
         "key_id": None,
         "key_value": None,
-        "action": None, # create read update delete 
+        "action": None, # create read update delete
         "selected": [],
         "errors": []
     }
@@ -274,8 +274,10 @@ class Crud:
     def get_form_prop(self, prop, default=""):
         """ Obtenir la valeur d'une propriété du formulaire courant """
         return self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]].get(prop, default)
-    def get_form_values(self, dico):
+    def get_form_values(self, dico=None):
         """ Remplir "dict" avec les valeurs des champs du formulaire courant """
+        if dico is None:
+            dico = {}
         for element in self.get_form_elements():
             dico[element] = self.get_field_prop(element, "value")
         return dico

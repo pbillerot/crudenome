@@ -105,6 +105,7 @@
                     "title": "Albums",
                     "hide": true,
                     "form_edit": "fedit",
+                    "searchable": false,
                     "elements": {
                         "ArtistId": {
                             "hide": true

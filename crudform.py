@@ -16,7 +16,7 @@ class CrudForm(GObject.GObject):
     }
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
-        print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
+        # print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
             crudel.emit("init_widget", self.__class__, "")

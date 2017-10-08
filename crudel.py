@@ -19,7 +19,7 @@ class Crudel(GObject.GObject):
     }
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
-        print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
+        # print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
         self.init_widget()
 
     def __init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent=1):
@@ -725,9 +725,10 @@ class CrudelView(Crudel):
 
     def get_widget_box(self):
         from crudview import CrudView
-        
+
         hbox = Gtk.HBox()
         label = self._get_widget_label()
+        label.set_yalign(0.3)
 
         # box_view
         self.box_main = Gtk.VBox(spacing=0)
@@ -743,7 +744,7 @@ class CrudelView(Crudel):
 
         self.scroll_window = Gtk.ScrolledWindow()
         self.scroll_window.set_hexpand(True)
-        self.scroll_window.set_vexpand(True)
+        self.scroll_window.set_vexpand(False)
         self.box_content.pack_end(self.scroll_window, True, True, 3)
 
         self.widget_view = CrudView(self.app_window, self.crud_portail, self.crud, self.box_main, self.box_toolbar, self.scroll_window, self)

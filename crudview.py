@@ -25,7 +25,7 @@ class CrudView(GObject.GObject):
     }
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
-        print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
+        # print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
         self.crud.remove_all_selection()
         self.label_select.hide()
         self.button_edit.hide()
@@ -91,13 +91,14 @@ class CrudView(GObject.GObject):
 
     def create_view_toolbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
-        self.search_entry = Gtk.SearchEntry()
-        self.search_entry.connect("search-changed", self.on_search_changed)
-        self.box_toolbar.pack_start(self.search_entry, False, True, 3)
-        if self.crud.get_view_prop("filter", "") != "":
-            self.search_entry.set_text(self.crud.get_view_prop("filter"))
-        if not self.crudel:
-            self.search_entry.grab_focus()
+        if self.crud.get_view_prop("searchable", True):
+            self.search_entry = Gtk.SearchEntry()
+            self.search_entry.connect("search-changed", self.on_search_changed)
+            self.box_toolbar.pack_start(self.search_entry, False, True, 3)
+            if self.crud.get_view_prop("filter", "") != "":
+                self.search_entry.set_text(self.crud.get_view_prop("filter"))
+            if not self.crudel:
+                self.search_entry.grab_focus()
 
         self.box_toolbar_select = Gtk.HBox()
         self.button_delete = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_REMOVE))
@@ -241,10 +242,18 @@ class CrudView(GObject.GObject):
             crudel = self.crud.get_column_prop(element, "crudel")
             if crudel.get_type() == "jointure":
                 sql += " " + crudel.get_jointure_join()
+        sql_where = ""
+        if self.crudel and self.crudel.get_sql_where() != "":
+            sql_where = self.crudel.crud.replace_from_dict(self.crudel.get_sql_where(), self.crudel.crud.get_form_values())
         if self.crud.get_view_prop("sql_where"):
-            sql += " WHERE " + self.crud.get_view_prop("sql_where")
+            if sql_where == "":
+                sql_where = self.crud.get_view_prop("sql_where")
+            else:
+                sql_where = "(" + sql_where + ") AND ("+ self.crud.get_view_prop("sql_where") + ")"
+        if sql_where != "":
+            sql += " WHERE " + sql_where
         sql += " LIMIT 2000"
-        # print sql
+        print sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         # print rows
         self.liststore.clear()
@@ -351,31 +360,49 @@ class CrudView(GObject.GObject):
         # print "Action sur", self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
         key_id = self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
         row_id = self.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
-        if self.liststore[row_id][self.crud.get_view_prop("col_action_id")]:
-            self.crud.remove_selection(key_id)
-        else:
-            self.crud.add_selection(key_id)
-        qselect = len(self.crud.get_selection())
-        if qselect > 1:
-            self.label_select.set_markup("({}) sélections".format(qselect))
-            self.label_select.show()
-            self.button_edit.hide()
-            if self.crud.get_view_prop("deletable", False):
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+        if self.crud.get_view_prop("deletable", False):
+            # plusieurs lignes sélectionables
+            if self.liststore[row_id][self.crud.get_view_prop("col_action_id")]:
+                self.crud.remove_selection(key_id)
+            else:
+                self.crud.add_selection(key_id)
+            qselect = len(self.crud.get_selection())
+            if qselect > 1:
+                self.label_select.set_markup("({}) sélections".format(qselect))
+                if self.crud.get_view_prop("deletable", False):
+                    self.label_select.show()
+                    self.button_delete.show()
+            elif qselect == 1:
+                self.label_select.set_markup("{}".format(key_id))
+                if self.crud.get_view_prop("form_edit", None) is not None:
+                    self.label_select.show()
+                    self.button_edit.show()
+                self.label_select.show()
                 self.button_delete.show()
-        elif qselect == 1:
-            self.label_select.set_markup("{}".format(key_id))
-            self.label_select.show()
-            if self.crud.get_view_prop("form_edit", None) is not None:
+            # cochage / décochage de la ligne
+            self.liststore[row_id][self.crud.get_view_prop("col_action_id")]\
+                = not self.liststore[row_id][self.crud.get_view_prop("col_action_id")]
+        else:
+            # une seule ligne sélectionable
+            if self.liststore[row_id][self.crud.get_view_prop("col_action_id")]:
+                self.crud.remove_all_selection()
+            else:
+                self.crud.remove_all_selection()
+                self.crud.add_selection(key_id)
+                self.label_select.set_markup("{}".format(key_id))
+                self.label_select.show()
                 self.button_edit.show()
-            if self.crud.get_view_prop("deletable", False):
-                self.button_delete.show()
-        else:
-            self.label_select.hide()
-            self.button_edit.hide()
-            self.button_delete.hide()
-
-        self.liststore[row_id][self.crud.get_view_prop("col_action_id")]\
-            = not self.liststore[row_id][self.crud.get_view_prop("col_action_id")]
+            # on décoche toutes les lignes sauf la ligne courante
+            if not self.crud.get_view_prop("deletable", False):
+                for irow in range(len(self.liststore)):
+                    if irow != row_id:
+                        self.liststore[irow][self.crud.get_view_prop("col_action_id")] = False
+            # cochage / décochage de la ligne
+            self.liststore[row_id][self.crud.get_view_prop("col_action_id")]\
+                = not self.liststore[row_id][self.crud.get_view_prop("col_action_id")]
 
     def on_tree_selection_changed(self, selection):
         """ Sélection d'une ligne """

@@ -168,8 +168,12 @@ class CrudPortail():
     def create_footerbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
         footer_label = Gtk.Label()
-        footer_label.set_markup("<sub>Développé avec {} {} {}</sub>".format(self.crud.config["title"],
-                                self.crud.config["version"], self.crud.config["copyright"]))
+        footer_label.set_markup('<sub>Développé avec <a href="{}">{}</a> {} {}</sub>'.format(\
+            self.crud.config["web_site"]\
+            , self.crud.config["title"]\
+            , self.crud.config["version"]\
+            , self.crud.config["copyright"]\
+            ))
         self.footerbar.pack_start(footer_label, False, True, 3)
 
     def create_sidebar(self):
@@ -243,4 +247,5 @@ class CrudPortail():
         for widget in self.box_toolbar.get_children():
             Gtk.Widget.destroy(widget)
         self.set_layout(CrudPortail.LAYOUT_FORM)
-        CrudForm(self.app_window, self, crud_view, crud, None)
+        form = CrudForm(self.app_window, self, crud_view, crud, None)
+        form.emit("init_widget", self.__class__, "do_form")
