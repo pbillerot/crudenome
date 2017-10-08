@@ -9,12 +9,23 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
 
-class Crudel():
+class Crudel(GObject.GObject):
     """ Gestion des Elements """
     TYPE_PARENT_VIEW = 1
     TYPE_PARENT_FORM = 2
 
+    __gsignals__ = {
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
+    }
+    def do_init_widget(self, str_from, str_arg=""):
+        """ Traitement du signal """
+        print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
+        self.init_widget()
+
     def __init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent=1):
+
+        GObject.GObject.__init__(self)
+
         self.crud = crud
         self.app_window = app_window
         self.crud_portail = crud_portail
@@ -747,7 +758,7 @@ class CrudelView(Crudel):
 
     def init_widget(self):
         """ Initialisation du widget après création """
-        self.widget_view.emit("init_widget", 42)
+        self.widget_view.emit("init_widget", self.__class__, "")
 
     def set_value_widget(self):
         pass

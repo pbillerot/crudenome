@@ -21,11 +21,11 @@ class CrudView(GObject.GObject):
     """
 
     __gsignals__ = {
-        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (int,))
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str, str,))
     }
-    def do_init_widget(self, arg):
+    def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
-        print "do_init_widget", arg
+        print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
         self.crud.remove_all_selection()
         self.label_select.hide()
         self.button_edit.hide()
@@ -82,7 +82,7 @@ class CrudView(GObject.GObject):
         # self.button_edit.hide()
         # self.button_delete.hide()
         # print "crudview init end"
-        self.emit("init_widget", 1)
+        self.emit("init_widget", self.__class__, "init")
 
     def get_widget(self):
         """ retourne le container de la vue toolbar + list """
@@ -280,7 +280,7 @@ class CrudView(GObject.GObject):
             row_id += 1
 
         # suppression de la sélection
-        self.emit("init_widget", 10)
+        self.emit("init_widget", self.__class__, "update_listore")
 
     def filter_func(self, model, iter, data):
         """Tests if the text in the row is the one in the filter"""
@@ -305,7 +305,7 @@ class CrudView(GObject.GObject):
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
         self.app_window.show_all()
-        form.emit("init_widget", "on_button_add_clicked")
+        form.emit("init_widget", self.__class__, "on_button_add_clicked")
 
     def on_button_edit_clicked(self, widget):
         """ Edition de l'élément sélectionné"""
@@ -316,7 +316,7 @@ class CrudView(GObject.GObject):
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
         self.app_window.show_all()
-        form.emit("init_widget", "on_button_edit_clicked")
+        form.emit("init_widget", self.__class__ ,"on_button_edit_clicked")
 
     def on_button_delete_clicked(self, widget):
         """ Suppression des éléments sélectionnés """
@@ -402,4 +402,4 @@ class CrudView(GObject.GObject):
             self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
             form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
             self.app_window.show_all()
-            form.emit("init_widget", "on_row_actived")
+            form.emit("init_widget", self.__class__, "on_row_actived")

@@ -12,14 +12,14 @@ gi.require_version('Gtk', '3.0')
 class CrudForm(GObject.GObject):
     """ Gestion des Formulaires du CRUD """
     __gsignals__ = {
-        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str,))
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
     }
-    def do_init_widget(self, arg):
+    def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
-        print "crudform do_init_widget", arg
+        print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
-            crudel.init_widget()
+            crudel.emit("init_widget", self.__class__, "")
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
             if not crudel.is_hide() and not crudel.is_read_only():
