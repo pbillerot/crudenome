@@ -35,14 +35,12 @@ class Crud:
         "view_id": None,
         "form_id": None,
         "row_id": None,
-        "key_id": None,
         "key_value": None,
         "action": None, # create read update delete
         "selected": [],
-        "errors": []
+        "errors": [],
     }
     config = {}
-
 
     def __init__(self, crud=None, duplicate=False):
         """
@@ -190,10 +188,7 @@ class Crud:
     # key
     def get_key_id(self):
         """ key_id """
-        return self.ctx["key_id"]
-    def set_key_id(self, val):
-        """ set """
-        self.ctx["key_id"] = val
+        return self.get_table_prop("key")
     def get_key_value(self):
         """ key_value """
         return self.ctx["key_value"]

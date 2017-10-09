@@ -1,9 +1,7 @@
 TODO
 
-- view is_searchable
-- bug formulaire d'ajout
-- WidgetView sans crudel
 - rubrique tags
+- rubrique list
 - rubrique radio
 - rubrique link
 - option colonne edit_online True

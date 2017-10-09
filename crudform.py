@@ -98,8 +98,12 @@ class CrudForm(GObject.GObject):
         """ Validation du formulaire """
         self.label_error.set_text("")
         # remplissage des champs avec les valeurs saisies
+        # + mémorisation du type de la clé
+        key_type = ""
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
+            if element == self.crud.get_key_id():
+                key_type = crudel.get_type()
             if crudel.is_hide():
                 continue
             crudel.set_value_widget()
@@ -116,7 +120,7 @@ class CrudForm(GObject.GObject):
             return
         else:
             if self.crud.get_action() in ("create"):
-                if self.crud.sql_exist_key():
+                if key_type != "counter" and self.crud.sql_exist_key():
                     self.crud.add_error("Cet enregistrement existe déjà")
                     # dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
                     #     Gtk.ButtonsType.OK, "Cet enregistrement existe déjà")
@@ -132,4 +136,7 @@ class CrudForm(GObject.GObject):
             self.crud.remove_all_errors()
             return
 
-        self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())
+        if self.crudel:
+            self.crud_portail.do_form(self.crudel.crud_view, self.crudel.crud)
+        else:
+            self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())

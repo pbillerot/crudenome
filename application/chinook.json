@@ -104,8 +104,10 @@
                 "valbums": {
                     "title": "Albums",
                     "hide": true,
+                    "form_add": "fadd",
                     "form_edit": "fedit",
                     "searchable": false,
+                    "deletable": true,
                     "elements": {
                         "ArtistId": {
                             "hide": true

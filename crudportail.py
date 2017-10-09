@@ -205,7 +205,6 @@ class CrudPortail():
         # mise en relief du bouton vue courante
         self.crud.set_table_id(table_first)
         self.crud.set_view_id(view_first)
-        self.crud.set_key_id(self.crud.get_table_prop("key"))
         self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
 
     def on_button_application_clicked(self, widget, application_file):
@@ -231,7 +230,6 @@ class CrudPortail():
         # init ctx
         self.crud.set_table_id(table_id)
         self.crud.set_view_id(view_id)
-        self.crud.set_key_id(self.crud.get_table_prop("key"))
         self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
         # raz view_toolbar
         for widget in self.box_toolbar.get_children():

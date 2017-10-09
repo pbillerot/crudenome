@@ -42,14 +42,7 @@ class CrudView(GObject.GObject):
         self.box_toolbar = box_toolbar
         self.scroll_window = scroll_window
         self.crudel = crudel
-        if crudel:
-            # clonage du crud et en particulier du contexte
-            self.crud = Crud(self.crudel.crud, duplicate=True)
-            # set de la table et vue à afficher dans le widget
-            self.crud.set_view_id(self.crudel.get_view_view())
-            self.crud.set_table_id(self.crudel.get_view_table())
-        else:
-            self.crud = crud
+        self.crud = crud
 
         # Déclaration des variables globales
         self.treeview = None
@@ -70,7 +63,7 @@ class CrudView(GObject.GObject):
         self.create_treeview()
 
         self.app_window.show_all()
-        
+
         if len(self.crud.get_selection()) == 1 and not crudel:
             # au retour d'un formulaire, on remet la sélection sur la ligne
             row_id = self.crud.get_row_id()
@@ -325,7 +318,7 @@ class CrudView(GObject.GObject):
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
         self.app_window.show_all()
-        form.emit("init_widget", self.__class__ ,"on_button_edit_clicked")
+        form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
     def on_button_delete_clicked(self, widget):
         """ Suppression des éléments sélectionnés """

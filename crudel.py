@@ -726,6 +726,12 @@ class CrudelView(Crudel):
     def get_widget_box(self):
         from crudview import CrudView
 
+        # clonage du crud et en particulier du contexte
+        crud = Crud(self.crud, duplicate=True)
+        # set de la table et vue à afficher dans le widget
+        crud.set_view_id(self.get_view_view())
+        crud.set_table_id(self.get_view_table())
+
         hbox = Gtk.HBox()
         label = self._get_widget_label()
         label.set_yalign(0.3)
@@ -747,7 +753,7 @@ class CrudelView(Crudel):
         self.scroll_window.set_vexpand(False)
         self.box_content.pack_end(self.scroll_window, True, True, 3)
 
-        self.widget_view = CrudView(self.app_window, self.crud_portail, self.crud, self.box_main, self.box_toolbar, self.scroll_window, self)
+        self.widget_view = CrudView(self.app_window, self.crud_portail, crud, self.box_main, self.box_toolbar, self.scroll_window, self)
         widget = self.widget_view.get_widget()
         # Mémorisation du widget
         self.crud.set_field_prop(self.element, "widget", widget)
