@@ -1,6 +1,5 @@
 TODO
 
-- rubrique list
 - rubrique tags
 - rubrique link
 - option colonne edit_online True

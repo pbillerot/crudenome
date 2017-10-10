@@ -40,12 +40,14 @@ class Crudel(GObject.GObject):
             crudel = CrudelInt(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "jointure":
             crudel = CrudelJointure(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "list":
+            crudel = CrudelList(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "radio":
+            crudel = CrudelRadio(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "uid":
             crudel = CrudelUid(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "view":
             crudel = CrudelView(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
-        elif crud.get_element_prop(element, "type", "text") == "radio":
-            crudel = CrudelRadio(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         else:
             crudel = CrudelText(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         return crudel
@@ -682,7 +684,67 @@ class CrudelJointure(Crudel):
             index += 1
 
         self.widget.connect('changed', self.on_changed_combo, self.element)
-        if index_selected:
+        if index_selected is not None:
+            self.widget.set_active(index_selected)
+
+        # arrangement
+        hbox.pack_start(label, False, False, 5)
+        hbox.pack_start(self.widget, False, False, 5)
+        return hbox
+
+    def on_changed_combo(self, widget, element):
+        """ l'item sélectionné a changé """
+        text = self.widget.get_active_text()
+        key = self.crud.get_key_from_bracket(text)
+        if text is not None:
+            if key:
+                self.crud.set_element_prop(element, "value", key)
+            else:
+                self.crud.set_element_prop(element, "value", text)
+
+    def set_value_widget(self):
+        pass
+
+class CrudelList(Crudel):
+    """ Gestion des colonnes et champs de type jointure entre 2 tables """
+
+    def __init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent):
+        Crudel.__init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
+        self.items = self.crud.get_element_prop(element, "items")
+
+    def get_type_gdk(self):
+        return GObject.TYPE_STRING
+
+    def init_value(self):
+        Crudel.init_value(self)
+        self.set_value_sql(u"")
+
+    def get_cell(self):
+        """ représentation en colonne """
+        return self.items.get(self.get_value(), "")
+
+    def get_widget_box(self):
+        hbox = Gtk.HBox()
+        
+        label = self._get_widget_label()
+
+        self.widget = Gtk.ComboBoxText()
+
+        # remplissage du combo
+        self.widget.set_entry_text_column(0)
+        index = 0
+        index_selected = None
+        for item in self.items:
+            if self.items[item] == self.get_value():
+                index_selected = index
+            if self.items[item] == item:
+                self.widget.append_text("%s" % (item))
+            else:
+                self.widget.append_text("%s (%s)" % (self.items[item], item))
+            index += 1
+
+        self.widget.connect('changed', self.on_changed_combo, self.element)
+        if index_selected is not None:
             self.widget.set_active(index_selected)
 
         # arrangement
