@@ -392,7 +392,7 @@ class Crud:
         params[self.get_key_id()] = self.get_key_value()
         # on remplace les {rubrique} par leur valeur
         sql = self.replace_from_dict(sql, params)
-        print sql, params
+        # print sql, params
         self.exec_sql(self.get_table_prop("basename"), sql, params)
         if self.get_form_prop("sql_post", "") != "":
             sql = self.replace_from_dict(self.get_form_prop("sql_post"), params)
@@ -425,7 +425,7 @@ class Crud:
         sql += ")"
         # on remplace les {rubrique} par leur valeur
         sql = self.replace_from_dict(sql, params)
-        print sql, params
+        # print sql, params
         self.exec_sql(self.get_table_prop("basename"), sql, params)
         # post_sql
         if self.get_form_prop("sql_post", "") != "":
@@ -437,7 +437,7 @@ class Crud:
         sql = "DELETE FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :" + self.get_key_id()
         params = {}
         params[self.get_key_id()] = key_value
-        print sql, params
+        # print sql, params
         self.exec_sql(self.get_table_prop("basename"), sql, params)
 
     def sql_exist_key(self):

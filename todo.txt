@@ -1,8 +1,7 @@
 TODO
 
-- rubrique tags
 - rubrique list
-- rubrique radio
+- rubrique tags
 - rubrique link
 - option colonne edit_online True
 - sql_ctrl

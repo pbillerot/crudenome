@@ -23,7 +23,7 @@ class CrudForm(GObject.GObject):
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
             if not crudel.is_hide() and not crudel.is_read_only():
-                widget = self.crud.get_field_prop(element, "widget")
+                widget = crudel.get_widget()
                 widget.grab_focus()
                 break
 
@@ -71,7 +71,7 @@ class CrudForm(GObject.GObject):
         """ Création affichage des champs du formulaire """
         # Création des crudel
         for element in self.crud.get_form_elements():
-            crudel = Crudel(self.app_window, self.crud_portail, self.crud_view, self, self.crud, element, Crudel.TYPE_PARENT_FORM)
+            crudel = Crudel.instantiate(self.app_window, self.crud_portail, self.crud_view, self, self.crud, element, Crudel.TYPE_PARENT_FORM)
             crudel.init_value()
             self.crud.set_field_prop(element, "crudel", crudel)
 

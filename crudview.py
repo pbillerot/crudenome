@@ -176,7 +176,8 @@ class CrudView(GObject.GObject):
         col_store_types.append(GObject.TYPE_INT)
         for element in self.crud.get_view_elements():
             # Création du crudel
-            crudel = Crudel(self.app_window, self.crud_portail, self, None, self.crud, element, Crudel.TYPE_PARENT_VIEW)
+            crudel = Crudel.instantiate(self.app_window, self.crud_portail, self, None, self.crud, element, Crudel.TYPE_PARENT_VIEW)
+            # crudel = crudel_class(self.app_window, self.crud_portail, self, None, self.crud, element, Crudel.TYPE_PARENT_VIEW)
             self.crud.set_column_prop(element, "crudel", crudel)
 
             # colonnes techniques color et sortable
@@ -246,7 +247,7 @@ class CrudView(GObject.GObject):
         if sql_where != "":
             sql += " WHERE " + sql_where
         sql += " LIMIT 2000"
-        print sql
+        # print sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         # print rows
         self.liststore.clear()
