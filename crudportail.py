@@ -214,7 +214,7 @@ class CrudPortail():
         self.crud.set_application(application)
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         self.create_sidebar()
-        self.crud_view = CrudView(self.app_window, self, self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
+        self.crud_view = CrudView(self.app_window, self, self.crud, self.box_main, self.box_toolbar, self.scroll_window, None, None)
 
     def on_button_home_clicked(self, widget):
         """ Retour au menu général """
@@ -237,7 +237,7 @@ class CrudPortail():
 
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         
-        self.crud_view = CrudView(self.app_window, self, self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
+        self.crud_view = CrudView(self.app_window, self, self.crud, self.box_main, self.box_toolbar, self.scroll_window, None, None)
 
     def do_form(self, crud_view, crud):
         """ Demande d'activation d'un formulaire """
@@ -245,5 +245,5 @@ class CrudPortail():
         for widget in self.box_toolbar.get_children():
             Gtk.Widget.destroy(widget)
         self.set_layout(CrudPortail.LAYOUT_FORM)
-        form = CrudForm(self.app_window, self, crud_view, crud, None)
+        form = CrudForm(self.app_window, self, crud_view, crud, None, None)
         form.emit("init_widget", self.__class__, "do_form")

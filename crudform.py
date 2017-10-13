@@ -27,7 +27,7 @@ class CrudForm(GObject.GObject):
                 widget.grab_focus()
                 break
 
-    def __init__(self, app_window, crud_portail, crud_view, crud, crudel=None):
+    def __init__(self, app_window, crud_portail, crud_view, crud, crudel=None, params=None):
         
         GObject.GObject.__init__(self)
 
@@ -37,6 +37,10 @@ class CrudForm(GObject.GObject):
         self.crud_portail = crud_portail
         self.crud_view = crud_view
         self.crudel = crudel
+        if params:
+            self.params = params
+        else:
+            self.params = {}
 
         cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         cancel_button.set_always_show_image(True)
@@ -79,12 +83,21 @@ class CrudForm(GObject.GObject):
         if self.crud.get_action() in ("read", "update", "delete"):
             self.crud.sql_select_to_form()
 
+        # remplissage des champs avec les paramètres
+        for param in self.params:
+            if self.crud.get_form_elements().get(param, None):
+                crudel = self.crud.get_field_prop(param, "crudel")
+                crudel.set_value(self.params.get(param))
+                crudel.set_read_only(True)
+
         # Création des widget dans la box de la dialog
+        # avec exécution des propriétés sql
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
+            crudel.init_value_sql()
+            # crudel.dump()
             if crudel.is_hide():
                 continue
-            # crudel.dump()
             self.box_form.pack_start(crudel.get_widget_box(), False, False, 5)
 
     def on_cancel_button_clicked(self, widget):

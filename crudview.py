@@ -32,7 +32,7 @@ class CrudView(GObject.GObject):
         self.button_delete.hide()
 
     def __init__(self, app_window, crud_portail, crud\
-            , box_main, box_toolbar, scroll_window, crudel=None):
+            , box_main, box_toolbar, scroll_window, crudel=None, params=None):
 
         GObject.GObject.__init__(self)
 
@@ -43,6 +43,10 @@ class CrudView(GObject.GObject):
         self.scroll_window = scroll_window
         self.crudel = crudel
         self.crud = crud
+        if params:
+            self.params = params
+        else:
+            self.params = {}
 
         # Déclaration des variables globales
         self.treeview = None
@@ -229,16 +233,33 @@ class CrudView(GObject.GObject):
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_column_prop(element, "crudel")
             if crudel.get_type() == "jointure":
-                sql += ", " + crudel.get_jointure_columns()
+                sql += ", " + crudel.get_param("table") + "." + crudel.get_param("display", crudel.get_param("key"))\
+                + " as " + element
         sql += " FROM " + self.crud.get_table_id()
         # ajout des tables de jointure
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_column_prop(element, "crudel")
             if crudel.get_type() == "jointure":
-                sql += " " + crudel.get_jointure_join()
+                sql += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON " + crudel.get_param("table") + "." + crudel.get_param("key")\
+                + " = " + self.crud.get_table_id() + "." + element
         sql_where = ""
+        # Les paramètres de la vue entrent dans le where
+        for param in self.params:
+            if sql_where == "":
+                sql_where = self.crudel.get_view_table() + "." + param + " = '"\
+                + self.crudel.crud.replace_from_dict(self.params.get(param), self.crudel.crud.get_form_values()) + "'"
+            else:
+                sql_where = "" + sql_where + " and " + self.crudel.get_view_table() + "." + param + " = '"\
+                + self.crudel.crud.replace_from_dict(self.params.get(param), self.crudel.crud.get_form_values()) + "'"
+        # prise en compte du sql_where de crudelView
         if self.crudel and self.crudel.get_sql_where() != "":
-            sql_where = self.crudel.crud.replace_from_dict(self.crudel.get_sql_where(), self.crudel.crud.get_form_values())
+            if sql_where == "":
+                sql_where = self.crudel.crud.replace_from_dict(self.crudel.get_sql_where(), self.crudel.crud.get_form_values())
+            else:
+                sql_where = "(" + sql_where + ") AND ("\
+                    + self.crudel.crud.replace_from_dict(self.crudel.get_sql_where(), self.crudel.crud.get_form_values())\
+                    + ")"
+        # prise en compte du sql_where de la vue 
         if self.crud.get_view_prop("sql_where"):
             if sql_where == "":
                 sql_where = self.crud.get_view_prop("sql_where")
@@ -251,6 +272,10 @@ class CrudView(GObject.GObject):
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         # print rows
         self.liststore.clear()
+        # remplissage des colonnes item_sql
+        for element in self.crud.get_view_elements():
+                crudel = self.crud.get_column_prop(element, "crudel")
+                crudel.init_value_sql()
         row_id = 0
         for row in rows:
             store = []
@@ -306,7 +331,7 @@ class CrudView(GObject.GObject):
         self.crud.set_key_value(None)
         self.crud.set_action("create")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-        form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
+        form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel, self.params)
         self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_add_clicked")
 
@@ -317,7 +342,7 @@ class CrudView(GObject.GObject):
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-        form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
+        form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel, self.params)
         self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
@@ -421,6 +446,6 @@ class CrudView(GObject.GObject):
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
             self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-            form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel)
+            form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel, self.params)
             self.app_window.show_all()
             form.emit("init_widget", self.__class__, "on_row_actived")

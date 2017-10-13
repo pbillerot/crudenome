@@ -253,6 +253,13 @@ class Crud:
     def get_table_elements(self):
         """ Obtenir la liste des rubriques de la table courante """
         return self.application["tables"][self.ctx["table_id"]]["elements"]
+    def get_table_values(self, dico=None):
+        """ Remplir "dict" avec les valeurs des éléments de la table courante """
+        if dico is None:
+            dico = {}
+        for element in self.get_table_elements():
+            dico[element] = self.get_element_prop(element, "value")
+        return dico
 
     # view
     def get_view_prop(self, prop, default=""):
@@ -291,6 +298,14 @@ class Crud:
         """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
         self.application["tables"][self.ctx["table_id"]]["elements"][element][prop] = value
 
+    # paramètres
+    def get_element_param(self, element, params, default=None):
+        """ Obtenir la valeur d'un paramètre d'un élément """
+        if self.application["tables"][self.ctx["table_id"]]["elements"][element].get("params", None):
+            return self.application["tables"][self.ctx["table_id"]]["elements"][element].get("params").get(params, default)
+        else:
+            return default
+    
     # column
     def get_column_prop(self, element, prop, default=""):
         """

@@ -27,7 +27,10 @@
                     "height": 300,
                     "view_table": "albums",
                     "view_view": "valbums",
-                    "sql_where": "albums.ArtistId = {ArtistId}"
+                    "view_params": {
+                        "ArtistId": "{ArtistId}"
+                    },
+                    "sql_where": "2 = 2"
                 }
             },
             "views": {
@@ -81,9 +84,11 @@
                     "label_long": "Artist",
                     "label_short": "Artist",
                     "type": "jointure",
-                    "combo_select": "select ArtistId, Name from artists order by Name",
-                    "jointure_columns": "artists.Name as ArtistId",
-                    "jointure_join": "left outer join artists on artists.ArtistId = albums.ArtistId",
+                    "params": {
+                        "table": "artists",
+                        "key": "ArtistId",
+                        "display": "Name"
+                    },
                     "searchable": true,
                     "sortable": true,
                     "col_width": 250

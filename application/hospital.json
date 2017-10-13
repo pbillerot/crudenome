@@ -25,9 +25,11 @@
                     "label_long": "Head",
                     "label_short": "Head",
                     "type": "jointure",
-                    "combo_select": "select EmployeeID, Name from Physician order by Name",
-                    "jointure_columns": "Physician.Name as Head",
-                    "jointure_join": "LEFT OUTER JOIN Physician ON Physician.EmployeeID = Department.Head"
+                    "params": {
+                        "table": "Physician",
+                        "key": "EmployeeID",
+                        "display": "Name"
+                    }
                 }
             },
             "views": {
@@ -139,10 +141,11 @@
                     "label_long": "Type",
                     "label_short": "Type",
                     "type": "list",
-                    "items": {
+                    "itemss": {
                         "Single": "Single",
                         "Double": "Double"
-                    }
+                    },
+                    "items_sql": "select 'Single' as key, 'Single' as 'display' union select 'Double' as key, 'Double' as 'display'"
                 },
                 "BlockFloor": {
                     "label_long": "Block Floor",
