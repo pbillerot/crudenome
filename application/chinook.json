@@ -83,7 +83,7 @@
                 "ArtistId": {
                     "label_long": "Artist",
                     "label_short": "Artist",
-                    "type": "jointure",
+                    "type": "combo",
                     "params": {
                         "table": "artists",
                         "key": "ArtistId",
@@ -233,6 +233,135 @@
                     "elements": {
                         "GenreId": {},
                         "Name": {}
+                    }
+                }
+            }
+        },
+        "tracks": {
+            "basename": "./data/chinook.sqlite",
+            "key": "TrackId",
+            "elements": {
+                "TrackId": {
+                    "label_long": "ID",
+                    "label_short": "ID",
+                    "type": "counter"
+                },
+                "Name": {
+                    "label_long": "Name",
+                    "label_short": "Name",
+                    "type": "text",
+                    "required": true,
+                    "searchable": true
+                },
+                "AlbumId": {
+                    "label_long": "Album",
+                    "label_short": "Album",
+                    "type": "combo",
+                    "params": {
+                        "table": "albums",
+                        "key": "AlbumId",
+                        "display": "Title"
+                    },
+                    "required": true,
+                    "searchable": true
+                },
+                "MediaTypeId": {
+                    "label_long": "Type media",
+                    "label_short": "Type media",
+                    "type": "combo",
+                    "params": {
+                        "table": "media_types",
+                        "key": "MediaTypeId",
+                        "display": "Name"
+                    }
+                },
+                "GenreId": {
+                    "label_long": "Genre",
+                    "label_short": "Genre",
+                    "type": "combo",
+                    "params": {
+                        "table": "genres",
+                        "key": "GenreId",
+                        "display": "Name"
+                    }
+                },
+                "Composer": {
+                    "label_long": "Composer",
+                    "label_short": "Composer",
+                    "type": "text",
+                    "searchable": true
+                },
+                "Milliseconds": {
+                    "label_long": "Duration",
+                    "label_short": "Duration",
+                    "type": "int"
+                },
+                "Bytes": {
+                    "label_long": "Size",
+                    "label_short": "Size",
+                    "type": "int"
+                },
+                "UnitPrice": {
+                    "label_long": "Price",
+                    "label_short": "Price",
+                    "type": "float"
+                },
+                "_ArtistId": {
+                    "label_long": "Artist",
+                    "label_short": "Artist",
+                    "type": "text",
+                    "params": {
+                        "sql_select": "artist.Name",
+                        "sql_from": "LEFT OUTER JOIN albums ON albums.AlbumId = tracks.AlbumId LEFT OUTER JOIN artists ON artists.ArtistId = albums.ArtistId"
+                    }
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Tracks",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "TrackId": {},
+                        "Name": {},
+                        "AlbumId": {},
+                        "MediaTypeId": {},
+                        "GenreId": {},
+                        "Composer": {},
+                        "Milliseconds": {},
+                        "Bytes": {},
+                        "UnitPrice": {}
+                    }
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add a track",
+                    "elements": {
+                        "TrackId": {},
+                        "Name": {},
+                        "AlbumId": {},
+                        "MediaTypeId": {},
+                        "GenreId": {},
+                        "Composer": {},
+                        "Milliseconds": {},
+                        "Bytes": {},
+                        "UnitPrice": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "TrackId": {},
+                        "Name": {},
+                        "AlbumId": {},
+                        "MediaTypeId": {},
+                        "GenreId": {},
+                        "Composer": {},
+                        "Milliseconds": {},
+                        "Bytes": {},
+                        "UnitPrice": {}
                     }
                 }
             }

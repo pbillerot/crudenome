@@ -57,7 +57,7 @@ class CrudDialog(Gtk.Dialog):
         # Création des crudel
         for element in self.crud.get_form_elements():
             crudel = Crudel(self.app_window, self, self.crud, element, Crudel.TYPE_PARENT_FORM)
-            crudel.init_value()
+            crudel.init_crudel()
             self.crud.set_field_prop(element, "crudel", crudel)
 
         # remplissage des champs avec les colonnes

@@ -75,26 +75,31 @@ class CrudForm(GObject.GObject):
         """ Création affichage des champs du formulaire """
         # Création des crudel
         for element in self.crud.get_form_elements():
-            crudel = Crudel.instantiate(self.app_window, self.crud_portail, self.crud_view, self, self.crud, element, Crudel.TYPE_PARENT_FORM)
-            crudel.init_value()
+            crudel = Crudel.instantiate(self.app_window, self.crud_portail, self.crud_view, self\
+                , self.crud, element, Crudel.TYPE_PARENT_FORM)
             self.crud.set_field_prop(element, "crudel", crudel)
 
         # remplissage des champs avec les colonnes
         if self.crud.get_action() in ("read", "update", "delete"):
             self.crud.sql_select_to_form()
 
-        # remplissage des champs avec les paramètres
+        # remplissage des champs avec les paramètres du formulaire
         for param in self.params:
             if self.crud.get_form_elements().get(param, None):
                 crudel = self.crud.get_field_prop(param, "crudel")
                 crudel.set_value(self.params.get(param))
                 crudel.set_read_only(True)
 
-        # Création des widget dans la box de la dialog
-        # avec exécution des propriétés sql
+        # valeur par défaut
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_field_prop(element, "crudel")
-            crudel.init_value_sql()
+            crudel.set_value_default()
+
+        # Calcul sql des crudels
+        # Création des widget dans la box de la dialog
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel.init_crudel_sql()
             # crudel.dump()
             if crudel.is_hide():
                 continue

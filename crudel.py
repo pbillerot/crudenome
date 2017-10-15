@@ -32,8 +32,8 @@ class Crudel(GObject.GObject):
             crudel = CrudelInt(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "jointure":
             crudel = CrudelJointure(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
-        elif crud.get_element_prop(element, "type", "text") == "list":
-            crudel = CrudelList(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "combo":
+            crudel = CrudelCombo(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "radio":
             crudel = CrudelRadio(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "uid":
@@ -67,24 +67,33 @@ class Crudel(GObject.GObject):
         self.items = {}
         self.params = None
 
-        self.init_value()
+        self.init_crudel()
 
-    def init_value(self):
+    def init_crudel(self):
         """ initialisation de la valeur """
         if self.crud.get_element_prop(self.element, "items", None):
             self.items = self.crud.get_element_prop(self.element, "items")
         self.params = self.crud.get_element_prop(self.element, "params", None)
         self.set_value_sql(u"")
 
-    def init_value_sql(self):
-        """ initialisation de la valeur à partir d'une table """
-        if self.crud.get_element_prop(self.element, "items_sql", None):
-            rows = self.crud.sql_to_dict(\
-                self.crud.get_table_prop("basename")\
-                , self.crud.get_element_prop(self.element, "items_sql")\
-                , self.crud.get_table_values())
+    def init_crudel_sql(self):
+        """ Initialisation calcul, remplissage des items de liste """
+        if self.get_param("table"):
+            sql = "SELECT " + self.get_param("key") + " AS key, "\
+                + self.get_param("display", self.get_param("key")) + " as display "\
+                + "FROM " + self.get_param("table")
+            if self.get_param("where"):
+                sql += " WHERE " + self.get_param("where")
+            rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql , {})
             for row in rows:
                 self.items[row["key"]] = row["display"]
+        # if self.get_sql_select():
+        #     rows = self.crud.sql_to_dict(\
+        #         self.crud.get_table_prop("basename")\
+        #         , self.get_sql_select\
+        #         , self.crud.get_table_values())
+        #     for row in rows:
+        #         self.items[row["key"]] = row["display"]
 
     def set_value(self, value):
         """ Valorisation dans le crud """
@@ -169,31 +178,23 @@ class Crudel(GObject.GObject):
 
     def get_sql_color(self):
         """ Couleur du texte dans la colonne """
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            return self.crud.get_column_prop(self.element, "sql_color", "")
-        else:
-            return self.crud.get_field_prop(self.element, "sql_color", "")
+        return self.crud.get_element_prop(self.element, "sql_color", "")
 
     def get_sql_get(self):
         """ l'instruction sql dans le select pour lire la colonne """
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            return self.crud.get_column_prop(self.element, "sql_get", "")
-        else:
-            return self.crud.get_field_prop(self.element, "sql_get", "")
+        return self.crud.get_element_prop(self.element, "sql_get", "")
 
     def get_sql_put(self):
         """ l'instruction sql pour écrire la colonne """
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            return self.crud.get_column_prop(self.element, "sql_put", "")
-        else:
-            return self.crud.get_field_prop(self.element, "sql_put", "")
+        return self.crud.get_element_prop(self.element, "sql_put", "")
 
     def get_sql_where(self):
         """ le where d'une rubrique de type view """
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            return self.crud.get_column_prop(self.element, "sql_where", "")
-        else:
-            return self.crud.get_field_prop(self.element, "sql_where", "")
+        return self.crud.get_element_prop(self.element, "sql_where", "")
+
+    def get_sql_select(self):
+        """ un select sql classique """
+        return self.crud.get_element_prop(self.element, "sql_select", None)
 
     def get_view_table(self):
         """ nom de la table de la rubrique view """
@@ -257,6 +258,14 @@ class Crudel(GObject.GObject):
     def is_read_only(self):
         """ élément en lecture seule """
         return self.crud.get_field_prop(self.element, "read_only", False)
+
+    def is_type_jointure(self):
+        """ est-ce que la colonne est en lien avec une autre table """
+        if self.get_type() in ("combo", "radio", "jointure"):
+            if self.get_param("table", None):
+                return True
+            if self.get_param("sql_select", None):
+                return True
 
     def is_searchable(self):
         """ le contenu de la colonne sera lue par le moteur de recharche """
@@ -372,8 +381,8 @@ class CrudelButton(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_OBJECT
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         if self.crud.get_key_id() == self.element:
             self.crud.set_field_prop(self.element, "required", True)
 
@@ -399,8 +408,8 @@ class CrudelCheck(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_BOOLEAN
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(False)
 
     def get_cell(self):
@@ -478,8 +487,8 @@ class CrudelCounter(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_INT
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(0)
         if self.type_parent == Crudel.TYPE_PARENT_FORM:
             self.crud.set_field_prop(self.element, "read_only", True)
@@ -515,8 +524,8 @@ class CrudelDate(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(u"")
 
     def get_widget_box(self):
@@ -545,8 +554,8 @@ class CrudelFloat(Crudel):
         else:
             return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(0)
 
     def get_widget_box(self):
@@ -592,8 +601,8 @@ class CrudelInt(Crudel):
         else:
             return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(0)
 
     def get_widget_box(self):
@@ -641,13 +650,13 @@ class CrudelJointure(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(u"")
 
     def get_widget_box(self):
         hbox = Gtk.HBox()
-        
+
         label = self._get_widget_label()
 
         self.widget = Gtk.ComboBoxText()
@@ -713,7 +722,7 @@ class CrudelJointure(Crudel):
     def set_value_widget(self):
         pass
 
-class CrudelList(Crudel):
+class CrudelCombo(Crudel):
     """ Gestion des colonnes et champs de type list """
 
     def __init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent):
@@ -722,17 +731,13 @@ class CrudelList(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(u"")
-
-    def get_cell(self):
-        """ représentation en colonne """
-        return self.items.get(self.get_value(), "")
 
     def get_widget_box(self):
         hbox = Gtk.HBox()
-        
+
         label = self._get_widget_label()
 
         self.widget = Gtk.ComboBoxText()
@@ -744,7 +749,7 @@ class CrudelList(Crudel):
         index = 0
         index_selected = None
         for item in self.items:
-            if self.items[item] == self.get_value():
+            if item == self.get_value():
                 index_selected = index
             if self.items[item] == item:
                 self.widget.append_text("%s" % (item))
@@ -785,8 +790,8 @@ class CrudelRadio(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(False)
 
     def get_cell(self):
@@ -834,8 +839,8 @@ class CrudelText(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(u"")
 
     def get_widget_box(self):
@@ -856,8 +861,8 @@ class CrudelUid(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(str(uuid.uuid4()))
         if self.type_parent == Crudel.TYPE_PARENT_FORM:
             self.crud.set_field_prop(self.element, "read_only", True)
@@ -891,8 +896,8 @@ class CrudelView(Crudel):
     def get_type_gdk(self):
         return GObject.TYPE_STRING
 
-    def init_value(self):
-        Crudel.init_value(self)
+    def init_crudel(self):
+        Crudel.init_crudel(self)
         self.set_value_sql(str(uuid.uuid4()))
 
     def get_widget_box(self):

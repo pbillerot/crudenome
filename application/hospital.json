@@ -24,10 +24,10 @@
                 "Head": {
                     "label_long": "Head",
                     "label_short": "Head",
-                    "type": "jointure",
+                    "type": "combo",
                     "params": {
                         "table": "Physician",
-                        "key": "EmployeeID",
+                        "key": "EmployeeId",
                         "display": "Name"
                     }
                 }
@@ -140,12 +140,11 @@
                 "Type": {
                     "label_long": "Type",
                     "label_short": "Type",
-                    "type": "list",
-                    "itemss": {
+                    "type": "combo",
+                    "items": {
                         "Single": "Single",
                         "Double": "Double"
-                    },
-                    "items_sql": "select 'Single' as key, 'Single' as 'display' union select 'Double' as key, 'Double' as 'display'"
+                    }
                 },
                 "BlockFloor": {
                     "label_long": "Block Floor",

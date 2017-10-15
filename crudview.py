@@ -214,7 +214,7 @@ class CrudView(GObject.GObject):
             crudel = self.crud.get_column_prop(element, "crudel")
             if crudel.is_virtual():
                 continue
-            if crudel.get_type() == "jointure":
+            if crudel.is_type_jointure():
                 continue
             if b_first:
                 b_first = False
@@ -232,16 +232,22 @@ class CrudView(GObject.GObject):
         # ajout des colonnes de jointure
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_column_prop(element, "crudel")
-            if crudel.get_type() == "jointure":
-                sql += ", " + crudel.get_param("table") + "." + crudel.get_param("display", crudel.get_param("key"))\
-                + " as " + element
+            if crudel.is_type_jointure():
+                if crudel.get_param("table", None):
+                    sql += ", " + crudel.get_param("table") + "." + crudel.get_param("display", crudel.get_param("key"))\
+                    + " as " + element
+                else:
+                    sql += ", " + crudel.get_param("sql_select") + " as " + element
         sql += " FROM " + self.crud.get_table_id()
         # ajout des tables de jointure
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_column_prop(element, "crudel")
-            if crudel.get_type() == "jointure":
-                sql += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON " + crudel.get_param("table") + "." + crudel.get_param("key")\
-                + " = " + self.crud.get_table_id() + "." + element
+            if crudel.is_type_jointure():
+                if crudel.get_param("table", None):
+                    sql += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON " + crudel.get_param("table") + "." + crudel.get_param("key")\
+                    + " = " + self.crud.get_table_id() + "." + element
+                else:
+                    sql += " " + crudel.get_param("sql_from")
         sql_where = ""
         # Les paramètres de la vue entrent dans le where
         for param in self.params:
@@ -267,7 +273,7 @@ class CrudView(GObject.GObject):
                 sql_where = "(" + sql_where + ") AND ("+ self.crud.get_view_prop("sql_where") + ")"
         if sql_where != "":
             sql += " WHERE " + sql_where
-        sql += " LIMIT 2000"
+        sql += " LIMIT 200"
         # print sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         # print rows
@@ -275,7 +281,7 @@ class CrudView(GObject.GObject):
         # remplissage des colonnes item_sql
         for element in self.crud.get_view_elements():
                 crudel = self.crud.get_column_prop(element, "crudel")
-                crudel.init_value_sql()
+                crudel.init_crudel_sql()
         row_id = 0
         for row in rows:
             store = []
@@ -287,7 +293,8 @@ class CrudView(GObject.GObject):
                 if crudel.is_virtual():
                     continue
                 # Mémorisation dans crudel value
-                crudel.set_value_sql(row[element])
+                if row[element]:
+                    crudel.set_value_sql(row[element])
                 # colonnes techniques
                 if crudel.get_sql_color() != "":
                     store.append(row[element + "_color"])
