@@ -27,7 +27,7 @@ class CrudForm(GObject.GObject):
                 widget.grab_focus()
                 break
 
-    def __init__(self, app_window, crud_portail, crud_view, crud, crudel=None, params=None):
+    def __init__(self, app_window, crud_portail, crud_view, crud, crudel=None, args=None):
         
         GObject.GObject.__init__(self)
 
@@ -37,10 +37,10 @@ class CrudForm(GObject.GObject):
         self.crud_portail = crud_portail
         self.crud_view = crud_view
         self.crudel = crudel
-        if params:
-            self.params = params
+        if args:
+            self.args = args
         else:
-            self.params = {}
+            self.args = {}
 
         cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         cancel_button.set_always_show_image(True)
@@ -81,13 +81,13 @@ class CrudForm(GObject.GObject):
 
         # remplissage des champs avec les colonnes
         if self.crud.get_action() in ("read", "update", "delete"):
-            self.crud.sql_select_to_form()
+            self.sql_select_to_form()
 
         # remplissage des champs avec les paramètres du formulaire
-        for param in self.params:
-            if self.crud.get_form_elements().get(param, None):
-                crudel = self.crud.get_field_prop(param, "crudel")
-                crudel.set_value(self.params.get(param))
+        for arg in self.args:
+            if self.crud.get_form_elements().get(arg, None):
+                crudel = self.crud.get_field_prop(arg, "crudel")
+                # crudel.set_value(self.args.get(arg))
                 crudel.set_read_only(True)
 
         # valeur par défaut
@@ -158,3 +158,56 @@ class CrudForm(GObject.GObject):
             self.crud_portail.do_form(self.crudel.crud_view, self.crudel.crud)
         else:
             self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())
+
+    def sql_select_to_form(self):
+        """ Charger les champs du formulaire courant à partie de la base sql """
+        sql = "SELECT "
+        b_first = True
+        # ajout des colonnes de la table principale
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_field_prop(element, "crudel")
+            if crudel.is_virtual():
+                continue
+            if b_first:
+                sql += self.crud.get_table_id() + "." + element
+                b_first = False
+            else:
+                sql += ", " + self.crud.get_table_id() + "." + element
+            # read_only ?
+            if self.crud.get_action() in ("read"):
+                self.crud.set_field_prop(element, "read_only", "True")
+            if element == self.crud.get_key_id() and self.crud.get_action() in ("update", "delete"):
+                self.crud.set_field_prop(element, "read_only", "True")
+        # ajout des colonnes de jointure
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_field_prop(element, "crudel")
+            if crudel.get_type() == "jointure":
+                if crudel.get_param("table", None):
+                    sql += ", " + crudel.get_param("table") + "."\
+                    + crudel.get_param("display", crudel.get_param("key"))\
+                    + " as " + element
+                else:
+                    sql += ", " + crudel.get_param("display") + " as " + element
+
+        sql += " FROM " + self.crud.get_table_id()
+        # ajout des tables de jointure
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_field_prop(element, "crudel")
+            if crudel.get_type() == "jointure":
+                if crudel.get_param("table"):
+                    sql += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON "\
+                    + crudel.get_param("table") + "." + crudel.get_param("key")\
+                    + " = " + self.crud.get_table_id() + "." + element
+                if crudel.get_param("join"):
+                    sql += " " + crudel.get_param("join")
+
+        # le WHERE
+        sql += " WHERE " + self.crud.get_key_id() + " = :key_value"
+        # Go!
+        rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
+        # remplissage des champs
+        for row in rows:
+            for element in self.crud.get_form_elements():
+                crudel = self.crud.get_field_prop(element, "crudel")
+                if row.get(element, False):
+                    crudel.set_value_sql(row[element])

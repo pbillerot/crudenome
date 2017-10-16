@@ -10,7 +10,8 @@
                 "ArtistId": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "counter"
+                    "type": "counter",
+                    "hide": true
                 },
                 "Name": {
                     "label_long": "Name",
@@ -18,19 +19,21 @@
                     "type": "text",
                     "searchable": true,
                     "sortable": true,
-                    "col_width": 250
+                    "col_width": 250,
+                    "required": true
                 },
                 "_valbums": {
                     "label_long": "Albums",
                     "label_short": "Albums",
                     "type": "view",
                     "height": 300,
-                    "view_table": "albums",
-                    "view_view": "valbums",
-                    "view_params": {
-                        "ArtistId": "{ArtistId}"
+                    "params": {
+                        "table": "albums",
+                        "view": "valbums"
                     },
-                    "sql_where": "2 = 2"
+                    "args": {
+                        "ArtistId": "{ArtistId}"
+                    }
                 }
             },
             "views": {
@@ -54,7 +57,7 @@
                     }
                 },
                 "fedit": {
-                    "title": "Edit",
+                    "title": "Artist",
                     "elements": {
                         "ArtistId": {},
                         "Name": {},
@@ -70,7 +73,8 @@
                 "AlbumId": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "counter"
+                    "type": "counter",
+                    "hide": true
                 },
                 "Title": {
                     "label_long": "Album",
@@ -78,12 +82,13 @@
                     "type": "text",
                     "searchable": true,
                     "sortable": true,
-                    "col_width": 250
+                    "col_width": 250,
+                    "required": true
                 },
                 "ArtistId": {
                     "label_long": "Artist",
                     "label_short": "Artist",
-                    "type": "combo",
+                    "type": "jointure",
                     "params": {
                         "table": "artists",
                         "key": "ArtistId",
@@ -92,6 +97,19 @@
                     "searchable": true,
                     "sortable": true,
                     "col_width": 250
+                },
+                "_vtracks": {
+                    "label_long": "Tracks",
+                    "label_short": "Tracks",
+                    "type": "view",
+                    "height": 300,
+                    "params": {
+                        "table": "tracks",
+                        "view": "vtracks"
+                    },
+                    "args": {
+                        "AlbumId": "{AlbumId}"
+                    }
                 }
             },
             "views": {
@@ -135,11 +153,12 @@
                     }
                 },
                 "fedit": {
-                    "title": "Edit",
+                    "title": "Album",
                     "elements": {
                         "ArtistId": {},
                         "AlbumId": {},
-                        "Title": {}
+                        "Title": {},
+                        "_vtracks": {}
                     }
                 }
             }
@@ -151,7 +170,8 @@
                 "MediaTypeId": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "counter"
+                    "type": "counter",
+                    "hide": true
                 },
                 "Name": {
                     "label_long": "Name",
@@ -184,7 +204,7 @@
                     }
                 },
                 "fedit": {
-                    "title": "Edit",
+                    "title": "Media Type",
                     "elements": {
                         "MediaTypeId": {},
                         "Name": {}
@@ -199,7 +219,8 @@
                 "GenreId": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "counter"
+                    "type": "counter",
+                    "hide": true
                 },
                 "Name": {
                     "label_long": "Name",
@@ -229,7 +250,7 @@
                     }
                 },
                 "fedit": {
-                    "title": "Edit",
+                    "title": "Genre",
                     "elements": {
                         "GenreId": {},
                         "Name": {}
@@ -244,7 +265,8 @@
                 "TrackId": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "counter"
+                    "type": "counter",
+                    "hide": true
                 },
                 "Name": {
                     "label_long": "Name",
@@ -256,7 +278,7 @@
                 "AlbumId": {
                     "label_long": "Album",
                     "label_short": "Album",
-                    "type": "combo",
+                    "type": "jointure",
                     "params": {
                         "table": "albums",
                         "key": "AlbumId",
@@ -309,10 +331,10 @@
                 "_ArtistId": {
                     "label_long": "Artist",
                     "label_short": "Artist",
-                    "type": "text",
+                    "type": "jointure",
                     "params": {
-                        "sql_select": "artist.Name",
-                        "sql_from": "LEFT OUTER JOIN albums ON albums.AlbumId = tracks.AlbumId LEFT OUTER JOIN artists ON artists.ArtistId = albums.ArtistId"
+                        "join": "LEFT OUTER JOIN albums as alb ON alb.AlbumId = tracks.AlbumId LEFT OUTER JOIN artists on artists.ArtistId = alb.ArtistId",
+                        "display": "artists.Name"
                     }
                 }
             },
@@ -324,14 +346,25 @@
                     "deletable": true,
                     "elements": {
                         "TrackId": {},
-                        "Name": {},
+                        "_ArtistId": {},
                         "AlbumId": {},
-                        "MediaTypeId": {},
+                        "Name": {},
+                        "Composer": {}
+                    },
+                    "order_by": "artists.Name, albums.Title"
+                },
+                "vtracks": {
+                    "title": "Tracks",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "hide": "true",
+                    "elements": {
+                        "TrackId": {},
+                        "Name": {},
                         "GenreId": {},
-                        "Composer": {},
                         "Milliseconds": {},
-                        "Bytes": {},
-                        "UnitPrice": {}
+                        "Bytes": {}
                     }
                 }
             },
@@ -351,11 +384,12 @@
                     }
                 },
                 "fedit": {
-                    "title": "Edit",
+                    "title": "Track",
                     "elements": {
                         "TrackId": {},
+                        "_ArtistId": {"read_only": true},
+                        "AlbumId": {"read_only": true},
                         "Name": {},
-                        "AlbumId": {},
                         "MediaTypeId": {},
                         "GenreId": {},
                         "Composer": {},

@@ -344,47 +344,6 @@ class Crud:
                 text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
         return text
 
-    def sql_select_to_form(self):
-        """ Charger les champs du formulaire courant à partie de la base sql """
-        sql = "SELECT "
-        b_first = True
-        # ajout des colonnes de la table principale
-        for element in self.get_form_elements():
-            if element.startswith("_"):
-                continue
-            if b_first:
-                sql += self.get_table_id() + "." + element
-                b_first = False
-            else:
-                sql += ", " + self.get_table_id() + "." + element
-            # read_only ?
-            if self.get_action() in ("read"):
-                self.set_field_prop(element, "read_only", "True")
-            if element == self.get_key_id() and self.get_action() in ("update", "delete"):
-                self.set_field_prop(element, "read_only", "True")
-        # ajout des colonnes de jointure
-        # for element in self.get_form_elements():
-        #     if self.get_field_prop(element, "type") == "jointure":
-        #         sql += ", " + self.get_field_prop(element, "jointure_columns")
-        sql += " FROM " + self.get_table_id()
-        # ajout des tables de jointure
-        # for element in self.get_form_elements():
-        #     if self.get_field_prop(element, "type") == "jointure":
-        #         sql += " " + self.get_field_prop(element, "jointure_join")
-        # le WHERE
-        sql += " WHERE " + self.get_key_id() + " = :key_value"
-        # Go!
-        # print sql, self.ctx
-        rows = self.sql_to_dict(self.get_table_prop("basename"), sql, self.ctx)
-        # remplissage des champs
-        # print "Record", rows
-        for row in rows:
-            for element in self.get_form_elements():
-                crudel = self.get_field_prop(element, "crudel")
-                if crudel.is_virtual():
-                    continue
-                crudel.set_value_sql(row[element])
-
     def sql_update_record(self):
         """ Mise à jour de l'enregistrement du formulaire courant """
         sql = "UPDATE " + self.get_table_id() + " SET "

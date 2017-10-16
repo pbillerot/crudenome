@@ -4,6 +4,7 @@
 """
 # import re
 import importlib
+from collections import OrderedDict
 import uuid
 from crud import Crud
 import gi
@@ -78,22 +79,16 @@ class Crudel(GObject.GObject):
 
     def init_crudel_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
-        if self.get_param("table"):
-            sql = "SELECT " + self.get_param("key") + " AS key, "\
-                + self.get_param("display", self.get_param("key")) + " as display "\
-                + "FROM " + self.get_param("table")
-            if self.get_param("where"):
-                sql += " WHERE " + self.get_param("where")
-            rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql , {})
-            for row in rows:
-                self.items[row["key"]] = row["display"]
-        # if self.get_sql_select():
-        #     rows = self.crud.sql_to_dict(\
-        #         self.crud.get_table_prop("basename")\
-        #         , self.get_sql_select\
-        #         , self.crud.get_table_values())
-        #     for row in rows:
-        #         self.items[row["key"]] = row["display"]
+        if self.is_type_jointure():
+            if self.get_param("table"):
+                sql = "SELECT " + self.get_param("key") + " AS key, "\
+                    + self.get_param("display", self.get_param("key")) + " as display "\
+                    + "FROM " + self.get_param("table")
+                if self.get_param("where"):
+                    sql += " WHERE " + self.get_param("where")
+                rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql , {})
+                for row in rows:
+                    self.items[row["key"]] = row["display"]
 
     def set_value(self, value):
         """ Valorisation dans le crud """
@@ -101,6 +96,8 @@ class Crudel(GObject.GObject):
 
     def set_value_sql(self, value_sql):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
+        if value_sql is None:
+            return
         self.crud.set_element_prop(self.element, "value",\
             value_sql if isinstance(value_sql, int) or isinstance(value_sql, float)\
                 else value_sql.encode("utf-8"))
@@ -188,34 +185,6 @@ class Crudel(GObject.GObject):
         """ l'instruction sql pour écrire la colonne """
         return self.crud.get_element_prop(self.element, "sql_put", "")
 
-    def get_sql_where(self):
-        """ le where d'une rubrique de type view """
-        return self.crud.get_element_prop(self.element, "sql_where", "")
-
-    def get_sql_select(self):
-        """ un select sql classique """
-        return self.crud.get_element_prop(self.element, "sql_select", None)
-
-    def get_view_table(self):
-        """ nom de la table de la rubrique view """
-        return self.crud.get_field_prop(self.element, "view_table", "")
-
-    def get_view_view(self):
-        """ nom de la vue de la rubrique view """
-        return self.crud.get_field_prop(self.element, "view_view", "")
-
-    def get_view_params(self):
-        """ nom de la vue de la rubrique view """
-        return self.crud.get_field_prop(self.element, "view_params", None)
-    def get_view_params_replace(self):
-        """ remplacement des variables des paramètres """
-        params = self.get_view_params().copy()
-        values = self.crud.get_table_values()
-        for param in params:
-            params[param] = self.crud.replace_from_dict(params[param], values)
-        
-        return params
-
     def get_height(self, default):
         """ Hauteur du widget """
         if self.type_parent == Crudel.TYPE_PARENT_VIEW:
@@ -231,6 +200,18 @@ class Crudel(GObject.GObject):
         """ Retourne la valeur du paramètre """
         return self.crud.replace_from_dict(\
             self.crud.get_element_param(self.element, param, default), self.crud.get_table_values())
+
+    def get_args(self):
+        """ Retourne les arguments """
+        return self.crud.get_element_prop(self.element, "args", None)
+
+    def get_args_replace(self):
+        """ remplacement des variables des paramètres """
+        args = self.get_args().copy()
+        values = self.crud.get_table_values()
+        for arg in args:
+            args[arg] = self.crud.replace_from_dict(args[arg], values)
+        return args
 
     def is_virtual(self):
         """ Les colonnes préfixées par _ ne sont pas dans la table """
@@ -264,7 +245,7 @@ class Crudel(GObject.GObject):
         if self.get_type() in ("combo", "radio", "jointure"):
             if self.get_param("table", None):
                 return True
-            if self.get_param("sql_select", None):
+            if self.get_param("join", None):
                 return True
 
     def is_searchable(self):
@@ -283,6 +264,8 @@ class Crudel(GObject.GObject):
             return self.crud.set_field_prop(self.element, "required", bool)
     def is_required(self):
         """ La saisie du champ est obligatoire """
+        if self.is_read_only():
+            return False
         return self.crud.get_field_prop(self.element, "required", False)
 
     def _get_widget_entry(self):
@@ -356,17 +339,23 @@ class Crudel(GObject.GObject):
 
     def dump(self):
         """ print des propriétés de l'élément """
-        prop = {}
-        prop.update(self.crud.get_table_elements()[self.element])
+        props = {}
+        props.update(self.crud.get_table_elements()[self.element])
         if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            prop.update(self.crud.get_view_elements()[self.element])
+            props.update(self.crud.get_view_elements()[self.element])
         else:
-            prop.update(self.crud.get_form_elements()[self.element])
-        for p in prop:
-            if isinstance(prop[p], int):
-                print "%s.%s = %s" % (self.element, p, prop[p])
+            props.update(self.crud.get_form_elements()[self.element])
+        for prop in props:
+            if isinstance(props[prop], int):
+                print "%s.%s = %s" % (self.element, prop, props[prop])
+            elif isinstance(props[prop], float):
+                print "%s.%s = %s" % (self.element, prop, props[prop])
+            elif isinstance(props[prop], OrderedDict):
+                print "%s.%s = %s" % (self.element, prop, props[prop])                
+            elif isinstance(props[prop], Crudel):
+                pass
             else:
-                print "%s.%s = %s" % (self.element, p, prop[p].encode("utf-8"))
+                print "%s.%s = %s" % (self.element, prop, props[prop].encode("utf-8"))
 
 ########################################################
 ### Classes des crudel en fonction dy type d'élément ####################################################
@@ -647,80 +636,17 @@ class CrudelJointure(Crudel):
     def __init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent):
         Crudel.__init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
 
-    def get_type_gdk(self):
-        return GObject.TYPE_STRING
-
-    def init_crudel(self):
-        Crudel.init_crudel(self)
-        self.set_value_sql(u"")
+    def is_read_only(self):
+        return True
 
     def get_widget_box(self):
         hbox = Gtk.HBox()
-
         label = self._get_widget_label()
-
-        self.widget = Gtk.ComboBoxText()
-        if self.is_read_only():
-            self.widget.set_sensitive(False)
-        # Remplacement des variables
-        sql = "SELECT " + self.get_param("key")
-        sql += ", " + self.get_param("display", self.get_param("key"))
-        sql += " FROM " + self.get_param("table")
-        # if self.get_param("where"):
-        #     sql += " WHERE " + self.get_param("where")
-        sql += " LIMIT 200"
-        rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, {})
-        # remplissage du combo
-        self.widget.set_entry_text_column(0)
-        index = 0
-        index_selected = None
-        for row in rows:
-            key = None
-            text = None
-            for col in row:
-                if key is None:
-                    if isinstance(row[col], int) or isinstance(row[col], float):
-                        key = str(row[col])
-                    else:
-                        key = row[col].encode("utf-8")
-                if isinstance(row[col], int) or isinstance(row[col], float):
-                    text = str(row[col])
-                else:
-                    text = row[col].encode("utf-8")
-            if key is None:
-                # une seule colonne
-                if text == self.get_value():
-                    index_selected = index
-                self.widget.append_text("%s" % text)
-            else:
-                if str(key) == str(self.get_value()):
-                    index_selected = index
-                self.widget.append_text("%s (%s)" % (text, key))
-            # print key, text, self.get_value(), index_selected
-
-            index += 1
-
-        self.widget.connect('changed', self.on_changed_combo, self.element)
-        if index_selected is not None:
-            self.widget.set_active(index_selected)
-
+        self.widget = self._get_widget_entry()
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
-
-    def on_changed_combo(self, widget, element):
-        """ l'item sélectionné a changé """
-        text = self.widget.get_active_text()
-        key = self.crud.get_key_from_bracket(text)
-        if text is not None:
-            if key:
-                self.crud.set_element_prop(element, "value", key)
-            else:
-                self.crud.set_element_prop(element, "value", text)
-
-    def set_value_widget(self):
-        pass
 
 class CrudelCombo(Crudel):
     """ Gestion des colonnes et champs de type list """
@@ -810,7 +736,7 @@ class CrudelRadio(Crudel):
         for item in self.items:
             button = Gtk.RadioButton.new_with_label_from_widget(button_group, self.items[item])
             button.connect("toggled", self.on_button_toggled, item)
-            if self.items[item] == self.get_value():
+            if item == self.get_value():
                 button.set_active(True)
             self.widget.pack_start(button, False, False, 0)
             if button_group is None:
@@ -906,8 +832,8 @@ class CrudelView(Crudel):
         # clonage du crud et en particulier du contexte
         crud = Crud(self.crud, duplicate=True)
         # set de la table et vue à afficher dans le widget
-        crud.set_view_id(self.get_view_view())
-        crud.set_table_id(self.get_view_table())
+        crud.set_view_id(self.get_param("view"))
+        crud.set_table_id(self.get_param("table"))
 
         hbox = Gtk.HBox()
         label = self._get_widget_label()
@@ -931,7 +857,7 @@ class CrudelView(Crudel):
         self.box_content.pack_end(self.scroll_window, True, True, 3)
 
         self.widget_view = CrudView(self.app_window, self.crud_portail, crud\
-            , self.box_main, self.box_toolbar, self.scroll_window, self, self.get_view_params_replace())
+            , self.box_main, self.box_toolbar, self.scroll_window, self, self.get_args_replace())
         self.widget = self.widget_view.get_widget()
         # arrangement
         hbox.pack_start(label, False, False, 5)

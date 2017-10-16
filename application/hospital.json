@@ -140,7 +140,7 @@
                 "Type": {
                     "label_long": "Type",
                     "label_short": "Type",
-                    "type": "combo",
+                    "type": "radio",
                     "items": {
                         "Single": "Single",
                         "Double": "Double"
