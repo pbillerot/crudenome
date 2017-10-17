@@ -149,19 +149,37 @@ class Crudel(GObject.GObject):
         """ type d''élément du crud """
         return self.crud.get_element_prop(self.element, "type", type)
 
-    def get_cell(self):
+    def get_display(self):
         """ modèle de présentation de la chaîne
         https://www.tutorialspoint.com/python/python_strings.htm
         "%3.2d €" par exemple pour présenter un montant en 0.00 €
         "%5s" pour représenter une chaîne en remplissant de blancs à gauche si la longueur < 5c
         """
+        sret = ""
+        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
+            display = self.crud.get_column_prop(self.element, "display", None)
+        else:
+            display = self.crud.get_field_prop(self.element, "display", None)
+        if display:
+            if not self.is_read_only() and self.type_parent == Crudel.TYPE_PARENT_FORM:
+                sret = self.get_value()
+            else:
+                sret = display % (self.get_value())
+        else:
+            sret = self.get_value()
+        
+        if not isinstance(sret, (int, float)):
+            sret = sret.encode("utf-8")
+        return sret
+
+    def get_cell(self):
+        """ retourne la cellule dans la vue """
         if self.type_parent == Crudel.TYPE_PARENT_VIEW:
             display = self.crud.get_column_prop(self.element, "display")
         else:
             display = self.crud.get_field_prop(self.element, "display")
-        # print "display", self.element, self.crud.get_column_prop(self.element, "value"), self.get_value()
         if display == "":
-            return str(self.get_value())
+            return self.get_value()
         else:
             return display % (self.get_value())
 
@@ -271,11 +289,8 @@ class Crudel(GObject.GObject):
     def _get_widget_entry(self):
         """ champ de saisie """
         widget = Gtk.Entry()
-        widget.set_text(str(self.get_value()))
+        widget.set_text(str(self.get_display()))
         widget.set_width_chars(40)
-        # if self.is_read_only():
-        #     widget.set_editable(False)
-        #     widget.get_style_context().add_class('read_only')
         if self.is_read_only():
             widget.set_sensitive(False)
 
@@ -332,8 +347,12 @@ class Crudel(GObject.GObject):
 
     def check(self):
         """ Contrôle de la saisie """
+        if self.is_hide():
+            return True
+        if self.is_read_only():
+            return True
         self.get_widget().get_style_context().remove_class('field_invalid')
-        if self.is_required() and not self.is_read_only() and self.get_value() == "":
+        if self.is_required() and self.get_value() == "":
             self.get_widget().get_style_context().add_class('field_invalid')
             self.crud.add_error("<b>{}</b> est obligatoire".format(self.get_label_long()))
 
@@ -385,9 +404,6 @@ class CrudelButton(Crudel):
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
 
-    def get_cell(self):
-        return self.get_value()
-
 class CrudelCheck(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
 
@@ -400,10 +416,6 @@ class CrudelCheck(Crudel):
     def init_crudel(self):
         Crudel.init_crudel(self)
         self.set_value_sql(False)
-
-    def get_cell(self):
-        """ représentation en colonne """
-        return self.get_value()
 
     def get_widget_box(self):
         # todo
@@ -498,9 +510,6 @@ class CrudelCounter(Crudel):
         renderer.set_property('xalign', 1.0)
         return renderer
 
-    def get_cell(self):
-        return self.get_value()
-
     def set_value_widget(self):
         pass
 
@@ -563,16 +572,6 @@ class CrudelFloat(Crudel):
         renderer.set_property('xalign', 1.0)
         return renderer
 
-    def get_cell(self):
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            display = self.crud.get_column_prop(self.element, "display")
-        else:
-            display = self.crud.get_field_prop(self.element, "display")
-        if display == "":
-            return self.get_value()
-        else:
-            return display % (self.get_value())
-
 class CrudelInt(Crudel):
     """ Gestion des colonnes et champs de type entier """
 
@@ -616,16 +615,6 @@ class CrudelInt(Crudel):
         text = self.widget.get_text().strip()
         self.widget.set_text(''.join([i for i in text if i in '0123456789']))
 
-    def get_cell(self):
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            display = self.crud.get_column_prop(self.element, "display")
-        else:
-            display = self.crud.get_field_prop(self.element, "display")
-        if display == "":
-            return self.get_value()
-        else:
-            return display % (self.get_value())
-
     def set_value_widget(self):
         self.crud.set_element_prop(self.element\
                 , "value", int(self.widget.get_text()))
@@ -638,6 +627,17 @@ class CrudelJointure(Crudel):
 
     def is_read_only(self):
         return True
+
+    def get_display(self):
+        display = self.get_value()
+        if self.get_param("table"):
+            sql = "SELECT " + self.get_param("display", self.get_param("key")) + " as display"\
+            + " FROM " + self.get_param("table")\
+            + " WHERE " + self.get_param("key") + " = '" + self.get_value() + "'"
+            rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, {})
+            for row in rows:
+                display = row["display"]
+        return display
 
     def get_widget_box(self):
         hbox = Gtk.HBox()
@@ -777,6 +777,36 @@ class CrudelText(Crudel):
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
+
+    def _get_renderer(self):
+        """ Renderer de la cellule """
+        renderer = Gtk.CellRendererText()
+        if self.crud.get_column_prop(self.element, "cell_editable", False):
+            renderer.set_property('editable', True)
+            renderer.connect('edited', self.on_cell_edited)
+        return renderer
+
+    def on_cell_edited(self, renderer, path, text):
+        """ Edition de la cellule dans la vue """
+        key_value = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        col_id = self.crud.get_column_prop(self.element, "col_id")
+        self.crud_view.liststore[row_id][col_id]\
+            = text.decode("utf-8")
+
+        if self.get_sql_color() != "":
+            col_id += 1
+        if self.is_sortable():
+            col_id += 1
+            self.crud_view.liststore[row_id][col_id]\
+                = text.decode("utf-8")
+
+
+        sql = "UPDATE " + self.crud.get_table_id() + " SET "\
+        + self.element + " = :text WHERE " + self.crud.get_key_id() + " = :key_value"
+
+        self.crud.exec_sql(self.crud.get_table_prop("basename")\
+            , sql, {"key_value": key_value, "text": text.decode("utf-8")})
 
 class CrudelUid(Crudel):
     """ Gestion des colonnes et champs de type Unique IDentifier """

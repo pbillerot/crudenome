@@ -138,14 +138,13 @@ class CrudView(GObject.GObject):
             crudel = self.crud.get_column_prop(element, "crudel")
 
             # colonnes crudel
-            col_id = crudel.add_tree_view_column(self.treeview, col_id)
-
+            # mémorisation du n° de la colonne
+            self.crud.set_column_prop(element, "col_id", col_id)
             # mémorisation de la clé dans le crud
             if element == self.crud.get_table_prop("key"):
                 self.crud.set_view_prop("key_id", col_id)
-            # mémorisation du n° de la ligne
-            self.crud.set_column_prop(element, "col_id", col_id)
 
+            col_id = crudel.add_tree_view_column(self.treeview, col_id)
             col_id += 1
 
         # ajout de la colonne action
@@ -275,7 +274,7 @@ class CrudView(GObject.GObject):
         if self.crud.get_view_prop("order_by", None):
             sql += " ORDER BY " + self.crud.get_view_prop("order_by")
 
-        sql += " LIMIT 200"
+        sql += " LIMIT " + str(self.crud.get_view_prop("limit", 500))
         # print sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         # print rows
@@ -310,7 +309,7 @@ class CrudView(GObject.GObject):
                 store.append(False)
             # dernière colonne vide
             store.append("")
-            # print "store", store
+            # print "store", row_id, store
             self.liststore.append(store)
             row_id += 1
 

@@ -45,7 +45,8 @@
                     "elements": {
                         "ArtistId": {},
                         "Name": {}
-                    }
+                    },
+                    "order_by": "Name"
                 }
             },
             "forms": {
@@ -122,7 +123,8 @@
                         "ArtistId": {},
                         "AlbumId": {},
                         "Title": {}
-                    }
+                    },
+                    "limit": 1000
                 },
                 "valbums": {
                     "title": "Albums",
@@ -191,7 +193,7 @@
                     "deletable": true,
                     "elements": {
                         "MediaTypeId": {},
-                        "Name": {}
+                        "Name": {"cell_editable": true}
                     }
                 }
             },
@@ -326,7 +328,8 @@
                 "UnitPrice": {
                     "label_long": "Price",
                     "label_short": "Price",
-                    "type": "float"
+                    "type": "float",
+                    "display": "%3.2f €"
                 },
                 "_ArtistId": {
                     "label_long": "Artist",
@@ -372,9 +375,9 @@
                 "fadd": {
                     "title": "Add a track",
                     "elements": {
+                        "AlbumId": {},
                         "TrackId": {},
                         "Name": {},
-                        "AlbumId": {},
                         "MediaTypeId": {},
                         "GenreId": {},
                         "Composer": {},
@@ -386,16 +389,16 @@
                 "fedit": {
                     "title": "Track",
                     "elements": {
-                        "TrackId": {},
                         "_ArtistId": {"read_only": true},
                         "AlbumId": {"read_only": true},
+                        "TrackId": {},
                         "Name": {},
                         "MediaTypeId": {},
                         "GenreId": {},
                         "Composer": {},
                         "Milliseconds": {},
                         "Bytes": {},
-                        "UnitPrice": {}
+                        "UnitPrice": {"read_only": true}
                     }
                 }
             }

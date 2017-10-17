@@ -87,7 +87,8 @@ class CrudForm(GObject.GObject):
         for arg in self.args:
             if self.crud.get_form_elements().get(arg, None):
                 crudel = self.crud.get_field_prop(arg, "crudel")
-                # crudel.set_value(self.args.get(arg))
+                if crudel.crud.get_action() == "create":
+                    crudel.set_value(self.args.get(arg))
                 crudel.set_read_only(True)
 
         # valeur par défaut
