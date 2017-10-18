@@ -91,9 +91,8 @@
                     "label_short": "Artist",
                     "type": "jointure",
                     "params": {
-                        "table": "artists",
-                        "key": "ArtistId",
-                        "display": "Name"
+                        "join": "LEFT OUTER JOIN artists on artists.ArtistId = albums.ArtistId",
+                        "column": "Name"
                     },
                     "searchable": true,
                     "sortable": true,
@@ -124,7 +123,8 @@
                         "AlbumId": {},
                         "Title": {}
                     },
-                    "limit": 1000
+                    "limit": 1000,
+                    "order_by": "Artists.Name, Albums.Title"
                 },
                 "valbums": {
                     "title": "Albums",
@@ -282,9 +282,8 @@
                     "label_short": "Album",
                     "type": "jointure",
                     "params": {
-                        "table": "albums",
-                        "key": "AlbumId",
-                        "display": "Title"
+                        "join": "LEFT OUTER JOIN albums on albums.AlbumId = tracks.AlbumId",
+                        "column": "albums.Title"
                     },
                     "required": true,
                     "searchable": true
@@ -320,10 +319,29 @@
                     "label_short": "Duration",
                     "type": "int"
                 },
+                "_Milliseconds": {
+                    "label_long": "Duration",
+                    "label_short": "Duration",
+                    "type": "jointure",
+                    "params": {
+                        "column": "(tracks.Milliseconds/1000/60) || ' mn ' || (tracks.Milliseconds/1000%60) || ' s'"
+                    },
+                    "col_align": "right"
+                },
                 "Bytes": {
                     "label_long": "Size",
                     "label_short": "Size",
                     "type": "int"
+                },
+                "_Bytes": {
+                    "label_long": "Size",
+                    "label_short": "Size",
+                    "type": "jointure",
+                    "params": {
+                        "column": "tracks.Bytes/1000/1000"
+                    },
+                    "display": "%d M",
+                    "col_align": "right"
                 },
                 "UnitPrice": {
                     "label_long": "Price",
@@ -337,7 +355,7 @@
                     "type": "jointure",
                     "params": {
                         "join": "LEFT OUTER JOIN albums as alb ON alb.AlbumId = tracks.AlbumId LEFT OUTER JOIN artists on artists.ArtistId = alb.ArtistId",
-                        "display": "artists.Name"
+                        "column": "artists.Name"
                     }
                 }
             },
@@ -366,8 +384,8 @@
                         "TrackId": {},
                         "Name": {},
                         "GenreId": {},
-                        "Milliseconds": {},
-                        "Bytes": {}
+                        "_Milliseconds": {},
+                        "_Bytes": {}
                     }
                 }
             },

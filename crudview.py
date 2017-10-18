@@ -234,10 +234,11 @@ class CrudView(GObject.GObject):
             crudel = self.crud.get_column_prop(element, "crudel")
             if crudel.is_type_jointure():
                 if crudel.get_param("table", None):
-                    sql += ", " + crudel.get_param("table") + "." + crudel.get_param("display", crudel.get_param("key"))\
+                    sql += ", " + crudel.get_param("table") + "."\
+                    + crudel.get_param("display", crudel.get_param("key"))\
                     + " as " + element
                 else:
-                    sql += ", " + crudel.get_param("display") + " as " + element
+                    sql += ", " + crudel.get_param("column") + " as " + element
         
         sql += " FROM " + self.crud.get_table_id()
         
@@ -251,7 +252,8 @@ class CrudView(GObject.GObject):
                     + crudel.get_param("table") + "." + crudel.get_param("key")\
                     + " = " + self.crud.get_table_id() + "." + element
                 else:
-                    join += " " + crudel.get_param("join")
+                    if crudel.get_param("join"):
+                        join += " " + crudel.get_param("join")
         if join:
             sql += join
 
@@ -275,7 +277,7 @@ class CrudView(GObject.GObject):
             sql += " ORDER BY " + self.crud.get_view_prop("order_by")
 
         sql += " LIMIT " + str(self.crud.get_view_prop("limit", 500))
-        # print sql
+        print sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         # print rows
         self.liststore.clear()

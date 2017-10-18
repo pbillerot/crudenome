@@ -174,14 +174,15 @@ class Crudel(GObject.GObject):
 
     def get_cell(self):
         """ retourne la cellule dans la vue """
+        value = self.get_value()
         if self.type_parent == Crudel.TYPE_PARENT_VIEW:
             display = self.crud.get_column_prop(self.element, "display")
         else:
             display = self.crud.get_field_prop(self.element, "display")
         if display == "":
-            return self.get_value()
+            return value
         else:
-            return display % (self.get_value())
+            return display % (value)
 
     def get_col_width(self):
         """ largeur de la colonne """
@@ -261,9 +262,11 @@ class Crudel(GObject.GObject):
     def is_type_jointure(self):
         """ est-ce que la colonne est en lien avec une autre table """
         if self.get_type() in ("combo", "radio", "jointure"):
-            if self.get_param("table", None):
+            if self.get_param("table"):
                 return True
-            if self.get_param("join", None):
+            if self.get_param("join"):
+                return True
+            if self.get_param("column"):
                 return True
 
     def is_searchable(self):
@@ -338,6 +341,9 @@ class Crudel(GObject.GObject):
     def _get_renderer(self):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
+        if self.crud.get_column_prop(self.element, "cell_editable", False):
+            renderer.set_property('editable', True)
+            renderer.connect('edited', self.on_cell_edited)
         return renderer
 
     def _get_tvc(self, renderer, col_id):
@@ -375,6 +381,30 @@ class Crudel(GObject.GObject):
                 pass
             else:
                 print "%s.%s = %s" % (self.element, prop, props[prop].encode("utf-8"))
+
+    def on_cell_edited(self, renderer, path, text):
+        """ Edition de la cellule dans la vue """
+        key_value = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        col_id = self.crud.get_column_prop(self.element, "col_id")
+
+        if self.get_type_gdk() == GObject.TYPE_STRING:
+            text = text.decode("utf-8")
+        
+        self.crud_view.liststore[row_id][col_id]\
+            = text
+
+        if self.get_sql_color() != "":
+            col_id += 1
+        if self.is_sortable():
+            col_id += 1
+            self.crud_view.liststore[row_id][col_id]\
+                = text
+
+        sql = "UPDATE " + self.crud.get_table_id() + " SET "\
+        + self.element + " = :text WHERE " + self.crud.get_key_id() + " = :key_value"
+        self.crud.exec_sql(self.crud.get_table_prop("basename")\
+            , sql, {"key_value": key_value, "text": text.decode("utf-8")})
 
 ########################################################
 ### Classes des crudel en fonction dy type d'élément ####################################################
@@ -570,6 +600,9 @@ class CrudelFloat(Crudel):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
+        if self.crud.get_column_prop(self.element, "cell_editable", False):
+            renderer.set_property('editable', True)
+            renderer.connect('edited', self.on_cell_edited)
         return renderer
 
 class CrudelInt(Crudel):
@@ -608,6 +641,9 @@ class CrudelInt(Crudel):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
+        if self.crud.get_column_prop(self.element, "cell_editable", False):
+            renderer.set_property('editable', True)
+            renderer.connect('edited', self.on_cell_edited)
         return renderer
 
     def on_changed_number_entry(self):
@@ -777,36 +813,6 @@ class CrudelText(Crudel):
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
-
-    def _get_renderer(self):
-        """ Renderer de la cellule """
-        renderer = Gtk.CellRendererText()
-        if self.crud.get_column_prop(self.element, "cell_editable", False):
-            renderer.set_property('editable', True)
-            renderer.connect('edited', self.on_cell_edited)
-        return renderer
-
-    def on_cell_edited(self, renderer, path, text):
-        """ Edition de la cellule dans la vue """
-        key_value = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
-        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
-        col_id = self.crud.get_column_prop(self.element, "col_id")
-        self.crud_view.liststore[row_id][col_id]\
-            = text.decode("utf-8")
-
-        if self.get_sql_color() != "":
-            col_id += 1
-        if self.is_sortable():
-            col_id += 1
-            self.crud_view.liststore[row_id][col_id]\
-                = text.decode("utf-8")
-
-
-        sql = "UPDATE " + self.crud.get_table_id() + " SET "\
-        + self.element + " = :text WHERE " + self.crud.get_key_id() + " = :key_value"
-
-        self.crud.exec_sql(self.crud.get_table_prop("basename")\
-            , sql, {"key_value": key_value, "text": text.decode("utf-8")})
 
 class CrudelUid(Crudel):
     """ Gestion des colonnes et champs de type Unique IDentifier """

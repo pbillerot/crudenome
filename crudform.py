@@ -188,7 +188,7 @@ class CrudForm(GObject.GObject):
                     + crudel.get_param("display", crudel.get_param("key"))\
                     + " as " + element
                 else:
-                    sql += ", " + crudel.get_param("display") + " as " + element
+                    sql += ", " + crudel.get_param("column") + " as " + element
 
         sql += " FROM " + self.crud.get_table_id()
         # ajout des tables de jointure
