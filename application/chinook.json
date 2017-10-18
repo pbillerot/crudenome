@@ -274,8 +274,7 @@
                     "label_long": "Name",
                     "label_short": "Name",
                     "type": "text",
-                    "required": true,
-                    "searchable": true
+                    "required": true
                 },
                 "AlbumId": {
                     "label_long": "Album",
@@ -285,8 +284,7 @@
                         "join": "LEFT OUTER JOIN albums on albums.AlbumId = tracks.AlbumId",
                         "column": "albums.Title"
                     },
-                    "required": true,
-                    "searchable": true
+                    "required": true
                 },
                 "MediaTypeId": {
                     "label_long": "Type media",
@@ -311,8 +309,7 @@
                 "Composer": {
                     "label_long": "Composer",
                     "label_short": "Composer",
-                    "type": "text",
-                    "searchable": true
+                    "type": "text"
                 },
                 "Milliseconds": {
                     "label_long": "Duration",
@@ -362,15 +359,13 @@
             "views": {
                 "vall": {
                     "title": "Tracks",
-                    "form_add": "fadd",
-                    "form_edit": "fedit",
-                    "deletable": true,
+                    "searchable_sql": true,
                     "elements": {
                         "TrackId": {},
-                        "_ArtistId": {},
-                        "AlbumId": {},
-                        "Name": {},
-                        "Composer": {}
+                        "_ArtistId": {"searchable": true},
+                        "AlbumId": {"searchable": true},
+                        "Name": {"searchable": true},
+                        "Composer": {"searchable": true}
                     },
                     "order_by": "artists.Name, albums.Title"
                 },

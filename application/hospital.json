@@ -28,7 +28,7 @@
                     "params": {
                         "table": "Physician",
                         "key": "EmployeeId",
-                        "column": "Name"
+                        "display": "Name"
                     }
                 }
             },

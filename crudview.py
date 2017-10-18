@@ -55,6 +55,8 @@ class CrudView(GObject.GObject):
         self.store_filter = None
         self.store_filter_sort = None
         self.search_entry = None
+        self.search_entry_sql = None
+        self.search_sql = ""
         self.select = None
         self.button_add = None
         self.button_edit = None
@@ -74,11 +76,6 @@ class CrudView(GObject.GObject):
             self.treeview.set_cursor(Gtk.TreePath(row_id), None)
             self.treeview.grab_focus()
 
-        # self.crud.remove_all_selection()
-        # self.label_select.hide()
-        # self.button_edit.hide()
-        # self.button_delete.hide()
-        # print "crudview init end"
         self.emit("init_widget", self.__class__, "init")
 
     def get_widget(self):
@@ -88,7 +85,7 @@ class CrudView(GObject.GObject):
 
     def create_view_toolbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
-        if self.crud.get_view_prop("searchable", True):
+        if self.crud.get_view_prop("searchable", False):
             self.search_entry = Gtk.SearchEntry()
             self.search_entry.connect("search-changed", self.on_search_changed)
             self.box_toolbar.pack_start(self.search_entry, False, True, 3)
@@ -96,6 +93,18 @@ class CrudView(GObject.GObject):
                 self.search_entry.set_text(self.crud.get_view_prop("filter"))
             if not self.crudel:
                 self.search_entry.grab_focus()
+        elif self.crud.get_view_prop("searchable_sql", False):
+            self.search_entry_sql = Gtk.SearchEntry()
+            self.search_entry_sql.connect("activate", self.on_search_entry_sql_activate)
+            self.box_toolbar.pack_start(self.search_entry_sql, False, True, 3)
+            self.search_button = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_FIND))
+            self.box_toolbar.pack_start(self.search_button, False, True, 3)
+            self.search_button.connect("clicked", self.on_search_button_clicked)
+            if self.crud.get_view_prop("filter", "") != "":
+                self.search_entry_sql.set_text(self.crud.get_view_prop("filter"))
+                self.search_sql = self.crud.get_view_prop("filter")
+            if not self.crudel:
+                self.search_entry_sql.grab_focus()
 
         self.box_toolbar_select = Gtk.HBox()
         self.button_delete = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_REMOVE))
@@ -258,6 +267,35 @@ class CrudView(GObject.GObject):
             sql += join
 
         sql_where = ""
+        # prise en compte du search_sql
+        if self.search_sql != "":
+            for element in self.crud.get_view_elements():
+                crudel = self.crud.get_column_prop(element, "crudel")
+                if crudel.is_searchable():
+                    if crudel.is_type_jointure():
+                        if crudel.get_param("table", None):
+                            if sql_where == "":
+                                sql_where = self.crudel.get_param("table") + "."\
+                                + self.crudel.get_param("display") + " like '%" + self.search_sql + "%'"
+                            else:
+                                sql_where = "" + sql_where + " or " + self.crudel.get_param("table") + "."\
+                                + self.crudel.get_param("display") + " like '%" + self.search_sql + "%'"
+                        else:
+                            if crudel.get_param("column"):
+                                if sql_where == "":
+                                    sql_where = crudel.get_param("column") + " like '%" + self.search_sql + "%'"
+                                else:
+                                    sql_where = "" + sql_where + " or "\
+                                    + crudel.get_param("column") + " like '%" + self.search_sql + "%'"
+                    else:
+                        if sql_where == "":
+                            sql_where = self.crud.get_table_id() + "."\
+                            + element + " like '%" + self.search_sql + "%'"
+                        else:
+                            sql_where = "" + sql_where + " or " + self.crud.get_table_id() + "."\
+                            + element + " like '%" + self.search_sql + "%'"
+        if sql_where != "":
+            sql_where = "(" + sql_where + ")"
         # Les arguments de la vue entrent dans le where
         for arg in self.args:
             if sql_where == "":
@@ -303,7 +341,7 @@ class CrudView(GObject.GObject):
                     store.append(crudel.get_value())
                 # colonnes crudel
                 display = crudel.get_cell()
-                # print element, display
+                # print element, crudel.get_value(), display
                 store.append(display)
             # col_action_id
             if self.crud.get_view_prop("deletable", False)\
@@ -377,10 +415,24 @@ class CrudView(GObject.GObject):
         """ Recherche d'éléments dans la vue """
         if len(self.search_entry.get_text()) == 1:
             return
-        self.current_filter = self.search_entry.get_text()
+        self.current_filter = self.search_entry.get_text().encode("utf-8")
         # mémorisation du filtre dans la vue
         self.crud.set_view_prop("filter", self.current_filter)
         self.store_filter.refilter()
+
+    def on_search_entry_sql_activate(self, widget):
+        """ CR dans le champ """
+        self.search_button.do_activate(self.search_button)
+
+    def on_search_button_clicked(self, widget):
+        """ Recherche d'éléments dans la vue """
+        if len(self.search_entry_sql.get_text()) == 1:
+            return
+        self.search_sql = self.search_entry_sql.get_text().encode("utf-8")
+        # mémorisation du filtre dans la vue
+        self.crud.set_view_prop("filter", self.search_sql)
+        # relecture de la table avec le filtre
+        self.update_liststore()
 
     def on_action_toggle(self, cell, path):
         """ Clic sur coche d'action"""

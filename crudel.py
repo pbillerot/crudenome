@@ -155,21 +155,18 @@ class Crudel(GObject.GObject):
         "%3.2d €" par exemple pour présenter un montant en 0.00 €
         "%5s" pour représenter une chaîne en remplissant de blancs à gauche si la longueur < 5c
         """
-        sret = ""
+        sret = self.get_value()
+        if self.get_type_gdk() == GObject.TYPE_STRING:
+            sret = str(sret).encode("utf-8")
         if self.type_parent == Crudel.TYPE_PARENT_VIEW:
             display = self.crud.get_column_prop(self.element, "display", None)
         else:
             display = self.crud.get_field_prop(self.element, "display", None)
         if display:
             if not self.is_read_only() and self.type_parent == Crudel.TYPE_PARENT_FORM:
-                sret = self.get_value()
+                pass
             else:
-                sret = display % (self.get_value())
-        else:
-            sret = self.get_value()
-        
-        if not isinstance(sret, (int, float)):
-            sret = sret.encode("utf-8")
+                sret = display % (sret)
         return sret
 
     def get_cell(self):
@@ -697,6 +694,10 @@ class CrudelCombo(Crudel):
         Crudel.init_crudel(self)
         self.set_value_sql(u"")
 
+    def get_cell(self):
+        """ représentation en colonne """
+        return str(self.get_value())
+
     def get_widget_box(self):
         hbox = Gtk.HBox()
 
@@ -758,7 +759,7 @@ class CrudelRadio(Crudel):
 
     def get_cell(self):
         """ représentation en colonne """
-        return self.items.get(self.get_value(), "")
+        return str(self.get_value())
 
     def get_widget_box(self):
         # todo
