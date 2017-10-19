@@ -205,6 +205,7 @@ class CrudForm(GObject.GObject):
         # le WHERE
         sql += " WHERE " + self.crud.get_key_id() + " = :key_value"
         # Go!
+        print "FORM", sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         # remplissage des champs
         for row in rows:

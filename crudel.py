@@ -155,9 +155,7 @@ class Crudel(GObject.GObject):
         "%3.2d €" par exemple pour présenter un montant en 0.00 €
         "%5s" pour représenter une chaîne en remplissant de blancs à gauche si la longueur < 5c
         """
-        sret = self.get_value()
-        if self.get_type_gdk() == GObject.TYPE_STRING:
-            sret = str(sret).encode("utf-8")
+        value = self.get_value()
         if self.type_parent == Crudel.TYPE_PARENT_VIEW:
             display = self.crud.get_column_prop(self.element, "display", None)
         else:
@@ -166,20 +164,14 @@ class Crudel(GObject.GObject):
             if not self.is_read_only() and self.type_parent == Crudel.TYPE_PARENT_FORM:
                 pass
             else:
-                sret = display % (sret)
-        return sret
+                value = display.encode("utf-8") % (value)
+        if self.get_type_gdk() == GObject.TYPE_STRING:
+            value = str(value)
+        return value
 
     def get_cell(self):
         """ retourne la cellule dans la vue """
-        value = self.get_value()
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            display = self.crud.get_column_prop(self.element, "display")
-        else:
-            display = self.crud.get_field_prop(self.element, "display")
-        if display == "":
-            return value
-        else:
-            return display % (value)
+        return self.get_display()
 
     def get_col_width(self):
         """ largeur de la colonne """
@@ -658,19 +650,25 @@ class CrudelJointure(Crudel):
     def __init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent):
         Crudel.__init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
 
+    def get_type_gdk(self):
+        return GObject.TYPE_STRING
+
     def is_read_only(self):
         return True
 
+    def get_cell(self):
+        return Crudel.get_display(self)
+
     def get_display(self):
-        display = self.get_value()
+        value = self.get_value()
         if self.get_param("table"):
-            sql = "SELECT " + self.get_param("display", self.get_param("key")) + " as display"\
+            sql = "SELECT " + self.get_param("display", self.get_param("key")) + " as value"\
             + " FROM " + self.get_param("table")\
             + " WHERE " + self.get_param("key") + " = '" + self.get_value() + "'"
             rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, {})
             for row in rows:
-                display = row["display"]
-        return display
+                value = row["value"]
+        return Crudel.get_display(self)
 
     def get_widget_box(self):
         hbox = Gtk.HBox()
@@ -693,10 +691,6 @@ class CrudelCombo(Crudel):
     def init_crudel(self):
         Crudel.init_crudel(self)
         self.set_value_sql(u"")
-
-    def get_cell(self):
-        """ représentation en colonne """
-        return str(self.get_value())
 
     def get_widget_box(self):
         hbox = Gtk.HBox()
@@ -756,10 +750,6 @@ class CrudelRadio(Crudel):
     def init_crudel(self):
         Crudel.init_crudel(self)
         self.set_value_sql(False)
-
-    def get_cell(self):
-        """ représentation en colonne """
-        return str(self.get_value())
 
     def get_widget_box(self):
         # todo

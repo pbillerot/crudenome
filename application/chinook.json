@@ -335,9 +335,9 @@
                     "label_short": "Size",
                     "type": "jointure",
                     "params": {
-                        "column": "tracks.Bytes/1000/1000"
+                        "column": "(tracks.Bytes*1.0/1000/1000)"
                     },
-                    "display": "%d M",
+                    "display": "%.2f M",
                     "col_align": "right"
                 },
                 "UnitPrice": {

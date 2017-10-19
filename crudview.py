@@ -315,7 +315,7 @@ class CrudView(GObject.GObject):
             sql += " ORDER BY " + self.crud.get_view_prop("order_by")
 
         sql += " LIMIT " + str(self.crud.get_view_prop("limit", 500))
-        print sql
+        print "VIEW", sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
         # print rows
         self.liststore.clear()
