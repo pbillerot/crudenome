@@ -7,7 +7,7 @@
     color: red;
 }
 .read_only {
-    background: lightgrey;
+    background-color: lightgrey;
 }
 .button_selected {
     /*background: #E5CD89;*/
@@ -15,5 +15,5 @@
     font-weight: 900;
 }
 .action {
-    background: #ffaaaa;
+    background-color: #ffaaaa;
 }

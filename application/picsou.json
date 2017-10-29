@@ -4,7 +4,7 @@
     "menu_orientation": "horizontal",
     "tables": {
         "ptf": {
-            "basename": "/mnt/sandisk/data/picsou.sqlite",
+            "basename": "/mnt/sandisk/grive/zim/Bourse/picsou.sqlite",
             "key": "ptf_id",
             "elements": {
                 "ptf_id": {

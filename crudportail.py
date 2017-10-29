@@ -2,12 +2,13 @@
 """
     Gestion du portail, layout
 """
-from crudview import CrudView
-from crudform import CrudForm
-from crudwindow import MyWindow
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
+
+from crudview import CrudView
+from crudform import CrudForm
+from crudwindow import MyWindow
 
 class CrudPortail():
     """ Gestion du portail
@@ -40,6 +41,7 @@ class CrudPortail():
         self.crud_view = None
         self.footerbar = None
         self.button_home = None
+        self.button_test = None
 
         # layout
         self.layout_type = CrudPortail.LAYOUT_MENU
@@ -163,6 +165,11 @@ class CrudPortail():
         self.button_home.connect("clicked", self.on_button_home_clicked)
         self.headerbar.pack_start(self.button_home)
 
+        self.button_test = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_SELECT_COLOR))
+        self.button_test.set_tooltip_text("Test")
+        self.button_test.connect("clicked", self.on_button_test_clicked)
+        self.headerbar.pack_start(self.button_test)
+
         self.headerbar.pack_start(self.box_view)
 
     def create_footerbar(self):
@@ -222,6 +229,11 @@ class CrudPortail():
         self.set_layout(self.LAYOUT_MENU)
         self.create_application_menu()
         self.app_window.show_all()
+
+    def on_button_test_clicked(self, widget):
+        """ Window de test """
+        myWindow = MyWindow(self.crud)
+        print "on_button_test_clicked end"
 
     def on_button_view_clicked(self, widget, table_id, view_id):
         """ Activation d'une vue """

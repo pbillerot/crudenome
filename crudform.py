@@ -64,7 +64,6 @@ class CrudForm(GObject.GObject):
         self.crud_portail.scroll_window.add(self.frame)
 
         self.label_error = Gtk.Label()
-        self.label_error.get_style_context().add_class('error')
         self.box_form.pack_end(self.label_error, False, False, 3)
 
         self.create_fields()
@@ -134,7 +133,8 @@ class CrudForm(GObject.GObject):
             crudel.check()
 
         if self.crud.get_errors():
-            self.label_error.set_markup("\n".join(self.crud.get_errors()))
+            self.label_error.set_markup('\n'.join(self.crud.get_errors()))
+            # self.label_error.get_style_context().add_class('error')
             self.crud.remove_all_errors()
             return
         else:
@@ -152,6 +152,7 @@ class CrudForm(GObject.GObject):
 
         if self.crud.get_errors():
             self.label_error.set_markup("\n".join(self.crud.get_errors()))
+            # self.label_error.get_style_context().add_class('error')
             self.crud.remove_all_errors()
             return
 

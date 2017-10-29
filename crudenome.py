@@ -4,11 +4,12 @@
     Module principal, c'est le point d'entrée
 """
 import sys
-from crud import Crud
-from crudportail import CrudPortail
-from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
 import gi
 gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
+
+from crud import Crud
+from crudportail import CrudPortail
 
 class AppWindow(Gtk.ApplicationWindow):
     """ La fenêtre principale du Gtk """

@@ -246,7 +246,10 @@ class Crudel(GObject.GObject):
             return self.crud.set_field_prop(self.element, "read_only", bool)
     def is_read_only(self):
         """ élément en lecture seule """
-        return self.crud.get_field_prop(self.element, "read_only", False)
+        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "read_only", False)
+        else:
+            return self.crud.get_field_prop(self.element, "read_only", False)
 
     def is_type_jointure(self):
         """ est-ce que la colonne est en lien avec une autre table """
