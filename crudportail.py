@@ -9,6 +9,7 @@ from gi.repository import Gtk, GObject
 from crudview import CrudView
 from crudform import CrudForm
 from crudwindow import MyWindow
+from crudterminal import CrudTerminal
 
 class CrudPortail():
     """ Gestion du portail
@@ -232,7 +233,8 @@ class CrudPortail():
 
     def on_button_test_clicked(self, widget):
         """ Window de test """
-        myWindow = MyWindow(self.crud)
+        # myWindow = MyWindow(self.crud)
+        crudTerminal = CrudTerminal(self.crud)
         print "on_button_test_clicked end"
 
     def on_button_view_clicked(self, widget, table_id, view_id):

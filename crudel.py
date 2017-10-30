@@ -29,6 +29,10 @@ class Crudel(GObject.GObject):
             crudel = CrudelDate(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "float":
             crudel = CrudelFloat(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "form":
+            crudel = CrudelForm(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "graph":
+            crudel = CrudelGraph(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "int":
             crudel = CrudelInt(app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "jointure":
@@ -148,6 +152,13 @@ class Crudel(GObject.GObject):
     def get_type(self, type="text"):
         """ type d''élément du crud """
         return self.crud.get_element_prop(self.element, "type", type)
+
+    def is_display(self):
+        """ Est-ce que la propriété display est valorisée ? """
+        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "display", False)
+        else:
+            return self.crud.get_field_prop(self.element, "display", False)
 
     def get_display(self):
         """ modèle de présentation de la chaîne
@@ -304,7 +315,7 @@ class Crudel(GObject.GObject):
         """ Cellule de la colonne dans la vue 
         """
         if not self.is_hide():
-            renderer = self._get_renderer()
+            renderer = self._get_renderer(treeview)
             if self.get_col_align() == "left":
                 renderer.set_property('xalign', 0.1)
             elif self.get_col_align() == "right":
@@ -315,8 +326,10 @@ class Crudel(GObject.GObject):
             tvc = self._get_tvc(renderer, col_id)
 
             if self.get_sql_color() != "":
+                col_id += 1
                 tvc.add_attribute(renderer, "foreground", col_id)
             if self.is_sortable():
+                col_id += 1
                 tvc.set_sort_column_id(col_id)
             if self.get_col_width():
                 tvc.set_fixed_width(self.get_col_width())
@@ -324,13 +337,13 @@ class Crudel(GObject.GObject):
             treeview.append_column(tvc)
 
         # on ajoute les colonnes techniques
-        if self.get_sql_color() != "":
-            col_id += 1
-        if self.is_sortable():
-            col_id += 1
+        # if self.get_sql_color() != "":
+        #     col_id += 1
+        # if self.is_sortable():
+        #     col_id += 1
         return col_id
 
-    def _get_renderer(self):
+    def _get_renderer(self, treeview):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
         if self.crud.get_column_prop(self.element, "cell_editable", False):
@@ -456,7 +469,7 @@ class CrudelCheck(Crudel):
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
 
-    def _get_renderer(self):
+    def _get_renderer(self, treeview):
         renderer = Gtk.CellRendererToggle()
         return renderer
 
@@ -526,7 +539,7 @@ class CrudelCounter(Crudel):
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
 
-    def _get_renderer(self):
+    def _get_renderer(self, treeview):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
@@ -565,14 +578,7 @@ class CrudelFloat(Crudel):
         Crudel.__init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
 
     def get_type_gdk(self):
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            display = self.crud.get_column_prop(self.element, "display")
-        else:
-            display = self.crud.get_field_prop(self.element, "display")
-        if display == "":
-            return GObject.TYPE_FLOAT
-        else:
-            return GObject.TYPE_STRING
+        return GObject.TYPE_FLOAT
 
     def init_crudel(self):
         Crudel.init_crudel(self)
@@ -588,7 +594,7 @@ class CrudelFloat(Crudel):
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
 
-    def _get_renderer(self):
+    def _get_renderer(self, treeview):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
@@ -596,6 +602,144 @@ class CrudelFloat(Crudel):
             renderer.set_property('editable', True)
             renderer.connect('edited', self.on_cell_edited)
         return renderer
+
+class CrudelForm(Crudel):
+    """ Appel d'un formulaire dans une vue
+        Affichage d'un sous formulaire
+    """
+
+    def __init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent):
+        Crudel.__init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
+
+    def get_type_gdk(self):
+        return GObject.TYPE_STRING
+
+    def init_crudel(self):
+        Crudel.init_crudel(self)
+        self.set_value_sql(False)
+
+    def get_widget_box(self):
+        hbox = Gtk.HBox()
+        label = self._get_widget_label()
+        label.set_label("")
+
+        self.widget = Gtk.CheckButton()
+        if self.is_read_only():
+            self.widget.set_sensitive(False)
+
+        self.widget.set_label(self.get_label_long())
+        self.widget.set_active(self.get_value())
+        # arrangement
+        hbox.pack_start(label, False, False, 5)
+        hbox.pack_start(self.widget, False, False, 5)
+        return hbox
+
+    def _get_renderer(self, treeview):
+        renderer = CellRendererClickablePixbuf()
+        renderer.connect('clicked', self.on_clicked_in_view)
+        return renderer
+
+    def _get_tvc(self, renderer, col_id):
+        tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, icon_name=col_id)
+        return tvc
+
+    def set_value_widget(self):
+        self.crud.set_element_prop(self.element\
+            ,"value", self.get_widget().get_active())
+
+    def get_cell(self):
+        # la colonne aura pour valeur le nom de l'icone
+        # https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        # /usr/share/icons/Adwaita/scalable/actions
+        return self.get_param("icon_name", "applications-accessories")
+
+    def on_clicked_in_view(self, cell, path):
+        """ Clic sur l'élément dans une vue """
+        key_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        print "Action sur", key_id, row_id
+
+class CrudelGraph(Crudel):
+    """ Gestion des colonnes et champs de type boîte à cocher """
+
+    def __init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent):
+        Crudel.__init__(self, app_window, crud_portail, crud_view, crud_form, crud, element, type_parent)
+
+    def get_type_gdk(self):
+        return GObject.TYPE_BOOLEAN
+
+    def init_crudel(self):
+        Crudel.init_crudel(self)
+        self.set_value_sql(False)
+
+    def get_widget_box(self):
+        # todo
+        hbox = Gtk.HBox()
+        label = self._get_widget_label()
+        label.set_label("")
+
+        self.widget = Gtk.CheckButton()
+        if self.is_read_only():
+            self.widget.set_sensitive(False)
+
+        self.widget.set_label(self.get_label_long())
+        self.widget.set_active(self.get_value())
+        # arrangement
+        hbox.pack_start(label, False, False, 5)
+        hbox.pack_start(self.widget, False, False, 5)
+        return hbox
+
+    def _get_renderer(self, treeview):
+        renderer = Gtk.CellRendererToggle()
+        renderer.connect('toggled', self.on_toggled_in_view)
+        return renderer
+
+    def _get_tvc(self, renderer, col_id):
+        tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, active=col_id)
+        return tvc
+
+    def set_value_widget(self):
+        self.crud.set_element_prop(self.element\
+                    ,"value", self.get_widget().get_active())
+
+    def get_value_sql(self):
+        if self.crud.get_element_prop(self.element, "value", False) == True:
+            return "1"
+        elif self.crud.get_element_prop(self.element, "value", False) == False:
+            return "0"
+        elif self.crud.get_element_prop(self.element, "value", "") == "1":
+            return "1"
+        elif self.crud.get_element_prop(self.element, "value", "") == "0":
+            return "0"
+        elif self.crud.get_element_prop(self.element, "value", "") == "":
+            return "0"
+        else:
+            return "1"
+
+    def set_value_sql(self, value_sql):
+        """ Valorisation de l'élément avec le contenu de la colonne de la table """
+        if value_sql == "True":
+            self.crud.set_element_prop(self.element, "value", True)
+        elif value_sql == "False":
+            self.crud.set_element_prop(self.element, "value", False)
+        elif value_sql == 1:
+            self.crud.set_element_prop(self.element, "value", True)
+        elif value_sql == 0:
+            self.crud.set_element_prop(self.element, "value", False)
+        elif value_sql == "1":
+            self.crud.set_element_prop(self.element, "value", True)
+        elif value_sql == "0":
+            self.crud.set_element_prop(self.element, "value", False)
+        elif value_sql == "":
+            self.crud.set_element_prop(self.element, "value", False)
+        else:
+            self.crud.set_element_prop(self.element, "value", True)
+
+    def on_toggled_in_view(self, cell, path):
+        """ Clic sur l'élément dans une vue """
+        key_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        print "Action sur", key_id, row_id
 
 class CrudelInt(Crudel):
     """ Gestion des colonnes et champs de type entier """
@@ -605,14 +749,7 @@ class CrudelInt(Crudel):
         self.widget = None
 
     def get_type_gdk(self):
-        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
-            display = self.crud.get_column_prop(self.element, "display")
-        else:
-            display = self.crud.get_field_prop(self.element, "display")
-        if display == "":
-            return GObject.TYPE_INT
-        else:
-            return GObject.TYPE_STRING
+        return GObject.TYPE_INT
 
     def init_crudel(self):
         Crudel.init_crudel(self)
@@ -629,7 +766,7 @@ class CrudelInt(Crudel):
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
 
-    def _get_renderer(self):
+    def _get_renderer(self, treeview):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
@@ -901,3 +1038,13 @@ class CrudelView(Crudel):
 
     def set_value_widget(self):
         pass
+
+class CellRendererClickablePixbuf(Gtk.CellRendererPixbuf):
+    __gsignals__ = {
+        'clicked': (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE, (GObject.TYPE_STRING,))
+    }
+    def __init__(self):
+        Gtk.CellRendererPixbuf.__init__(self)
+        self.set_property('mode', Gtk.CellRendererMode.ACTIVATABLE)
+    def do_activate(self, event, widget, path, background_area, cell_area, flags):
+        self.emit('clicked', path)

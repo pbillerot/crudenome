@@ -17,11 +17,11 @@ from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as Navigatio
 
 class CrudGraph(Gtk.Window):
     """ Affichage d'un graphique dans une Gtk.Window """
-    def __init__(self, crud, graph_id):
-        Gtk.Window.__init__(self, title="myWindow")
-        # self.connect("destroy", lambda x: Gtk.main_quit())
+    def __init__(self, crud):
+        Gtk.Window.__init__(self, title="Graphique")
 
         self.crud = crud
+        
 
         # application = self.crud.get_json_content(
         #     self.crud.config["application_directory"] + "/" + "picsou.json")

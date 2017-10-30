@@ -192,13 +192,17 @@ class CrudView(GObject.GObject):
             # crudel = crudel_class(self.app_window, self.crud_portail, self, None, self.crud, element, Crudel.TYPE_PARENT_VIEW)
             self.crud.set_column_prop(element, "crudel", crudel)
 
+            # colonnes crudel
+            if crudel.is_display():
+                col_store_types.append(GObject.TYPE_STRING)
+            else:
+                col_store_types.append(crudel.get_type_gdk())
+
             # colonnes techniques color et sortable
             if crudel.get_sql_color() != "":
                 col_store_types.append(GObject.TYPE_STRING)
             if crudel.is_sortable():
                 col_store_types.append(crudel.get_type_gdk())
-            # colonnes crudel
-            col_store_types.append(crudel.get_type_gdk())
 
         # col_action_id
         if self.crud.get_view_prop("deletable", False)\
@@ -228,15 +232,15 @@ class CrudView(GObject.GObject):
                 b_first = False
             else:
                 sql += ", "
-            # colonnes techniques
-            if crudel.get_sql_color() != "":
-                sql += crudel.get_sql_color() + " as " + element + "_color"
-                sql += ", "
             # colonnes affichées
             if crudel.get_sql_get() == "":
                 sql += self.crud.get_table_id() + "." + element
             else:
                 sql += crudel.get_sql_get() + " as " + element
+            # colonnes techniques
+            if crudel.get_sql_color() != "":
+                sql += ", "
+                sql += crudel.get_sql_color() + " as " + element + "_color"
         
         # ajout des colonnes de jointure
         for element in self.crud.get_view_elements():
@@ -321,8 +325,8 @@ class CrudView(GObject.GObject):
         self.liststore.clear()
         # remplissage des colonnes item_sql
         for element in self.crud.get_view_elements():
-                crudel = self.crud.get_column_prop(element, "crudel")
-                crudel.init_crudel_sql()
+            crudel = self.crud.get_column_prop(element, "crudel")
+            crudel.init_crudel_sql()
         row_id = 0
         for row in rows:
             store = []
@@ -331,18 +335,18 @@ class CrudView(GObject.GObject):
             store.append(row_id)
             for element in self.crud.get_view_elements():
                 crudel = self.crud.get_column_prop(element, "crudel")
-                # Valorisation du crudel avec le colonne sql
-                if row.get(element, False):
+                # Valorisation du crudel avec la colonne sql
+                if row.has_key(element):
                     crudel.set_value_sql(row[element])
+                # colonnes crudel
+                display = crudel.get_cell()
+                # print element, crudel.get_value(), display
+                store.append(display)
                 # colonnes techniques
                 if crudel.get_sql_color() != "":
                     store.append(row[element + "_color"])
                 if crudel.is_sortable():
                     store.append(crudel.get_value())
-                # colonnes crudel
-                display = crudel.get_cell()
-                # print element, crudel.get_value(), display
-                store.append(display)
             # col_action_id
             if self.crud.get_view_prop("deletable", False)\
                 or self.crud.get_view_prop("form_edit", None) is not None:
