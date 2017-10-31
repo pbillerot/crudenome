@@ -6,10 +6,13 @@
 import importlib
 from collections import OrderedDict
 import uuid
+from datetime import datetime
+
 from crud import Crud
+
 import gi
-gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
+gi.require_version('Gtk', '3.0')
 
 class Crudel(GObject.GObject):
     """ Gestion des Elements """
@@ -657,7 +660,18 @@ class CrudelForm(Crudel):
         """ Clic sur l'élément dans une vue """
         key_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
         row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
-        print "Action sur", key_id, row_id
+        self.crud.set_row_id(row_id)
+        self.crud.remove_all_selection()
+        self.crud.add_selection(key_id)
+        self.crud.set_key_value(key_id)
+        self.crud.set_form_id(self.get_param("form"))
+        self.crud.set_action("update")
+        self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
+        from crudform import CrudForm
+        form = CrudForm(self.app_window, self.crud_portail, self.crud_view, self.crud, None, None)
+        self.app_window.show_all()
+        form.emit("init_widget", self.__class__, "on_button_edit_clicked")
+
 
 class CrudelGraph(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
@@ -675,8 +689,8 @@ class CrudelGraph(Crudel):
     def get_widget_box(self):
         # todo
         hbox = Gtk.HBox()
-        label = self._get_widget_label()
-        label.set_label("")
+        # label = self._get_widget_label()
+        # label.set_label("")
 
         self.widget = Gtk.CheckButton()
         if self.is_read_only():
@@ -685,7 +699,7 @@ class CrudelGraph(Crudel):
         self.widget.set_label(self.get_label_long())
         self.widget.set_active(self.get_value())
         # arrangement
-        hbox.pack_start(label, False, False, 5)
+        # hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
 

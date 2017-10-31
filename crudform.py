@@ -32,7 +32,6 @@ class CrudForm(GObject.GObject):
         GObject.GObject.__init__(self)
 
         self.crud = crud
-        self.crud.__class__ = Crud
         self.app_window = app_window
         self.crud_portail = crud_portail
         self.crud_view = crud_view

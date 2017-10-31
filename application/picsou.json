@@ -75,7 +75,15 @@
                 "_graph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
-                    "type": "graph"
+                    "type": "graph",
+                    "params": {
+                        "sql": "SELECT * FROM cours WHERE cours_ptf_id = 'TFI.PA' order by cours_date",
+                        "plots": {
+                            "": "SELECT * FROM cours WHERE cours_ptf_id = 'TFI.PA' order by cours_date"
+                        },
+                        "icon_name": "applications-office"
+                    }
+                    
                 }
             },
             "views": {

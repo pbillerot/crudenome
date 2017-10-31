@@ -4,13 +4,13 @@
 """
 import re
 
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GObject
-
 from crudform import CrudForm
 from crudel import Crudel
 from crud import Crud
+
+import gi
+from gi.repository import Gtk, GObject
+gi.require_version('Gtk', '3.0')
 
 class CrudView(GObject.GObject):
     """ Gestion des vues du CRUD

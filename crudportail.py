@@ -8,7 +8,7 @@ from gi.repository import Gtk, GObject
 
 from crudview import CrudView
 from crudform import CrudForm
-from crudwindow import MyWindow
+# from crudwindow import MyWindow
 from crudterminal import CrudTerminal
 
 class CrudPortail():
