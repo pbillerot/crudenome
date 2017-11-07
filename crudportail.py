@@ -34,9 +34,10 @@ class CrudPortail():
     LAYOUT_VIEW = 2
     LAYOUT_FORM = 5
 
-    def __init__(self, app_window, crud):
+    def __init__(self, crud):
         self.crud = crud
-        self.app_window = app_window
+        self.crud.set_portail(self)
+        self.app_window = crud.get_window()
 
         # Déclaration des variables globales
         self.crud_view = None
@@ -166,8 +167,11 @@ class CrudPortail():
         self.button_home.connect("clicked", self.on_button_home_clicked)
         self.headerbar.pack_start(self.button_home)
 
-        self.button_test = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_SELECT_COLOR))
-        self.button_test.set_tooltip_text("Test")
+        # self.button_test = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_SELECT_COLOR))
+        # https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        image = Gtk.Image.new_from_icon_name("utilities-terminal", 24)
+        self.button_test = Gtk.Button(None, image=image)
+        self.button_test.set_tooltip_text("Terminal")
         self.button_test.connect("clicked", self.on_button_test_clicked)
         self.headerbar.pack_start(self.button_test)
 
@@ -222,7 +226,7 @@ class CrudPortail():
         self.crud.set_application(application)
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         self.create_sidebar()
-        self.crud_view = CrudView(self.app_window, self, self.crud, self.box_main, self.box_toolbar, self.scroll_window, None, None)
+        self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
 
     def on_button_home_clicked(self, widget):
         """ Retour au menu général """
@@ -251,7 +255,7 @@ class CrudPortail():
 
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         
-        self.crud_view = CrudView(self.app_window, self, self.crud, self.box_main, self.box_toolbar, self.scroll_window, None, None)
+        self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
 
     def do_form(self, crud_view, crud):
         """ Demande d'activation d'un formulaire """
@@ -259,5 +263,5 @@ class CrudPortail():
         for widget in self.box_toolbar.get_children():
             Gtk.Widget.destroy(widget)
         self.set_layout(CrudPortail.LAYOUT_FORM)
-        form = CrudForm(self.app_window, self, crud_view, crud, None, None)
+        form = CrudForm(crud, None)
         form.emit("init_widget", self.__class__, "do_form")

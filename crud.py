@@ -21,6 +21,7 @@ import re
 import sys
 import itertools
 import smtplib
+import importlib
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -31,6 +32,11 @@ class Crud:
     """
     application = {}
     ctx = {
+        "window": None,
+        "portail": None,
+        "view": None,
+        "form": None,
+        "crudel": None,
         "table_id": None,
         "view_id": None,
         "form_id": None,
@@ -84,6 +90,7 @@ class Crud:
                     pp[param] = params[param]
                 else:
                     pp[param] = params[param].decode("utf-8")
+            # print sql, pp
             cursor.execute(sql, pp)
             conn.commit()
         except sqlite3.Error, exc:
@@ -101,12 +108,13 @@ class Crud:
         """
         Chargement du résultat d'une requête sql dans dictionnaire
         """
-        # print "Sql:", sql, params
+        # print "Sql:", db_path, params, sql
         conn = None
         data = None
         try:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
+            # print sql, params
             cursor.execute(sql, params)
             desc = cursor.description
             column_names = [col[0] for col in desc]
@@ -152,6 +160,46 @@ class Crud:
         return file_list
 
     # GETTER SETTER
+
+    # window
+    def get_window(self):
+        """ window """
+        return self.ctx["window"]
+    def set_window(self, val):
+        """ set """
+        self.ctx["window"] = val
+
+    # portail
+    def get_portail(self):
+        """ portail """
+        return self.ctx["portail"]
+    def set_portail(self, val):
+        """ set """
+        self.ctx["portail"] = val
+
+    # view
+    def get_view(self):
+        """ view """
+        return self.ctx["view"]
+    def set_view(self, val):
+        """ set """
+        self.ctx["view"] = val
+
+    # form
+    def get_form(self):
+        """ form """
+        return self.ctx["form"]
+    def set_form(self, val):
+        """ set """
+        self.ctx["form"] = val
+
+    # crudel
+    def get_crudel(self):
+        """ form """
+        return self.ctx["crudel"]
+    def set_crudel(self, val):
+        """ set """
+        self.ctx["crudel"] = val
 
     # table_id
     def get_table_id(self):
@@ -434,3 +482,16 @@ class Crud:
             return res.group(1)
         else:
             return text
+
+    def load_class(self, full_class_string):
+        """
+        dynamically load a class from a string
+        """
+
+        class_data = full_class_string.split(".")
+        module_path = ".".join(class_data[:-1])
+        class_str = class_data[-1]
+
+        module = importlib.import_module(module_path)
+        # Finally, we retrieve the Class
+        return getattr(module, class_str)

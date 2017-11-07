@@ -1,34 +1,42 @@
 #!/usr/bin/env python
 # -*- coding:Utf-8 -*-
 """
-    Fenêtre secondaire
-"""
-from gi.repository import Gtk
+    Fenêtre d'affichage de graphique
+    Utilisation de la librairie matplotlib
 
+"""
+from datetime import datetime
+
+from gi.repository import Gtk, GObject
+
+# import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as NavigationToolbar
-import matplotlib.dates as mdates
-from datetime import datetime
 
-class MyWindow(Gtk.Window):
-    """ Fenêtre de test """
+class PicsouGraph(Gtk.Window):
+    """ Affichage d'un graphique dans une Gtk.Window """
+    __gsignals__ = {
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
+    }
+    def do_init_widget(self, str_from, str_arg=""):
+        """ Traitement du signal """
+        # print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
+
     def __init__(self, crud):
-        Gtk.Window.__init__(self, title="myWindow")
-        # self.connect("destroy", lambda x: Gtk.main_quit())
+        Gtk.Window.__init__(self, title="Graphique")
 
         self.crud = crud
+        ptf_id = crud.get_key_value()
+        ptfs = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), """
+        SELECT * FROM PTF WHERE ptf_id = :id
+        """, {"id": ptf_id})
+        ptf = ptfs[0]
+        cours = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), """
+        SELECT * FROM cours WHERE cours_ptf_id = :id order by cours_date
+        """, {"id": ptf_id})
 
-        # application: picsou
-        application = self.crud.get_json_content(
-            self.crud.config["application_directory"] + "/" + "picsou.json")
-        self.crud.set_application(application)
-        self.crud.set_table_id("cours")
-        cours = self.crud.sql_to_dict(self.crud.get_table_prop("basename"),\
-            "SELECT * FROM cours WHERE cours_ptf_id = 'TFI.PA' order by cours_date",\
-            {}
-        )
-
+        self.set_title("Cours de " + ptf_id + " - " + ptf["ptf_name"])
         self.activate_focus()
         self.set_border_width(10)
         self.set_default_size(1200, 800)
@@ -41,7 +49,9 @@ class MyWindow(Gtk.Window):
         cours_ema26 = []
         cours_ema50 = []
         cours_trade = []
+        cours_ppp = []
         cours_volume = []
+        cours_rsi = []
         for cour in cours:
             dt = datetime.strptime(cour["cours_date"], '%Y-%m-%d')
             cours_dates.append(dt)
@@ -53,7 +63,12 @@ class MyWindow(Gtk.Window):
                 cours_trade.append(float(cour["cours_close"]))
             else:
                 cours_trade.append(None)
+            if ptf["ptf_date"] != "" and cour["cours_date"] >= ptf["ptf_date"]:
+                cours_ppp.append(float(cour["cours_close"]))
+            else:
+                cours_ppp.append(None)
             cours_volume.append(float(cour["cours_volume"]))
+            cours_rsi.append(float(cour["cours_rsi"]))
 
         # plt.style.use('seaborn-paper')
         # fig = plt.figure()
@@ -65,9 +80,11 @@ class MyWindow(Gtk.Window):
         ax1.plot(cours_dates, cours_ema12, '-', label='EMA 12')
         ax1.plot(cours_dates, cours_ema26, '-', label='EMA 26')
         ax1.plot(cours_dates, cours_ema50, '-', label='EMA 50')
-        ax1.plot(cours_dates, cours_trade, 'o-', label='Trade', linewidth=2)
+        ax1.plot(cours_dates, cours_trade, 'o-', label='Simul', linewidth=2)
+        ax1.plot(cours_dates, cours_ppp, 'o-', label='Réel'.decode("utf-8"), linewidth=2)
         ax1.set_ylabel('Cours (Euro)')
         ax1.set_xlabel('Date')
+        ax1.legend(loc=3)
 
         # format the ticks
         # days = mdates.DayLocator()
@@ -79,13 +96,13 @@ class MyWindow(Gtk.Window):
         # ax1.xaxis.set_minor_locator(days)
         # ax1.xaxis.set_minor_formatter(daysFmt)
 
-        # ax2 = ax1.twinx()
-        # ax2.plot(cours_dates, cours_volume, '--', label='Volume')
-        # ax2.set_ylabel('Volume')
+        ax2 = ax1.twinx()
+        ax2.plot(cours_dates, cours_rsi, '--', label='RSI')
+        ax2.set_ylabel('RSI')
+        ax2.legend(loc=4)
 
         fig.autofmt_xdate()
-        plt.legend(loc=4)
-        plt.suptitle('Cours de TFI.PA TF1')
+        plt.suptitle("Cours de " + ptf_id + " - " + ptf["ptf_name"])
         plt.grid()
         # plt.savefig('dates-tutorial01.png')
         # plt.show()
@@ -96,7 +113,13 @@ class MyWindow(Gtk.Window):
         vbox = Gtk.VBox()
         self.add(vbox)
         vbox.pack_start(canvas, True, True, 0)
-        toolbar = NavigationToolbar(canvas, self)
+
+        toolbar = Gtk.HBox()
+        navigationbar = NavigationToolbar(canvas, self)
+        toolbar.pack_start(navigationbar, False, False, 0)
+        button_url = Gtk.LinkButton("https://fr.finance.yahoo.com/chart/" + ptf_id, "Yahoo")
+        toolbar.pack_end(button_url, False, False, 0)
+
         vbox.pack_end(toolbar, False, False, 0)
 
         # sw = Gtk.ScrolledWindow()
@@ -106,4 +129,5 @@ class MyWindow(Gtk.Window):
         # sw.add_with_viewport(canvas)
 
         # self.add(Gtk.Label("This is another window"))
+
         self.show_all()

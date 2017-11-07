@@ -4,7 +4,7 @@
 """
 from crud import Crud
 from crudel import Crudel
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, GdkPixbuf
 import gi
 gi.require_version('Gtk', '3.0')
 
@@ -27,20 +27,25 @@ class CrudForm(GObject.GObject):
                 widget.grab_focus()
                 break
 
-    def __init__(self, app_window, crud_portail, crud_view, crud, crudel=None, args=None):
+    def __init__(self, crud, args=None):
         
         GObject.GObject.__init__(self)
 
         self.crud = crud
-        self.app_window = app_window
-        self.crud_portail = crud_portail
-        self.crud_view = crud_view
-        self.crudel = crudel
+        self.app_window = crud.get_window()
+        self.crud_portail = crud.get_portail()
+        self.crud_view = crud.get_view()
+        self.crud.set_form(self)
+        self.crudel = crud.get_crudel()
         if args:
             self.args = args
         else:
             self.args = {}
 
+        # pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale('crudenome.svg', 24, 24, True) # preserve ratio
+        # image = Gtk.Image.new_from_pixbuf(pixbuf)
+        # cancel_button = Gtk.Button(label="Cancel", image=image)
+        # cancel_button.set_image_position(Gtk.PositionType.LEFT) # LEFT TOP RIGHT BOTTOM
         cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         cancel_button.set_always_show_image(True)
         cancel_button.connect("clicked", self.on_cancel_button_clicked)
@@ -73,8 +78,8 @@ class CrudForm(GObject.GObject):
         """ Création affichage des champs du formulaire """
         # Création des crudel
         for element in self.crud.get_form_elements():
-            crudel = Crudel.instantiate(self.app_window, self.crud_portail, self.crud_view, self\
-                , self.crud, element, Crudel.TYPE_PARENT_FORM)
+            crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_FORM)
+            crudel.init_value()
             self.crud.set_field_prop(element, "crudel", crudel)
 
         # remplissage des champs avec les colonnes

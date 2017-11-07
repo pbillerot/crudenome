@@ -22,19 +22,22 @@
                     "sortable": true,
                     "col_width": 150
                 },
-                "ptf_date": {
-                    "label_long": "Date",
-                    "label_short": "Date",
-                    "type": "text",
-                    "sortable": true
-                },
                 "ptf_quote": {
                     "label_long": "Cours",
                     "label_short": "Cours",
-                    "type": "text",
+                    "type": "float",
                     "col_align": "right",
                     "display": "%3.2f €",
-                    "default": "0.0"
+                    "sortable": true
+                },
+                "ptf_percent": {
+                    "label_long": "Evol",
+                    "label_short": "Evol",
+                    "type": "float",
+                    "col_align": "right",
+                    "sql_color": "case when ptf_percent > 0 then '#006600' else '#FF0000' end",
+                    "display": "%3.2f %%",
+                    "sortable": true
                 },
                 "ptf_rsi": {
                     "label_long": "RSI",
@@ -43,18 +46,16 @@
                     "display": "%1.0f",
                     "col_align": "center",
                     "sql_color": "case when ptf_rsi > 67 then '#006600' when ptf_rsi < 37 then '#FF0000' else '#000000' end",
-                    "default": "0",
                     "sortable": true
                 },
                 "ptf_macd": {
-                    "label_long": "MACD",
-                    "label_short": "MACD",
+                    "label_long": "E50",
+                    "label_short": "E50",
                     "type": "float",
                     "display": "%3.2f",
                     "col_align": "right",
                     "sortable": true,
-                    "sql_color": "case when ptf_macd > 0 then '#006600' else '#FF0000' end",
-                    "default": "0.0"
+                    "sql_color": "case when ptf_macd > 0 then '#006600' else '#FF0000' end"
                 },
                 "ptf_inptf": {
                     "label_long": "Valeur en Production",
@@ -63,30 +64,136 @@
                     "sql_get": "case when ptf_inptf = 'PPP' then 1 else 0 end",
                     "sql_put": "case when :ptf_inptf = 1 then 'PPP' else '' end"
                 },
+                "ptf_trade": {
+                    "label_long": "Trade",
+                    "label_short": "Trade",
+                    "type": "text",
+                    "sql_get": "case when ptf_support = 'SSS' then 'SSS' when ptf_resistance = 'RRR' then 'RRR' else '' end"
+                },
+                "ptf_date": {
+                    "label_long": "Date achat",
+                    "label_short": "Date achat",
+                    "type": "text"
+                },
+                "ptf_quantity": {
+                    "label_long": "Nombre d'actions",
+                    "label_short": "Qté",
+                    "type": "int",
+                    "default": 0,
+                    "col_align": "center"
+                },
+                "ptf_cost": {
+                    "label_long": "Coût de revient",
+                    "label_short": "Revient",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%3.2f €"
+                },
+                "ptf_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%3.2f €",
+                    "sql_color": "case when ptf_gain > 0 then '#006600' else '#FF0000' end"
+                },
+                "ptf_gain_percent": {
+                    "label_long": "En %",
+                    "label_short": "En %",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when ptf_gain > 0 then '#006600' else '#FF0000' end"
+                },
+                "ptf_note": {
+                    "label_long": "Note",
+                    "label_short": "Note",
+                    "type": "text",
+                    "cell_editable": true
+                },
                 "_fgraph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
                     "type": "form",
                     "params": {
-                        "form": "fgraph",
+                        "plugin": "picsougraph.PicsouGraph",
                         "icon_name": "applications-office"
                     }
                 },
-                "_graph": {
-                    "label_long": "Graph",
-                    "label_short": "Graph",
-                    "type": "graph",
-                    "params": {
-                        "sql": "SELECT * FROM cours WHERE cours_ptf_id = 'TFI.PA' order by cours_date",
-                        "plots": {
-                            "": "SELECT * FROM cours WHERE cours_ptf_id = 'TFI.PA' order by cours_date"
-                        },
-                        "icon_name": "applications-office"
-                    }
-                    
+                "ptf_test_date": {
+                    "label_long": "Date",
+                    "label_short": "Date",
+                    "type": "text"
+                },
+                "ptf_test_cost": {
+                    "label_long": "Coût de revient",
+                    "label_short": "Revient",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%3.2f €"
+                },
+                "ptf_test_quantity": {
+                    "label_long": "Quantité",
+                    "label_short": "Qté",
+                    "type": "int",
+                    "default": 0,
+                    "col_align": "center"
+                },
+                "ptf_test_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%3.2f €",
+                    "sql_color": "case when ptf_test_gain > 0 then '#006600' else '#FF0000' end"
+                },
+                "ptf_test_gain_percent": {
+                    "label_long": "En %",
+                    "label_short": "En %",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when ptf_test_gain > 0 then '#006600' else '#FF0000' end"
+                },
+                "ptf_test_nbj": {
+                    "label_long": "Nombre de jours",
+                    "label_short": "Nbj",
+                    "type": "int",
+                    "default": 0,
+                    "col_align": "center"
+                },
+                "ptf_test_cumul": {
+                    "label_long": "Cumul",
+                    "label_short": "Cumul",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%3.2f €",
+                    "sql_color": "case when ptf_test_cumul > 0 then '#006600' else '#FF0000' end"
                 }
             },
             "views": {
+                "vopen": {
+                    "title": "En production",
+                    "form_edit": "fedit",
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_quote": {},
+                        "ptf_percent": {},
+                        "ptf_rsi": {},
+                        "ptf_macd": {},
+                        "ptf_inptf": {},
+                        "ptf_trade": {},
+                        "ptf_date": {},
+                        "ptf_quantity": {},
+                        "ptf_cost": {},
+                        "ptf_gain": {},
+                        "ptf_gain_percent": {},
+                        "_fgraph": {},
+                        "ptf_note": {}
+                    },
+                    "sql_where": "ptf_inptf = 'PPP'"
+                },
                 "vall": {
                     "title": "Les valeurs",
                     "form_add": "fadd",
@@ -95,27 +202,69 @@
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
-                        "ptf_inptf": {},
                         "ptf_quote": {},
-                        "ptf_date": {},
+                        "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_macd": {},
-                        "_fgraph": {}
+                        "ptf_inptf": {},
+                        "ptf_trade": {},
+                        "ptf_date": {},
+                        "ptf_quantity": {},
+                        "ptf_cost": {},
+                        "ptf_gain": {},
+                        "ptf_gain_percent": {},
+                        "_fgraph": {},
+                        "ptf_note": {}
                     },
-                    "sql_wherex": "ptf_id in ('GET.PA','IPN.PA')"
+                    "sql_whereX": "ptf_id in ('VIE.PA','DSY.PA')",
+                    "order_byX": "ptf_id desc"
                 },
-                "vopen": {
-                    "title": "En production",
+                "vsimul": {
+                    "title": "Simulateur",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
-                        "ptf_inptf": {},
                         "ptf_quote": {},
-                        "ptf_date": {},
+                        "ptf_percent": {},
                         "ptf_rsi": {},
-                        "ptf_macd": {}
+                        "ptf_macd": {},
+                        "ptf_inptf": {},
+                        "ptf_trade": {},
+                        "ptf_test_date": {},
+                        "ptf_test_quantity": {},
+                        "ptf_test_cost": {},
+                        "ptf_test_gain": {},
+                        "ptf_test_gain_percent": {},
+                        "_fgraph": {}
                     },
-                    "sql_where": "ptf_inptf = 'PPP'"
+                    "sql_where": "ptf_intest in ('RRR','SSS','TTT')"
+                },
+                "vnote": {
+                    "title": "Note",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_quote": {},
+                        "ptf_percent": {},
+                        "ptf_rsi": {},
+                        "ptf_macd": {},
+                        "ptf_inptf": {},
+                        "ptf_trade": {},
+                        "ptf_date": {},
+                        "ptf_quantity": {},
+                        "ptf_cost": {},
+                        "ptf_gain": {},
+                        "ptf_gain_percent": {},
+                        "_fgraph": {},
+                        "ptf_note": {}
+                    },
+                    "sql_where": "ptf_note <> ''"
                 }
             },
             "forms": {
@@ -124,36 +273,31 @@
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {"hide": true},
-                        "ptf_inptf": {"hide": true},
                         "ptf_quote": {"hide": true},
-                        "ptf_date": {"hide": true},
                         "ptf_rsi": {"hide": true},
+                        "ptf_inptf": {"hide": true},
+                        "ptf_date": {"hide": true},
                         "ptf_macd": {"hide": true}
                     },
-                    "sql_post": "update ptf set ptf_macd = 2.3 where ptf_id = '{ptf_id}'"
+                    "sql_post": "update ptf set ptf_macd = ptf_macd where ptf_id = '{ptf_id}'"
                 },
                 "fedit": {
                     "title": "Mise à jour d'une valeur",
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {
-                            "read_only": true
                         },
-                        "ptf_inptf": {}
-                    }
-                },
-                "fgraph": {
-                    "title": "Cours de la valeur {ptf_id} - {ptf_name}",
-                    "elements": {
-                        "ptf_id": {},
-                        "ptf_name": {},
-                        "_graph": {}
+                        "ptf_note": {},
+                        "ptf_inptf": {},
+                        "ptf_date": {},
+                        "ptf_quantity": {},
+                        "ptf_cost": {}
                     }
                 }
             }
         },
         "cours": {
-            "basename": "/mnt/sandisk/data/picsou.sqlite",
+            "basename": "/mnt/sandisk/grive/zim/Bourse/picsou.sqlite",
             "key": "cours_id",
             "elements": {
                 "cours_id": {
@@ -164,7 +308,8 @@
                 "cours_ptf_id": {
                     "label_long": "Valeur",
                     "label_short": "Valeur",
-                    "type": "text"
+                    "type": "text",
+                    "searchable": true
                 },
                 "cours_name": {
                     "label_long": "Nom",
@@ -186,24 +331,79 @@
                     "type": "float",
                     "display": "%3.2f €"
                 },
-                "cours_macd": {
-                    "label_long": "MACD",
-                    "label_short": "MACD",
+                "cours_high": {
+                    "label_long": "Max",
+                    "label_short": "Max",
                     "type": "float",
-                    "display": "%3.2f",
-                    "sql_colorx": "case when cours_macd > 0 then '#006600' else '#FF0000' end"
+                    "display": "%3.2f €"
+                },
+                "cours_low": {
+                    "label_long": "Min",
+                    "label_short": "Min",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_percent": {
+                    "label_long": "%",
+                    "label_short": "%",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when cours_percent < 0 then '#FF0000' else '#006600' end"
+                },
+                "cours_volume": {
+                    "label_long": "Volume",
+                    "label_short": "Volume",
+                    "type": "int"
+                },
+                "cours_rsi": {
+                    "label_long": "RSI",
+                    "label_short": "RSI",
+                    "type": "int",
+                    "sql_color": "case when cours_rsi > 67 then '#006600' when cours_rsi < 37 then '#FF0000' else '#000000' end",
+                    "sortable": true
+                },
+                "cours_trend": {
+                    "label_long": "Trend",
+                    "label_short": "Trend",
+                    "type": "float",
+                    "display": "%3.0f %%"
+                },
+                "cours_trade": {
+                    "label_long": "Trade",
+                    "label_short": "Trade",
+                    "type": "text"
+                },
+                "cours_nbj": {
+                    "label_long": "Nbj",
+                    "label_short": "Nbj",
+                    "type": "int"
+                },
+                "cours_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "display": "%3.2f €"
                 }
             },
             "views": {
                 "vall": {
                     "title": "Les cours",
+                    "searchable_sql": true,
+                    "limit": 400,
                     "elements": {
-                        "cours_id": {},
+                        "cours_id": {"hide": true},
                         "cours_ptf_id": {},
                         "cours_name": {},
-                        "cours_close": {"sortable": true},
-                        "cours_date": {}
-                    }
+                        "cours_date": {},
+                        "cours_close": {},
+                        "cours_percent": {},
+                        "cours_rsi": {},
+                        "cours_trend": {},
+                        "cours_trade": {},
+                        "cours_nbj": {},
+                        "cours_gain": {}
+                    },
+                    "order_by": "cours.cours_ptf_id, cours.cours_date desc"
                 }
             },
             "forms": {

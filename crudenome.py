@@ -18,6 +18,7 @@ class AppWindow(Gtk.ApplicationWindow):
 
         # Chargement des paramètres
         self.crud = Crud(crud)
+        self.crud.set_window(self)
 
         self.set_title(self.crud.config["name"])
         self.activate_focus()
@@ -25,7 +26,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_default_size(1200, 600)
         self.set_icon_from_file(self.crud.config["logo"])
 
-        self.crud_portail = CrudPortail(self, crud)
+        self.crud_portail = CrudPortail(crud)
 
 class Application(Gtk.Application):
     """ La classe principale d'une application Gnome """

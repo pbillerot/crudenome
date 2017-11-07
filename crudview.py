@@ -31,18 +31,19 @@ class CrudView(GObject.GObject):
         self.button_edit.hide()
         self.button_delete.hide()
 
-    def __init__(self, app_window, crud_portail, crud\
-            , box_main, box_toolbar, scroll_window, crudel=None, args=None):
+    def __init__(self, crud, box_main, box_toolbar, scroll_window, args=None):
 
         GObject.GObject.__init__(self)
 
-        self.crud_portail = crud_portail
-        self.app_window = app_window
+        self.crud = crud
+        self.crud_portail = crud.get_portail()
+        self.crud.set_view(self)
+        self.app_window = crud.get_window()
+        self.crudel = crud.get_crudel()
+
         self.box_main = box_main
         self.box_toolbar = box_toolbar
         self.scroll_window = scroll_window
-        self.crudel = crudel
-        self.crud = crud
         if args:
             self.args = args
         else:
@@ -188,7 +189,7 @@ class CrudView(GObject.GObject):
         col_store_types.append(GObject.TYPE_INT)
         for element in self.crud.get_view_elements():
             # Création du crudel
-            crudel = Crudel.instantiate(self.app_window, self.crud_portail, self, None, self.crud, element, Crudel.TYPE_PARENT_VIEW)
+            crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_VIEW)
             # crudel = crudel_class(self.app_window, self.crud_portail, self, None, self.crud, element, Crudel.TYPE_PARENT_VIEW)
             self.crud.set_column_prop(element, "crudel", crudel)
 
@@ -321,7 +322,7 @@ class CrudView(GObject.GObject):
         sql += " LIMIT " + str(self.crud.get_view_prop("limit", 500))
         print "VIEW", sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
-        # print rows
+        print len(rows)
         self.liststore.clear()
         # remplissage des colonnes item_sql
         for element in self.crud.get_view_elements():
@@ -336,6 +337,7 @@ class CrudView(GObject.GObject):
             for element in self.crud.get_view_elements():
                 crudel = self.crud.get_column_prop(element, "crudel")
                 # Valorisation du crudel avec la colonne sql
+                crudel.init_value()
                 if row.has_key(element):
                     crudel.set_value_sql(row[element])
                 # colonnes crudel
@@ -381,7 +383,7 @@ class CrudView(GObject.GObject):
         self.crud.set_key_value(None)
         self.crud.set_action("create")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-        form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel, self.args)
+        form = CrudForm(self.crud, self.args)
         self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_add_clicked")
 
@@ -392,7 +394,7 @@ class CrudView(GObject.GObject):
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-        form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel, self.args)
+        form = CrudForm(self.crud, self.args)
         self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
@@ -510,6 +512,6 @@ class CrudView(GObject.GObject):
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
             self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-            form = CrudForm(self.app_window, self.crud_portail, self, self.crud, self.crudel, self.args)
+            form = CrudForm(self.crud, self.args)
             self.app_window.show_all()
             form.emit("init_widget", self.__class__, "on_row_actived")
