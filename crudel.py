@@ -22,7 +22,9 @@ class Crudel(GObject.GObject):
     @staticmethod
     def instantiate(crud, element, type_parent):
         """ Instanciation de la classe correspondate au type d'élément """
-        if crud.get_element_prop(element, "type", "text") == "button":
+        if crud.get_element_prop(element, "type", "text") == "batch":
+            crudel = CrudelBatch(crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "button":
             crudel = CrudelButton(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "check":
             crudel = CrudelCheck(crud, element, type_parent)
@@ -149,11 +151,17 @@ class Crudel(GObject.GObject):
 
     def get_label_long(self):
         """ Label de l'élément utilisé dans un formulaire """
-        return self.crud.get_field_prop(self.element, "label_long", "")
+        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "label_long", False)
+        else:
+            return self.crud.get_field_prop(self.element, "label_long", False)
 
     def get_label_short(self):
         """ Label de l'élément utilisé dans une vue """
-        return self.crud.get_column_prop(self.element, "label_short", "")
+        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "label_short", False)
+        else:
+            return self.crud.get_field_prop(self.element, "label_short", False)
 
     def get_type(self, type="text"):
         """ type d''élément du crud """
@@ -320,27 +328,26 @@ class Crudel(GObject.GObject):
     def add_tree_view_column(self, treeview, col_id):
         """ Cellule de la colonne dans la vue 
         """
-        if not self.is_hide():
-            renderer = self._get_renderer(treeview)
-            if self.get_col_align() == "left":
-                renderer.set_property('xalign', 0.1)
-            elif self.get_col_align() == "right":
-                renderer.set_property('xalign', 1.0)
-            elif self.get_col_align() == "center":
-                renderer.set_property('xalign', 0.5)
+        renderer = self._get_renderer(treeview)
+        if self.get_col_align() == "left":
+            renderer.set_property('xalign', 0.1)
+        elif self.get_col_align() == "right":
+            renderer.set_property('xalign', 1.0)
+        elif self.get_col_align() == "center":
+            renderer.set_property('xalign', 0.5)
 
-            tvc = self._get_tvc(renderer, col_id)
+        tvc = self._get_tvc(renderer, col_id)
 
-            if self.get_sql_color() != "":
-                col_id += 1
-                tvc.add_attribute(renderer, "foreground", col_id)
-            if self.is_sortable():
-                col_id += 1
-                tvc.set_sort_column_id(col_id)
-            if self.get_col_width():
-                tvc.set_fixed_width(self.get_col_width())
+        if self.get_sql_color() != "":
+            col_id += 1
+            tvc.add_attribute(renderer, "foreground", col_id)
+        if self.is_sortable():
+            col_id += 1
+            tvc.set_sort_column_id(col_id)
+        if self.get_col_width():
+            tvc.set_fixed_width(self.get_col_width())
 
-            treeview.append_column(tvc)
+        treeview.append_column(tvc)
 
         # on ajoute les colonnes techniques
         # if self.get_sql_color() != "":
@@ -711,7 +718,7 @@ class CrudelGraph(Crudel):
 
     def set_value_widget(self):
         self.crud.set_element_prop(self.element\
-                    ,"value", self.get_widget().get_active())
+                    , "value", self.get_widget().get_active())
 
     def get_value_sql(self):
         if self.crud.get_element_prop(self.element, "value", False) == True:
@@ -884,6 +891,13 @@ class CrudelCombo(Crudel):
 
     def set_value_widget(self):
         pass
+
+class CrudelBatch(Crudel):
+    """ Plugin """
+
+    def __init__(self, crud, element, type_parent):
+        Crudel.__init__(self, crud, element, type_parent)
+        self.set_hide(True)
 
 class CrudelRadio(Crudel):
     """ Gestion des colonnes et champs de type Radio """

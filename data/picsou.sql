@@ -10,6 +10,7 @@ CREATE TABLE PTF (
     "ptf_percent" REAL DEFAULT(0),
     "ptf_rsi" REAL DEFAULT(0),
     "ptf_macd" REAL DEFAULT(0),
+    "ptf_e200" REAL DEFAULT(0),
     "ptf_quantity" INTEGER DEFAULT(0),
     "ptf_cost" REAL DEFAULT(0),
     "ptf_gain" REAL DEFAULT(0),
@@ -27,7 +28,7 @@ CREATE TABLE PTF (
     "ptf_test_nbj" REAL
     "ptf_test_cumul" REAL
 )
-CREATE UNIQUE INDEX PTF_INDEX ON ptf (ptf_id)
+CREATE UNIQUE INDEX PTF_INDEX ON PTF (ptf_id)
 
 drop table if exists COURS;
 CREATE TABLE COURS (

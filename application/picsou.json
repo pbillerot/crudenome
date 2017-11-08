@@ -20,7 +20,7 @@
                     "type": "text",
                     "searchable": true,
                     "sortable": true,
-                    "col_width": 150
+                    "col_width": 140
                 },
                 "ptf_quote": {
                     "label_long": "Cours",
@@ -56,6 +56,15 @@
                     "col_align": "right",
                     "sortable": true,
                     "sql_color": "case when ptf_macd > 0 then '#006600' else '#FF0000' end"
+                },
+                "ptf_e200": {
+                    "label_long": "E200",
+                    "label_short": "E200",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "col_align": "right",
+                    "sortable": true,
+                    "sql_color": "case when ptf_e200 > 0 then '#006600' else '#FF0000' end"
                 },
                 "ptf_inptf": {
                     "label_long": "Valeur en Production",
@@ -116,13 +125,13 @@
                     "label_short": "Graph",
                     "type": "form",
                     "params": {
-                        "plugin": "picsougraph.PicsouGraph",
+                        "plugin": "picsou_graph.PicsouGraph",
                         "icon_name": "applications-office"
                     }
                 },
                 "ptf_test_date": {
                     "label_long": "Date",
-                    "label_short": "Date",
+                    "label_short": "Date Sim.",
                     "type": "text"
                 },
                 "ptf_test_cost": {
@@ -169,6 +178,30 @@
                     "col_align": "right",
                     "display": "%3.2f €",
                     "sql_color": "case when ptf_test_cumul > 0 then '#006600' else '#FF0000' end"
+                },
+                "_batch": {
+                    "label_long": "Actualiation des données",
+                    "label_short": "Actualiser...",
+                    "type": "batch",
+                    "params": {
+                        "plugin": "picsou_batch.PicsouBatch",
+                        "icon_name": "view-refresh",
+                        "day": 14,
+                        "history": 400,
+                        "cash": 10000,
+                        "amount": 1200,
+                        "cost": 0.01,
+                        "cac40_only": false,
+                        "label_myptf": "Mes actions le {}",
+                        "label_resistance": "Mes actions en r&eacute;sistance (vendre)",
+                        "label_support": "Liste des actions en support (achat)",
+                        "label_top14": "TOP 14 des actions",
+                        "smtp_host": "smtp.free.fr",
+                        "smtp_from": "Picsou <pbillerot@yahoo.com>",
+                        "smtp_dest": [
+                            "bill.tero@free.fr"
+                        ]
+                    }
                 }
             },
             "views": {
@@ -182,6 +215,7 @@
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_macd": {},
+                        "ptf_e200": {},
                         "ptf_inptf": {},
                         "ptf_trade": {},
                         "ptf_date": {},
@@ -189,16 +223,20 @@
                         "ptf_cost": {},
                         "ptf_gain": {},
                         "ptf_gain_percent": {},
+                        "ptf_note": {},
                         "_fgraph": {},
-                        "ptf_note": {}
+                        "_batch": {}
                     },
-                    "sql_where": "ptf_inptf = 'PPP'"
+                    "sql_where": "ptf_inptf = 'PPP'",
+                    "limitX": 1
                 },
                 "vall": {
                     "title": "Les valeurs",
                     "form_add": "fadd",
                     "form_edit": "fedit",
                     "deletable": true,
+                    "searchable": true,
+                    "pluginss": ["_batch"],
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
@@ -206,24 +244,25 @@
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_macd": {},
+                        "ptf_e200": {},
                         "ptf_inptf": {},
                         "ptf_trade": {},
-                        "ptf_date": {},
-                        "ptf_quantity": {},
-                        "ptf_cost": {},
-                        "ptf_gain": {},
-                        "ptf_gain_percent": {},
-                        "_fgraph": {},
-                        "ptf_note": {}
+                        "ptf_test_date": {},
+                        "ptf_test_quantity": {},
+                        "ptf_test_nbj": {},
+                        "ptf_test_cost": {},
+                        "ptf_test_gain": {},
+                        "ptf_test_gain_percent": {},
+                        "ptf_note": {},
+                        "_fgraph": {}
                     },
                     "sql_whereX": "ptf_id in ('VIE.PA','DSY.PA')",
                     "order_byX": "ptf_id desc"
                 },
                 "vsimul": {
                     "title": "Simulateur",
-                    "form_add": "fadd",
                     "form_edit": "fedit",
-                    "deletable": true,
+                    "searchable": true,
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
@@ -231,13 +270,16 @@
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_macd": {},
+                        "ptf_e200": {},
                         "ptf_inptf": {},
                         "ptf_trade": {},
                         "ptf_test_date": {},
+                        "ptf_test_nbj": {},
                         "ptf_test_quantity": {},
                         "ptf_test_cost": {},
                         "ptf_test_gain": {},
                         "ptf_test_gain_percent": {},
+                        "ptf_note": {},
                         "_fgraph": {}
                     },
                     "sql_where": "ptf_intest in ('RRR','SSS','TTT')"
@@ -246,7 +288,6 @@
                     "title": "Note",
                     "form_add": "fadd",
                     "form_edit": "fedit",
-                    "deletable": true,
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
@@ -254,6 +295,7 @@
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_macd": {},
+                        "ptf_e200": {},
                         "ptf_inptf": {},
                         "ptf_trade": {},
                         "ptf_date": {},
@@ -261,8 +303,8 @@
                         "ptf_cost": {},
                         "ptf_gain": {},
                         "ptf_gain_percent": {},
-                        "_fgraph": {},
-                        "ptf_note": {}
+                        "ptf_note": {},
+                        "_fgraph": {}
                     },
                     "sql_where": "ptf_note <> ''"
                 }
@@ -382,7 +424,8 @@
                     "label_long": "Gain",
                     "label_short": "Gain",
                     "type": "float",
-                    "display": "%3.2f €"
+                    "display": "%3.2f €",
+                    "sql_color": "case when cours_gain < 0 then '#FF0000' else '#006600' end"
                 }
             },
             "views": {

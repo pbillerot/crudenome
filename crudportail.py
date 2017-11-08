@@ -11,7 +11,7 @@ from crudform import CrudForm
 # from crudwindow import MyWindow
 from crudterminal import CrudTerminal
 
-class CrudPortail():
+class CrudPortail(GObject.GObject):
     """ Gestion du portail
     Gère le LAYOUT de la fenêtre principale
     Affiche la liste des applications, la liste des vues d'une application
@@ -34,6 +34,13 @@ class CrudPortail():
     LAYOUT_VIEW = 2
     LAYOUT_FORM = 5
 
+    __gsignals__ = {
+        'refresh_footer': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
+    }
+    def do_refresh_footer(self, str_from, data=""):
+        """ Affichage du texte dans le footer """
+        self.footer_label.set_markup('<sub>{}</sub>'.format(data))
+
     def __init__(self, crud):
         self.crud = crud
         self.crud.set_portail(self)
@@ -44,6 +51,7 @@ class CrudPortail():
         self.footerbar = None
         self.button_home = None
         self.button_test = None
+        self.footer_label = None
 
         # layout
         self.layout_type = CrudPortail.LAYOUT_MENU
@@ -179,14 +187,8 @@ class CrudPortail():
 
     def create_footerbar(self):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
-        footer_label = Gtk.Label()
-        footer_label.set_markup('<sub>Développé avec <a href="{}">{}</a> {} {}</sub>'.format(\
-            self.crud.config["web_site"]\
-            , self.crud.config["title"]\
-            , self.crud.config["version"]\
-            , self.crud.config["copyright"]\
-            ))
-        self.footerbar.pack_start(footer_label, False, True, 3)
+        self.footer_label = Gtk.Label()
+        self.footerbar.pack_start(self.footer_label, False, True, 3)
 
     def create_sidebar(self):
         """ Création des boutons d'activation des vues de l'application """

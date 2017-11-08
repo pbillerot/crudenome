@@ -1,9 +1,11 @@
 TODO
 
-- bug ligne d'affichage des erreurs en rouge
+- ptf colonne %200 jours
+- dans portail footbar un résumé 
+- cellule image souris change symbole
+- cellule image change couleur sur clic 
 - rubrique tags
 - rubrique link
-- option colonne edit_online True
 - sql_ctrl
+- post_sql
 
-x filtre sql

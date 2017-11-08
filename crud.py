@@ -86,7 +86,7 @@ class Crud:
             cursor = conn.cursor()
             pp = {}
             for param in params:
-                if isinstance(params[param], int) or isinstance(params[param], float):
+                if params[param] is None or isinstance(params[param], int) or isinstance(params[param], float):
                     pp[param] = params[param]
                 else:
                     pp[param] = params[param].decode("utf-8")
@@ -144,7 +144,6 @@ class Crud:
 
         smtp = smtplib.SMTP()
         smtp.connect(self.config["smtp_host"])
-
         for _i in dests:
             smtp.sendmail(from_addr, _i, mail.as_string())
 
@@ -353,7 +352,7 @@ class Crud:
             return self.application["tables"][self.ctx["table_id"]]["elements"][element].get("params").get(params, default)
         else:
             return default
-    
+
     # column
     def get_column_prop(self, element, prop, default=""):
         """

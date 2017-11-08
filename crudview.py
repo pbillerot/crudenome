@@ -9,7 +9,7 @@ from crudel import Crudel
 from crud import Crud
 
 import gi
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, Gio, GdkPixbuf
 gi.require_version('Gtk', '3.0')
 
 class CrudView(GObject.GObject):
@@ -21,7 +21,8 @@ class CrudView(GObject.GObject):
     """
 
     __gsignals__ = {
-        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str, str,))
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str, str,)),
+        'refresh_data': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
     }
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
@@ -30,6 +31,10 @@ class CrudView(GObject.GObject):
         self.label_select.hide()
         self.button_edit.hide()
         self.button_delete.hide()
+    def do_refresh_data(self, str_from, str_arg=""):
+        """ Les données ont ete modifiées -> refresh """
+        print "do_refresh_data %s.%s" % (str_from, str_arg)
+        self.update_liststore()
 
     def __init__(self, crud, box_main, box_toolbar, scroll_window, args=None):
 
@@ -71,7 +76,7 @@ class CrudView(GObject.GObject):
 
         self.app_window.show_all()
 
-        if len(self.crud.get_selection()) == 1 and not crudel:
+        if len(self.crud.get_selection()) == 1 and not self.crudel:
             # au retour d'un formulaire, on remet la sélection sur la ligne
             row_id = self.crud.get_row_id()
             self.treeview.set_cursor(Gtk.TreePath(row_id), None)
@@ -119,6 +124,25 @@ class CrudView(GObject.GObject):
         self.label_select = Gtk.Label("0 sélection")
         self.box_toolbar_select.pack_end(self.label_select, False, True, 3)
 
+        # Affichage des boutons des batchs de la vue
+        for element in self.crud.get_view_elements():
+            # Création du crudel
+            crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_VIEW)
+            # Sauvegarde du crudel pour utilisation dans liststore et listview
+            self.crud.set_column_prop(element, "crudel", crudel)
+            if crudel.get_type() == "batch":
+                # print crudel.get_label_short()
+                if crudel.get_param("icon_name", False):
+                    image = Gtk.Image.new_from_icon_name(crudel.get_param("icon_name", False), Gtk.IconSize.BUTTON)
+                else:
+                    image = Gtk.Image(stock=Gtk.STOCK_REFRESH)
+                batch_button = Gtk.Button(label=crudel.get_label_short(), image=image)
+                batch_button.set_image_position(Gtk.PositionType.LEFT) # LEFT TOP RIGHT BOTTOM
+                batch_button.set_always_show_image(True)
+                batch_button.set_tooltip_text(crudel.get_label_long())
+                batch_button.connect("clicked", self.on_batch_button_clicked, crudel)
+                self.box_toolbar.pack_end(batch_button, False, True, 3)
+
         if self.crud.get_view_prop("form_add", "") != "":
             # Affichage du bouton d'ajout si formulaire d'ajout présent
             self.button_add = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
@@ -127,7 +151,7 @@ class CrudView(GObject.GObject):
             self.box_toolbar.pack_end(self.button_add, False, True, 3)
 
         self.box_toolbar.pack_end(self.box_toolbar_select, False, True, 3)
-        
+
     def create_treeview(self):
         """ Création/mise à jour de la treeview associée au liststore """
         # Treview sort and filter
@@ -146,7 +170,6 @@ class CrudView(GObject.GObject):
         col_id += 1
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_column_prop(element, "crudel")
-
             # colonnes crudel
             # mémorisation du n° de la colonne
             self.crud.set_column_prop(element, "col_id", col_id)
@@ -154,8 +177,9 @@ class CrudView(GObject.GObject):
             if element == self.crud.get_table_prop("key"):
                 self.crud.set_view_prop("key_id", col_id)
 
-            col_id = crudel.add_tree_view_column(self.treeview, col_id)
-            col_id += 1
+            if not crudel.is_hide():
+                col_id = crudel.add_tree_view_column(self.treeview, col_id)
+                col_id += 1
 
         # ajout de la colonne action
         if self.crud.get_view_prop("deletable", False)\
@@ -188,22 +212,19 @@ class CrudView(GObject.GObject):
         # 1ère colonne row_id
         col_store_types.append(GObject.TYPE_INT)
         for element in self.crud.get_view_elements():
-            # Création du crudel
-            crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_VIEW)
-            # crudel = crudel_class(self.app_window, self.crud_portail, self, None, self.crud, element, Crudel.TYPE_PARENT_VIEW)
-            self.crud.set_column_prop(element, "crudel", crudel)
+            crudel = self.crud.get_column_prop(element, "crudel")
+            if not crudel.is_hide():
+                # colonnes crudel
+                if crudel.is_display():
+                    col_store_types.append(GObject.TYPE_STRING)
+                else:
+                    col_store_types.append(crudel.get_type_gdk())
 
-            # colonnes crudel
-            if crudel.is_display():
-                col_store_types.append(GObject.TYPE_STRING)
-            else:
-                col_store_types.append(crudel.get_type_gdk())
-
-            # colonnes techniques color et sortable
-            if crudel.get_sql_color() != "":
-                col_store_types.append(GObject.TYPE_STRING)
-            if crudel.is_sortable():
-                col_store_types.append(crudel.get_type_gdk())
+                # colonnes techniques color et sortable
+                if crudel.get_sql_color() != "":
+                    col_store_types.append(GObject.TYPE_STRING)
+                if crudel.is_sortable():
+                    col_store_types.append(crudel.get_type_gdk())
 
         # col_action_id
         if self.crud.get_view_prop("deletable", False)\
@@ -320,9 +341,9 @@ class CrudView(GObject.GObject):
             sql += " ORDER BY " + self.crud.get_view_prop("order_by")
 
         sql += " LIMIT " + str(self.crud.get_view_prop("limit", 500))
-        print "VIEW", sql
+        # print "VIEW", sql
         rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, self.crud.ctx)
-        print len(rows)
+        # print len(rows)
         self.liststore.clear()
         # remplissage des colonnes item_sql
         for element in self.crud.get_view_elements():
@@ -340,15 +361,16 @@ class CrudView(GObject.GObject):
                 crudel.init_value()
                 if row.has_key(element):
                     crudel.set_value_sql(row[element])
-                # colonnes crudel
-                display = crudel.get_cell()
-                # print element, crudel.get_value(), display
-                store.append(display)
-                # colonnes techniques
-                if crudel.get_sql_color() != "":
-                    store.append(row[element + "_color"])
-                if crudel.is_sortable():
-                    store.append(crudel.get_value())
+                if not crudel.is_hide():
+                    # colonnes crudel
+                    display = crudel.get_cell()
+                    # print element, crudel.get_value(), display
+                    store.append(display)
+                    # colonnes techniques
+                    if crudel.get_sql_color() != "":
+                        store.append(row[element + "_color"])
+                    if crudel.is_sortable():
+                        store.append(crudel.get_value())
             # col_action_id
             if self.crud.get_view_prop("deletable", False)\
                 or self.crud.get_view_prop("form_edit", None) is not None:
@@ -416,6 +438,15 @@ class CrudView(GObject.GObject):
             self.update_liststore()
 
         dialog.destroy()
+
+    def on_batch_button_clicked(self, widget, crudel):
+        """ Action un bouton plugin """
+        # print "Action sur ", crudel, widget
+        plugin = crudel.get_param("plugin")
+        self.crud.set_crudel(crudel)
+        plugin_class = self.crud.load_class("plugin." + plugin)
+        form = plugin_class(self.crud)
+
 
     def on_search_changed(self, widget):
         """ Recherche d'éléments dans la vue """
