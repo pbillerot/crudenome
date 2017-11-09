@@ -228,7 +228,11 @@
                         "_batch": {}
                     },
                     "sql_where": "ptf_inptf = 'PPP'",
-                    "limitX": 1
+                    "limitX": 1,
+                    "resume": {
+                        "sql": "SELECT resume_gain, resume_date FROM RESUME",
+                        "format": "Gain: <b>%3.2f €</b> € en date du <b>%s</b>"
+                    }
                 },
                 "vall": {
                     "title": "Les valeurs",

@@ -235,7 +235,7 @@ class PicsouLoadQuotes():
             emas50[0] = self.ema(quote_r, 50)
             macd[0] = emas12[0] - emas26[0]
             if emas50[1] != 0:
-                trend[0] = ((emas50[0] - emas50[1]) / emas50[1]) * 10000
+                trend[0] = ((emas50[0] - emas50[1]) / emas50[1]) * 100 * 50 # 50 jours en %
 
             cours["cours_rsi"] = rsi
             cours["cours_ema12"] = emas12[0]
@@ -471,7 +471,7 @@ class PicsouLoadQuotes():
                     # sans     Nbre de mises: 23 Cash: -31749.09 € Gain acquis: -20.96 € Gain : 1854.28 €
                     # avec >65 Nbre de mises: -10 Cash: 6102.30 € Gain acquis: 12.51 € Gain : 26.51 €
                     # avec >70 Nbre de mises: -3 Cash: -2114.33 € Gain acquis: 155.79 € Gain : 503.30 €
-                    if rsis[1] > 67:
+                    if rsis[0] > 67:
                         motif += " >67"
                         b_vendre = True
 
