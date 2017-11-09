@@ -56,16 +56,17 @@ CREATE TABLE COURS (
     "cours_gain_percent" REAL
 )
 
-drop table if exists ORDRES;
-CREATE TABLE ORDRES (
-    ordre_ptf_id TEXT,
-    ordre_date TEXT,
-    ordre_type TEXT, -- aaa ou vvv
-    ordre_quote REAL,
-    ordre_cost REAL,
-    ordre_quantity REAL,
-    ordre_gain REAL,
-    ordre_gain_percent REAL
+drop table if exists MVT;
+CREATE TABLE MVT (
+    mvt_ptf_id TEXT,
+    mvt_date TEXT,
+    mvt_trade TEXT, 
+    mvt_quote REAL,
+    mvt_cost REAL,
+    mvt_quantity REAL,
+    mvt_gain REAL,
+    mvt_gain_percent REAL,
+    mvt_note TEXT
 )
 
 drop table if exists RESUME;
@@ -77,4 +78,4 @@ CREATE TABLE RESUME (
     resume_percent REAL
 )
 DELETE FROM RESUME
-INSERT INTO RESUME (resume_date, resume_time, resume_investi, resume_gain, resume_percent) VALUES ('', '', 0, 0, 0)
+INSERT INTO RESUME (resume_date, resume_time, resume_investi, resume_gain, resume_percent, resume_test) VALUES ('', '', 0, 0, 0)

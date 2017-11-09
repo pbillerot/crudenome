@@ -153,6 +153,7 @@
                     "label_long": "Gain",
                     "label_short": "Gain",
                     "type": "float",
+                    "sortable": true,
                     "col_align": "right",
                     "display": "%3.2f €",
                     "sql_color": "case when ptf_test_gain > 0 then '#006600' else '#FF0000' end"
@@ -170,6 +171,7 @@
                     "label_short": "Nbj",
                     "type": "int",
                     "default": 0,
+                    "sortable": true,
                     "col_align": "center"
                 },
                 "ptf_test_cumul": {
@@ -263,34 +265,6 @@
                     "sql_whereX": "ptf_id in ('VIE.PA','DSY.PA')",
                     "order_byX": "ptf_id desc"
                 },
-                "vsimul": {
-                    "title": "Simulateur",
-                    "form_edit": "fedit",
-                    "icon": "folder-music",
-                    "searchable": true,
-                    "elements": {
-                        "ptf_id": {},
-                        "ptf_name": {},
-                        "ptf_quote": {},
-                        "ptf_percent": {},
-                        "ptf_rsi": {},
-                        "ptf_macd": {},
-                        "ptf_e200": {},
-                        "ptf_inptf": {},
-                        "ptf_trade": {},
-                        "ptf_test_date": {},
-                        "ptf_test_nbj": {},
-                        "ptf_test_quantity": {},
-                        "ptf_test_cost": {},
-                        "ptf_test_gain": {},
-                        "ptf_test_gain_percent": {},
-                        "ptf_note": {},
-                        "_fgraph": {},
-                        "_batch": {}
-                    },
-                    "sql_where": "ptf_intest in ('RRR','SSS','TTT')",
-                    "sql_footer": "SELECT resume_simul as sql_footer FROM RESUME"
-                },
                 "vnote": {
                     "title": "Note",
                     "form_add": "fadd",
@@ -315,6 +289,34 @@
                         "_fgraph": {}
                     },
                     "sql_where": "ptf_note <> ''"
+                },
+                "vsimul": {
+                    "title": "Simulateur",
+                    "form_edit": "fedit",
+                    "icon": "media-playback-start",
+                    "searchable": true,
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_quote": {},
+                        "ptf_percent": {},
+                        "ptf_rsi": {},
+                        "ptf_macd": {},
+                        "ptf_e200": {},
+                        "ptf_inptf": {},
+                        "ptf_trade": {},
+                        "ptf_test_date": {},
+                        "ptf_test_nbj": {},
+                        "ptf_test_quantity": {},
+                        "ptf_test_cost": {},
+                        "ptf_test_gain": {},
+                        "ptf_test_gain_percent": {},
+                        "ptf_note": {},
+                        "_fgraph": {},
+                        "_batch": {}
+                    },
+                    "sql_where": "ptf_intest in ('RRR','SSS','TTT')",
+                    "sql_footer": "SELECT resume_simul as sql_footer FROM RESUME"
                 }
             },
             "forms": {
@@ -454,6 +456,96 @@
                         "cours_trade": {},
                         "cours_nbj": {},
                         "cours_gain": {}
+                    },
+                    "order_by": "cours.cours_ptf_id, cours.cours_date desc"
+                }
+            },
+            "forms": {
+            }
+        },
+        "mvt": {
+            "basename": "/mnt/sandisk/grive/zim/Bourse/picsou.sqlite",
+            "key": "mvt_ptf_id",
+            "elements": {
+                "mvt_ptf_id": {
+                    "label_long": "Valeur",
+                    "label_short": "Valeur",
+                    "type": "text",
+                    "searchable": true
+                },
+                "mvt_name": {
+                    "label_long": "Nom",
+                    "label_short": "Nom",
+                    "type": "text",
+                    "searchable": true,
+                    "expandable": false,
+                    "col_width": 150
+                },
+                "mvt_date": {
+                    "label_long": "Date",
+                    "label_short": "Date",
+                    "type": "text",
+                    "sortable": true
+                },
+                "mvt_quote": {
+                    "label_long": "Cours",
+                    "label_short": "Cours",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "mvt_trade": {
+                    "label_long": "Trade",
+                    "label_short": "Trade",
+                    "type": "text"
+                },
+                "mvt_cost": {
+                    "label_long": "Revient",
+                    "label_short": "Revient",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "mvt_quantity": {
+                    "label_long": "Quantité",
+                    "label_short": "Qté",
+                    "type": "int"
+                },
+                "mvt_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "display": "%3.2f €",
+                    "sql_color": "case when cours_gain < 0 then '#FF0000' else '#006600' end"
+                },
+                "mvt_gain_percent": {
+                    "label_long": "%",
+                    "label_short": "%",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when mvt_gain_percent < 0 then '#FF0000' else '#006600' end"
+                },
+                "mvt_note": {
+                    "label_long": "Note",
+                    "label_short": "Note",
+                    "type": "text"
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Historique",
+                    "searchable_sql": true,
+                    "icon": "folder-saved-search",
+                    "limit": 400,
+                    "elements": {
+                        "mvt_ptf_id": {},
+                        "mvt_name": {},
+                        "mvt_date": {},
+                        "mvt_quote": {},
+                        "mvt_trade": {},
+                        "mvt_cost": {},
+                        "mvt_quantity": {},
+                        "mvt_gain": {},
+                        "mvt_gain_percent": {},
+                        "mvt_note": {}
                     },
                     "order_by": "cours.cours_ptf_id, cours.cours_date desc"
                 }

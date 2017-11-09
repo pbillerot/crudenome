@@ -3,6 +3,7 @@
 """
     Module principal, c'est le point d'entrée
 """
+import os
 import sys
 import gi
 gi.require_version('Gtk', '3.0')
@@ -121,7 +122,7 @@ class Application(Gtk.Application):
 
 # get the style from the css file and apply it
 style_provider = Gtk.CssProvider()
-style_provider.load_from_path('style.css')
+style_provider.load_from_path(os.path.dirname(os.path.realpath(__file__)) + '/style.css')
 Gtk.StyleContext.add_provider_for_screen(
     Gdk.Screen.get_default(),
     style_provider,
