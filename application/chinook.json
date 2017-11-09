@@ -41,6 +41,7 @@
                     "title": "Artists",
                     "form_add": "fadd",
                     "form_edit": "fedit",
+                    "icon": "folder-publicshare",
                     "deletable": true,
                     "elements": {
                         "ArtistId": {},
@@ -117,6 +118,7 @@
                     "title": "Albums",
                     "form_add": "fadd",
                     "form_edit": "fedit",
+                    "icon": "folder-music",
                     "deletable": true,
                     "elements": {
                         "ArtistId": {},
@@ -190,6 +192,7 @@
                     "title": "Media Types",
                     "form_add": "fadd",
                     "form_edit": "fedit",
+                    "icon": "applications-multimedia",
                     "deletable": true,
                     "elements": {
                         "MediaTypeId": {},
@@ -236,6 +239,7 @@
                     "title": "Genre",
                     "form_add": "fadd",
                     "form_edit": "fedit",
+                    "icon": "audio-x-generic",
                     "deletable": true,
                     "elements": {
                         "GenreId": {},
@@ -360,6 +364,7 @@
                 "vall": {
                     "title": "Tracks",
                     "searchable_sql": true,
+                    "icon": "media-optical",
                     "elements": {
                         "TrackId": {},
                         "_ArtistId": {"searchable": true},

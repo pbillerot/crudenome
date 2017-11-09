@@ -42,6 +42,8 @@ class CrudPortail(GObject.GObject):
         self.footer_label.set_markup('<sub>{}</sub>'.format(data))
 
     def __init__(self, crud):
+        GObject.GObject.__init__(self) # pour  gérer les signaux
+
         self.crud = crud
         self.crud.set_portail(self)
         self.app_window = crud.get_window()
@@ -159,7 +161,12 @@ class CrudPortail(GObject.GObject):
             application = self.crud.get_json_content(self.crud.config["application_directory"]\
                 + "/" + application_file)
             self.crud.set_application(application)
-            button = Gtk.Button(self.crud.get_application_prop("title"))
+            if self.crud.get_application_prop("icon_file", False):
+                image = Gtk.Image.new_from_file("data/" + self.crud.get_application_prop("icon_file"))
+                button = Gtk.Button(label=self.crud.get_application_prop("title"), image=image, image_position=Gtk.PositionType.TOP)
+                button.set_always_show_image(True)
+            else:
+                button = Gtk.Button(label=self.crud.get_application_prop("title"), xalign=0.1)
             button.connect("clicked", self.on_button_application_clicked, application_file)
             self.box_toolbar.pack_start(button, False, False, 3)
 
@@ -205,7 +212,13 @@ class CrudPortail(GObject.GObject):
                 if view_first is None:
                     view_first = view_id
                 # les boutons sont ajoutés dans le dictionnaire de la vue
-                self.crud.set_view_prop("button", Gtk.Button(self.crud.get_view_prop("title")))
+                if self.crud.get_view_prop("icon", False):
+                    image = Gtk.Image.new_from_icon_name(self.crud.get_view_prop("icon"), Gtk.IconSize.LARGE_TOOLBAR)
+                    button = Gtk.Button(label=self.crud.get_view_prop("title"), image=image)
+                    button.set_always_show_image(True)
+                else:
+                    button = Gtk.Button(label=self.crud.get_view_prop("title"), xalign=0.1)
+                self.crud.set_view_prop("button", button)
                 self.crud.get_view_prop("button").connect("clicked",
                                                           self.on_button_view_clicked,
                                                           table_id, view_id)
@@ -219,13 +232,15 @@ class CrudPortail(GObject.GObject):
         # mise en relief du bouton vue courante
         self.crud.set_table_id(table_first)
         self.crud.set_view_id(view_first)
-        self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
+        # self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
+        self.crud.get_view_prop("button").set_sensitive(False)
 
     def on_button_application_clicked(self, widget, application_file):
         """ Activation d'une application """
         application = self.crud.get_json_content(
             self.crud.config["application_directory"] + "/" + application_file)
         self.crud.set_application(application)
+        self.crud.set_portail(self)
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         self.create_sidebar()
         self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
@@ -245,18 +260,21 @@ class CrudPortail(GObject.GObject):
 
     def on_button_view_clicked(self, widget, table_id, view_id):
         """ Activation d'une vue """
-        self.crud.get_view_prop("button").get_style_context().remove_class('button_selected')
+        # self.crud.get_view_prop("button").get_style_context().remove_class('button_selected')
+        self.crud.get_view_prop("button").set_sensitive(True)
 
         # init ctx
         self.crud.set_table_id(table_id)
         self.crud.set_view_id(view_id)
-        self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
+        # self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
+        self.crud.get_view_prop("button").set_sensitive(False)
         # raz view_toolbar
         for widget in self.box_toolbar.get_children():
             Gtk.Widget.destroy(widget)
 
         self.set_layout(CrudPortail.LAYOUT_VIEW)
-        
+        self.crud.set_portail(self)
+
         self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
 
     def do_form(self, crud_view, crud):

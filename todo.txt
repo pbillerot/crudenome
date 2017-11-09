@@ -1,11 +1,7 @@
 TODO
 
-- ptf colonne %200 jours
-- dans portail footbar un résumé 
-- cellule image souris change symbole
-- cellule image change couleur sur clic 
 - rubrique tags
 - rubrique link
 - sql_ctrl
-- post_sql
+- post_sql à tester
 

@@ -22,7 +22,7 @@ class CrudView(GObject.GObject):
 
     __gsignals__ = {
         'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str, str,)),
-        'refresh_data': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
+        'refresh_data_view': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
     }
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
@@ -31,10 +31,11 @@ class CrudView(GObject.GObject):
         self.label_select.hide()
         self.button_edit.hide()
         self.button_delete.hide()
-    def do_refresh_data(self, str_from, str_arg=""):
-        """ Les données ont ete modifiées -> refresh """
-        print "do_refresh_data %s.%s" % (str_from, str_arg)
+    def do_refresh_data_view(self, str_from, str_arg=""):
+        """ Les données ont été modifiées -> refresh """
+        # print "do_refresh_data_view %s.%s" % (str_from, str_arg)
         self.update_liststore()
+        self.refresh_footer()
 
     def __init__(self, crud, box_main, box_toolbar, scroll_window, args=None):
 
@@ -236,7 +237,7 @@ class CrudView(GObject.GObject):
         self.liststore = Gtk.ListStore(*col_store_types)
         # print "col_store_types", col_store_types
 
-        self.update_liststore()
+        self.emit("refresh_data_view", "", "")
 
     def update_liststore(self):
         """ Mise à jour du liststore en relisant la table """
@@ -399,6 +400,21 @@ class CrudView(GObject.GObject):
                         bret = True
             return bret
 
+    def refresh_footer(self):
+        """ Préparation du message à afficher dans le footer du portail """
+        self.crud_portail.emit("refresh_footer"\
+            , self.crud.get_table_id() + "." + self.crud.get_view_id()\
+            , "") ## raz du footer
+        sql = self.crud.get_view_prop("sql_footer", False)
+        if sql:
+            rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename")\
+                , sql, self.crud.ctx)
+            for row in rows:
+                if row.has_key("sql_footer"):
+                    self.crud_portail.emit("refresh_footer"\
+                        , self.crud.get_table_id() + "." + self.crud.get_view_id()\
+                        , row["sql_footer"].encode("utf-8"))
+
     def on_button_add_clicked(self, widget):
         """ Ajout d'un élément """
         self.crud.set_form_id(self.crud.get_view_prop("form_add"))
@@ -437,7 +453,7 @@ class CrudView(GObject.GObject):
             for key_value in self.crud.get_selection():
                 self.crud.sql_delete_record(key_value)
 
-            self.update_liststore()
+            self.emit("refresh_data_view", "", "")
 
         dialog.destroy()
 
@@ -448,7 +464,6 @@ class CrudView(GObject.GObject):
         self.crud.set_crudel(crudel)
         plugin_class = self.crud.load_class("plugin." + plugin)
         form = plugin_class(self.crud)
-
 
     def on_search_changed(self, widget):
         """ Recherche d'éléments dans la vue """
@@ -471,7 +486,7 @@ class CrudView(GObject.GObject):
         # mémorisation du filtre dans la vue
         self.crud.set_view_prop("filter", self.search_sql)
         # relecture de la table avec le filtre
-        self.update_liststore()
+        self.emit("refresh_data_view", "", "")
 
     def on_action_toggle(self, cell, path):
         """ Clic sur coche d'action"""

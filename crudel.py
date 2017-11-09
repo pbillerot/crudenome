@@ -608,6 +608,13 @@ class CrudelFloat(Crudel):
             renderer.connect('edited', self.on_cell_edited)
         return renderer
 
+    def set_value_widget(self):
+        value = self.widget.get_text()
+        if value == '':
+            value = 0
+        self.crud.set_element_prop(self.element\
+                , "value", float(value))
+
 class CrudelForm(Crudel):
     """ Appel d'un formulaire dans une vue
         Affichage d'un sous formulaire
@@ -792,14 +799,17 @@ class CrudelInt(Crudel):
             renderer.connect('edited', self.on_cell_edited)
         return renderer
 
-    def on_changed_number_entry(self):
+    def on_changed_number_entry(self, widget):
         """ Ctrl de la saisie """
-        text = self.widget.get_text().strip()
-        self.widget.set_text(''.join([i for i in text if i in '0123456789']))
+        text = widget.get_text().strip()
+        widget.set_text(''.join([i for i in text if i in '0123456789']))
 
     def set_value_widget(self):
+        value = self.widget.get_text()
+        if value == '':
+            value = 0
         self.crud.set_element_prop(self.element\
-                , "value", int(self.widget.get_text()))
+                , "value", int(value))
 
 class CrudelJointure(Crudel):
     """ Gestion des colonnes et champs de type jointure entre 2 tables """
@@ -965,6 +975,11 @@ class CrudelText(Crudel):
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
+
+    # def set_value_widget(self):
+    #     """ valorisation à partir de la saisie dans le widget """
+    #     self.crud.set_element_prop(self.element\
+    #                 , "value", self.get_widget().get_text().encode("utf-8"))
 
 class CrudelUid(Crudel):
     """ Gestion des colonnes et champs de type Unique IDentifier """

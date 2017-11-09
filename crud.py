@@ -89,8 +89,8 @@ class Crud:
                 if params[param] is None or isinstance(params[param], int) or isinstance(params[param], float):
                     pp[param] = params[param]
                 else:
-                    # pp[param] = params[param].decode("utf-8")
-                    pp[param] = params[param]
+                    pp[param] = params[param].decode("utf-8")
+                    # pp[param] = params[param]
             # print sql, pp
             cursor.execute(sql, pp)
             conn.commit()
@@ -386,10 +386,12 @@ class Crud:
             # print key, word_dict[key], type(word_dict[key])
             if isinstance(word_dict[key], int):
                 text = text.replace("{" + key + "}", str(word_dict[key]))
+            elif isinstance(word_dict[key], float):
+                text = text.replace("{" + key + "}", str(word_dict[key]))
             elif isinstance(word_dict[key], bool):
                 text = text.replace("{" + key + "}", str(word_dict[key]))
             else:
-                text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
+                text = text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
         return text
 
     def sql_update_record(self):

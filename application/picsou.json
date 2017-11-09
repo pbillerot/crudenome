@@ -2,6 +2,7 @@
     "title": "PICSOU en action",
     "desc": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
     "menu_orientation": "horizontal",
+    "icon_file": "picsou.jpg",
     "tables": {
         "ptf": {
             "basename": "/mnt/sandisk/grive/zim/Bourse/picsou.sqlite",
@@ -208,6 +209,7 @@
                 "vopen": {
                     "title": "En production",
                     "form_edit": "fedit",
+                    "icon": "folder-download",
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
@@ -229,15 +231,13 @@
                     },
                     "sql_where": "ptf_inptf = 'PPP'",
                     "limitX": 1,
-                    "resume": {
-                        "sql": "SELECT resume_gain, resume_date FROM RESUME",
-                        "format": "Gain: <b>%3.2f €</b> € en date du <b>%s</b>"
-                    }
+                    "sql_footer": "SELECT printf('Le <b>%s</b> Gain: <b>%.2f</b> €', resume_date, resume_gain) as sql_footer FROM RESUME"
                 },
                 "vall": {
                     "title": "Les valeurs",
                     "form_add": "fadd",
                     "form_edit": "fedit",
+                    "icon": "folder",
                     "deletable": true,
                     "searchable": true,
                     "pluginss": ["_batch"],
@@ -266,6 +266,7 @@
                 "vsimul": {
                     "title": "Simulateur",
                     "form_edit": "fedit",
+                    "icon": "folder-music",
                     "searchable": true,
                     "elements": {
                         "ptf_id": {},
@@ -284,14 +285,17 @@
                         "ptf_test_gain": {},
                         "ptf_test_gain_percent": {},
                         "ptf_note": {},
-                        "_fgraph": {}
+                        "_fgraph": {},
+                        "_batch": {}
                     },
-                    "sql_where": "ptf_intest in ('RRR','SSS','TTT')"
+                    "sql_where": "ptf_intest in ('RRR','SSS','TTT')",
+                    "sql_footer": "SELECT resume_simul as sql_footer FROM RESUME"
                 },
                 "vnote": {
                     "title": "Note",
                     "form_add": "fadd",
                     "form_edit": "fedit",
+                    "icon": "folder-documents",
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
@@ -436,6 +440,7 @@
                 "vall": {
                     "title": "Les cours",
                     "searchable_sql": true,
+                    "icon": "go-jump",
                     "limit": 400,
                     "elements": {
                         "cours_id": {"hide": true},

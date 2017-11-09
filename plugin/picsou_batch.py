@@ -109,7 +109,7 @@ class PicsouBatch(Gtk.Window):
         self.close_button.set_sensitive(False)
 
         self.run_calcul()
-        self.crud.get_view().emit("refresh_data", "batch", "close")
+        self.crud.get_view().emit("refresh_data_view", "batch", "close")
 
         # self.cancel_button.hide()
         self.run_button.set_sensitive(True)
