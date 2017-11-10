@@ -211,7 +211,7 @@
                 "vopen": {
                     "title": "En production",
                     "form_edit": "fedit",
-                    "icon": "folder-download",
+                    "icon_name": "folder-download",
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
@@ -239,7 +239,7 @@
                     "title": "Les valeurs",
                     "form_add": "fadd",
                     "form_edit": "fedit",
-                    "icon": "folder",
+                    "icon_name": "folder",
                     "deletable": true,
                     "searchable": true,
                     "pluginss": ["_batch"],
@@ -269,7 +269,7 @@
                     "title": "Note",
                     "form_add": "fadd",
                     "form_edit": "fedit",
-                    "icon": "folder-documents",
+                    "icon_name": "folder-documents",
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
@@ -293,7 +293,7 @@
                 "vsimul": {
                     "title": "Simulateur",
                     "form_edit": "fedit",
-                    "icon": "media-playback-start",
+                    "icon_name": "media-playback-start",
                     "searchable": true,
                     "elements": {
                         "ptf_id": {},
@@ -442,7 +442,7 @@
                 "vall": {
                     "title": "Les cours",
                     "searchable_sql": true,
-                    "icon": "go-jump",
+                    "icon_name": "go-jump",
                     "limit": 400,
                     "elements": {
                         "cours_id": {"hide": true},
@@ -533,7 +533,7 @@
                 "vall": {
                     "title": "Historique",
                     "searchable_sql": true,
-                    "icon": "folder-saved-search",
+                    "icon_name": "folder-saved-search",
                     "limit": 400,
                     "elements": {
                         "mvt_ptf_id": {},

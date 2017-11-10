@@ -2,6 +2,7 @@
     "title": "Chinook",
     "desc": "Chinook sample database",
     "menu_orientation": "vertical",
+    "icon_name": "folder-music",
     "tables": {
         "artists": {
             "basename": "./data/chinook.sqlite",
@@ -41,7 +42,7 @@
                     "title": "Artists",
                     "form_add": "fadd",
                     "form_edit": "fedit",
-                    "icon": "folder-publicshare",
+                    "icon_name": "folder-publicshare",
                     "deletable": true,
                     "elements": {
                         "ArtistId": {},
@@ -118,7 +119,7 @@
                     "title": "Albums",
                     "form_add": "fadd",
                     "form_edit": "fedit",
-                    "icon": "folder-music",
+                    "icon_name": "folder-music",
                     "deletable": true,
                     "elements": {
                         "ArtistId": {},
@@ -192,7 +193,7 @@
                     "title": "Media Types",
                     "form_add": "fadd",
                     "form_edit": "fedit",
-                    "icon": "applications-multimedia",
+                    "icon_name": "applications-multimedia",
                     "deletable": true,
                     "elements": {
                         "MediaTypeId": {},
@@ -239,7 +240,7 @@
                     "title": "Genre",
                     "form_add": "fadd",
                     "form_edit": "fedit",
-                    "icon": "audio-x-generic",
+                    "icon_name": "audio-x-generic",
                     "deletable": true,
                     "elements": {
                         "GenreId": {},
@@ -364,7 +365,7 @@
                 "vall": {
                     "title": "Tracks",
                     "searchable_sql": true,
-                    "icon": "media-optical",
+                    "icon_name": "media-optical",
                     "elements": {
                         "TrackId": {},
                         "_ArtistId": {"searchable": true},

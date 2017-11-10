@@ -1,5 +1,6 @@
 TODO
 
+- icon_name icon_file
 - rubrique tags
 - rubrique link
 - sql_ctrl

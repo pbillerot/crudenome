@@ -2,6 +2,7 @@
     "title": "The Hospital",
     "desc": "Hospital Activities",
     "menu_orientation": "vertical",
+    "icon_name": "folder-publicshare",
     "tables": {
         "Department": {
             "basename": "./data/hospital.sqlite",

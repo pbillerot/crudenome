@@ -25,7 +25,10 @@ class AppWindow(Gtk.ApplicationWindow):
         self.activate_focus()
         self.set_border_width(10)
         self.set_default_size(1200, 600)
-        self.set_icon_from_file(self.crud.config["logo"])
+        if self.crud.config.has_key("icon_file"):
+            self.set_icon_from_file(self.crud.config["icon_file"])
+        if self.crud.config.has_key("icon_name"):
+            self.set_icon_name(self.crud.config["icon_name"])
 
         self.crud_portail = CrudPortail(crud)
 

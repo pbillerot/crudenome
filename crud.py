@@ -278,6 +278,9 @@ class Crud:
         return self.ctx["selected"]
 
     # application
+    def get_application(self):
+        """ Obtenir l'application courante """
+        return self.application
     def set_application(self, application):
         """ Chargement du contexte de l'application """
         self.application = application

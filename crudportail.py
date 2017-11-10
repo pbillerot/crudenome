@@ -161,8 +161,12 @@ class CrudPortail(GObject.GObject):
             application = self.crud.get_json_content(self.crud.config["application_directory"]\
                 + "/" + application_file)
             self.crud.set_application(application)
-            if self.crud.get_application_prop("icon_file", False):
+            if self.crud.get_application().has_key("icon_file"):
                 image = Gtk.Image.new_from_file("data/" + self.crud.get_application_prop("icon_file"))
+                button = Gtk.Button(label=self.crud.get_application_prop("title"), image=image, image_position=Gtk.PositionType.TOP)
+                button.set_always_show_image(True)
+            elif self.crud.get_application().has_key("icon_name"):
+                image = Gtk.Image.new_from_icon_name(self.crud.get_application_prop("icon_name"), Gtk.IconSize.DIALOG)
                 button = Gtk.Button(label=self.crud.get_application_prop("title"), image=image, image_position=Gtk.PositionType.TOP)
                 button.set_always_show_image(True)
             else:
@@ -212,9 +216,13 @@ class CrudPortail(GObject.GObject):
                 if view_first is None:
                     view_first = view_id
                 # les boutons sont ajoutés dans le dictionnaire de la vue
-                if self.crud.get_view_prop("icon", False):
-                    image = Gtk.Image.new_from_icon_name(self.crud.get_view_prop("icon"), Gtk.IconSize.LARGE_TOOLBAR)
-                    button = Gtk.Button(label=self.crud.get_view_prop("title"), image=image)
+                if self.crud.get_view_prop("icon_name", False):
+                    image = Gtk.Image.new_from_icon_name(self.crud.get_view_prop("icon_name"), Gtk.IconSize.LARGE_TOOLBAR)
+                    button = Gtk.Button(label=self.crud.get_view_prop("title"), image=image, xalign=0.1)
+                    button.set_always_show_image(True)
+                elif self.crud.get_view_prop("icon_file", False):
+                    image = Gtk.Image.new_from_file(self.crud.get_view_prop("icon_file"), Gtk.IconSize.LARGE_TOOLBAR)
+                    button = Gtk.Button(label=self.crud.get_view_prop("title"), image=image, xalign=0.1)
                     button.set_always_show_image(True)
                 else:
                     button = Gtk.Button(label=self.crud.get_view_prop("title"), xalign=0.1)

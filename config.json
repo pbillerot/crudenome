@@ -5,7 +5,8 @@
     "copyright": "(c) pbillerot",
     "comments": "Le framework pour développer des applications Gnome",
     "web_site": "https://github.com/pbillerot/crudenome",
-    "logo": "crudenome.png",
+    "icon_file": "crudenome.png",
+    "icon_nameX": "folder",
     "smtp_host": "smtp.free.fr",
     "smtp_from": "pbillerot <pbillerot@yahoo.com>",
     "application_directory": "./application"
