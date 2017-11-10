@@ -32,6 +32,7 @@ class Crud:
     """
     application = {}
     ctx = {
+        "app": None,
         "window": None,
         "portail": None,
         "view": None,
@@ -161,6 +162,14 @@ class Crud:
 
     # GETTER SETTER
 
+    # app: nom de l'application
+    def get_app(self):
+        """ Obtenir le nom de l'application courante """
+        return self.ctx["app"]
+    def set_app(self, val):
+        """ Valoriser le nom de l'application courante """
+        self.ctx["app"] = val
+
     # window
     def get_window(self):
         """ window """
@@ -277,6 +286,7 @@ class Crud:
         """ Fournir les éléments de la sélection """
         return self.ctx["selected"]
 
+    # DICTIONNAIRE de l'application
     # application
     def get_application(self):
         """ Obtenir l'application courante """

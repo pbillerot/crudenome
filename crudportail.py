@@ -35,11 +35,9 @@ class CrudPortail(GObject.GObject):
     LAYOUT_FORM = 5
 
     __gsignals__ = {
-        'refresh_footer': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
+        'refresh_footer': (GObject.SIGNAL_RUN_FIRST, None, (str,str,)),
+        'select_application': (GObject.SIGNAL_RUN_FIRST, None, (str,))
     }
-    def do_refresh_footer(self, str_from, data=""):
-        """ Affichage du texte dans le footer """
-        self.footer_label.set_markup('<sub>{}</sub>'.format(data))
 
     def __init__(self, crud):
         GObject.GObject.__init__(self) # pour  gérer les signaux
@@ -98,9 +96,12 @@ class CrudPortail(GObject.GObject):
 
         self.create_toolbar()
         self.create_footerbar()
-        self.set_layout(CrudPortail.LAYOUT_MENU)
-        
-        self.create_application_menu()
+
+        if self.crud.get_app():
+            self.emit("select_application", self.crud.get_app() + ".json")
+        else:
+            self.set_layout(CrudPortail.LAYOUT_MENU)
+            self.create_application_menu()
 
         self.app_window.show_all()
 
@@ -243,15 +244,31 @@ class CrudPortail(GObject.GObject):
         # self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
         self.crud.get_view_prop("button").set_sensitive(False)
 
-    def on_button_application_clicked(self, widget, application_file):
-        """ Activation d'une application """
+    def do_refresh_footer(self, str_from, data=""):
+        """ Affichage du texte dans le footer """
+        self.footer_label.set_markup('<sub>{}</sub>'.format(data))
+
+    def do_select_application(self, application_file):
+        """ Sélection d'une application """
         application = self.crud.get_json_content(
             self.crud.config["application_directory"] + "/" + application_file)
+
         self.crud.set_application(application)
         self.crud.set_portail(self)
+
+        # on change l'icône système
+        if self.crud.get_application().has_key("icon_file"):
+           self.crud.get_window().set_icon_from_file("data/" + self.crud.get_application_prop("icon_file"))
+        elif self.crud.get_application().has_key("icon_name"):
+           self.crud.get_window().set_icon_name(self.crud.get_application_prop("icon_name"))
+
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         self.create_sidebar()
         self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
+
+    def on_button_application_clicked(self, widget, application_file):
+        """ Activation d'une application """
+        self.emit("select_application", application_file)
 
     def on_button_home_clicked(self, widget):
         """ Retour au menu général """

@@ -5,6 +5,7 @@
 """
 import os
 import sys
+import argparse
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
@@ -14,12 +15,15 @@ from crudportail import CrudPortail
 
 class AppWindow(Gtk.ApplicationWindow):
     """ La fenêtre principale du Gtk """
-    def __init__(self, app, crud):
+    def __init__(self, app, args, crud):
         Gtk.ApplicationWindow.__init__(self, title="Welcome to CRUDENOME", application=app)
 
+        self.args = args # paramètre
         # Chargement des paramètres
         self.crud = Crud(crud)
         self.crud.set_window(self)
+        if args.application:
+            self.crud.set_app(args.application)
 
         self.set_title(self.crud.config["name"])
         self.activate_focus()
@@ -35,14 +39,15 @@ class AppWindow(Gtk.ApplicationWindow):
 class Application(Gtk.Application):
     """ La classe principale d'une application Gnome """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         constructor of the Gtk Application
         create and activate a MyWindow, with self (the MyApplication) as
         application the window belongs to.
         Note that the function in C activate() becomes do_activate() in Python
         """
-        Gtk.Application.__init__(self)
+        Gtk.Application.__init__(self, flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE, **kwargs)
+        self.args = None # store for parsed command line options
 
         self.window = None
 
@@ -55,10 +60,11 @@ class Application(Gtk.Application):
         this line could go in the constructor of MyWindow as well
         self.win.show_all()
         """
+
         if not self.window:
             # Windows are associated with the application
             # when the last one is closed the application shuts down
-            self.window = AppWindow(self, self.crud)
+            self.window = AppWindow(self, self.args, self.crud)
 
     def do_startup(self):
         """
@@ -92,6 +98,27 @@ class Application(Gtk.Application):
         preference_action = Gio.SimpleAction.new("preference", None)
         preference_action.connect("activate", self.on_preference)
         self.add_action(preference_action)
+
+    def do_command_line(self, args):
+        '''
+        Gtk.Application command line handler
+        called if Gio.ApplicationFlags.HANDLES_COMMAND_LINE is set.
+        must call the self.do_activate() to get the application up and running.
+        '''
+        # https://docs.python.org/fr/3/howto/argparse.html"
+        # print "do_command_line", args.get_arguments()
+
+        Gtk.Application.do_command_line(self, args) # call the default commandline handler
+        # make a command line parser
+        parser = argparse.ArgumentParser(prog='crudenome')
+        # add a -c/--color option
+        parser.add_argument('-a', '--application', help="Nom de l'application au démarrage")
+        # parse the command line stored in args, but skip the first element (the filename)
+        # self.args = parser.parse_args(args.get_arguments()[1:])
+        self.args = parser.parse_args()
+        # call the main program do_activate() to start up the app
+        self.do_activate()
+        return 0
 
     def on_about(self, action, param):
         """

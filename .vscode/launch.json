@@ -5,10 +5,14 @@
             "name": "Python",
             "type": "python",
             "request": "launch",
-            "stopOnEntry": true,
+            "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
             "program": "/mnt/sandisk/git/crudenome/crudenome.py",
             "cwd": "${workspaceRoot}",
+            "args": [
+                "-a",
+                "picsou"
+            ],
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [

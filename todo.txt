@@ -1,5 +1,6 @@
 TODO
 
+- application en paramètre
 - icon_name icon_file
 - rubrique tags
 - rubrique link
