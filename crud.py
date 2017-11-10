@@ -90,8 +90,8 @@ class Crud:
                 if params[param] is None or isinstance(params[param], int) or isinstance(params[param], float):
                     pp[param] = params[param]
                 else:
-                    pp[param] = params[param].decode("utf-8")
-                    # pp[param] = params[param]
+                    # pp[param] = params[param].decode("utf-8")
+                    pp[param] = params[param]
             # print sql, pp
             cursor.execute(sql, pp)
             conn.commit()

@@ -627,7 +627,7 @@ class PicsouLoadQuotes():
             cumul += ptf["ptf_test_gain"]
         resume = "Nbre de mises: {} Cash: {:.2f} € Gain acquis: {:.2f} € Gain : {:.2f} € {:.2f}%"\
         .format(qamount, -cash, gain_acquis, cumul, (cumul/-cash)*100)
-        resume_sql = "Nbre de mises: <b>{}</b> Cash: <b>{:.2f} €</b> Gain acquis: <b>{:.2f} €</b> Gain : <b>{:.2f} €</b> <b>{:.2f}%</b>"\
+        resume_sql = u"Nbre de mises: <b>{}</b> Cash: <b>{:.2f} €</b> Gain acquis: <b>{:.2f} €</b> Gain : <b>{:.2f} €</b> <b>{:.2f}%</b>"\
         .format(qamount, -cash, gain_acquis, cumul, (cumul/-cash)*100)
         self.parent.display(resume)
         self.crud.exec_sql(self.crud.get_table_prop("basename"), """

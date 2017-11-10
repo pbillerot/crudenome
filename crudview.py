@@ -6,10 +6,9 @@ import re
 
 from crudform import CrudForm
 from crudel import Crudel
-from crud import Crud
 
 import gi
-from gi.repository import Gtk, GObject, Gio, GdkPixbuf
+from gi.repository import Gtk, GObject
 gi.require_version('Gtk', '3.0')
 
 class CrudView(GObject.GObject):
@@ -24,19 +23,6 @@ class CrudView(GObject.GObject):
         'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str, str,)),
         'refresh_data_view': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
     }
-    def do_init_widget(self, str_from, str_arg=""):
-        """ Traitement du signal """
-        # print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
-        self.crud.remove_all_selection()
-        self.label_select.hide()
-        self.button_edit.hide()
-        self.button_delete.hide()
-    def do_refresh_data_view(self, str_from, str_arg=""):
-        """ Les données ont été modifiées -> refresh """
-        # print "do_refresh_data_view %s.%s" % (str_from, str_arg)
-        self.update_liststore()
-        self.refresh_footer()
-
     def __init__(self, crud, box_main, box_toolbar, scroll_window, args=None):
 
         GObject.GObject.__init__(self)
@@ -75,15 +61,17 @@ class CrudView(GObject.GObject):
         self.create_liststore()
         self.create_treeview()
 
-        self.app_window.show_all()
-
         if len(self.crud.get_selection()) == 1 and not self.crudel:
             # au retour d'un formulaire, on remet la sélection sur la ligne
             row_id = self.crud.get_row_id()
             self.treeview.set_cursor(Gtk.TreePath(row_id), None)
             self.treeview.grab_focus()
 
-        self.emit("init_widget", self.__class__, "init")
+        self.crud.remove_all_selection()
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+
 
     def get_widget(self):
         """ retourne le container de la vue toolbar + list """
@@ -91,7 +79,7 @@ class CrudView(GObject.GObject):
         return self.box_main
 
     def create_view_toolbar(self):
-        """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
+        """ toolbar pour afficher des infos et le bouton pour ajouter des éléments """
         if self.crud.get_view_prop("searchable", False):
             self.search_entry = Gtk.SearchEntry()
             self.search_entry.connect("search-changed", self.on_search_changed)
@@ -414,6 +402,22 @@ class CrudView(GObject.GObject):
                     self.crud_portail.emit("refresh_footer"\
                         , self.crud.get_table_id() + "." + self.crud.get_view_id()\
                         , row["sql_footer"].encode("utf-8"))
+
+    def do_init_widget(self, str_from, str_arg=""):
+        """ Traitement du signal """
+        # print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
+        self.crud.remove_all_selection()
+        self.label_select.hide()
+        self.button_edit.hide()
+        self.button_delete.hide()
+
+        self.app_window.show_all()
+
+    def do_refresh_data_view(self, str_from, str_arg=""):
+        """ Les données ont été modifiées -> refresh """
+        # print "do_refresh_data_view %s.%s" % (str_from, str_arg)
+        self.update_liststore()
+        self.refresh_footer()
 
     def on_button_add_clicked(self, widget):
         """ Ajout d'un élément """

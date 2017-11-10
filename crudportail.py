@@ -19,7 +19,7 @@ class CrudPortail(GObject.GObject):
     crud         : le contexte applicatif
     """
     """ LAYOUT
-    button_home box_view 
+    button_home box_view
     box_frame V
         box_app H
             box_sidebar V box_main V
@@ -36,7 +36,8 @@ class CrudPortail(GObject.GObject):
 
     __gsignals__ = {
         'refresh_footer': (GObject.SIGNAL_RUN_FIRST, None, (str,str,)),
-        'select_application': (GObject.SIGNAL_RUN_FIRST, None, (str,))
+        'select_application': (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        'select_view': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
     }
 
     def __init__(self, crud):
@@ -97,13 +98,14 @@ class CrudPortail(GObject.GObject):
         self.create_toolbar()
         self.create_footerbar()
 
-        if self.crud.get_app():
-            self.emit("select_application", self.crud.get_app() + ".json")
-        else:
+        if not self.crud.get_app():
             self.set_layout(CrudPortail.LAYOUT_MENU)
             self.create_application_menu()
 
         self.app_window.show_all()
+
+        if self.crud.get_app():
+            self.emit("select_application", self.crud.get_app() + ".json")
 
     def set_layout(self, layout_type):
         """ Affichage du layout """
@@ -182,18 +184,20 @@ class CrudPortail(GObject.GObject):
         self.headerbar.props.title = self.crud.config["title"]
         self.app_window.set_titlebar(self.headerbar)
 
-        self.button_home = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_HOME))
-        self.button_home.set_tooltip_text("Retour au menu général")
-        self.button_home.connect("clicked", self.on_button_home_clicked)
-        self.headerbar.pack_start(self.button_home)
+        if not self.crud.get_app():
+            self.button_home = Gtk.Button(None\
+            , image=Gtk.Image.new_from_icon_name("go-home", Gtk.IconSize.LARGE_TOOLBAR))
+            self.button_home.set_tooltip_text("Retour au menu général")
+            self.button_home.connect("clicked", self.on_button_home_clicked)
+            self.headerbar.pack_start(self.button_home)
 
         # self.button_test = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_SELECT_COLOR))
         # https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
-        image = Gtk.Image.new_from_icon_name("utilities-terminal", Gtk.IconSize.LARGE_TOOLBAR)
-        self.button_test = Gtk.Button(None, image=image)
-        self.button_test.set_tooltip_text("Terminal")
-        self.button_test.connect("clicked", self.on_button_test_clicked)
-        self.headerbar.pack_start(self.button_test)
+        # image = Gtk.Image.new_from_icon_name("utilities-terminal", Gtk.IconSize.LARGE_TOOLBAR)
+        # self.button_test = Gtk.Button(None, image=image)
+        # self.button_test.set_tooltip_text("Terminal")
+        # self.button_test.connect("clicked", self.on_button_test_clicked)
+        # self.headerbar.pack_start(self.button_test)
 
         self.headerbar.pack_start(self.box_view)
 
@@ -238,11 +242,9 @@ class CrudPortail(GObject.GObject):
                     self.box_sidebar.pack_start(self.crud.get_view_prop("button"),
                                                      False, False, 3)
 
-        # mise en relief du bouton vue courante
+        # maj du ctx
         self.crud.set_table_id(table_first)
         self.crud.set_view_id(view_first)
-        # self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
-        self.crud.get_view_prop("button").set_sensitive(False)
 
     def do_refresh_footer(self, str_from, data=""):
         """ Affichage du texte dans le footer """
@@ -262,8 +264,27 @@ class CrudPortail(GObject.GObject):
         elif self.crud.get_application().has_key("icon_name"):
            self.crud.get_window().set_icon_name(self.crud.get_application_prop("icon_name"))
 
-        self.set_layout(CrudPortail.LAYOUT_VIEW)
         self.create_sidebar()
+        self.emit("select_view", self.crud.get_table_id(), self.crud.get_view_id())
+
+    def do_select_view(self, table_id, view_id):
+        """ Sélection d'une vue """
+        # print "do_select_view", table_id, view_id
+        # self.crud.get_view_prop("button").get_style_context().remove_class('button_selected')
+        self.crud.get_view_prop("button").set_sensitive(True)
+
+        # init ctx
+        self.crud.set_table_id(table_id)
+        self.crud.set_view_id(view_id)
+        # self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
+        self.crud.get_view_prop("button").set_sensitive(False)
+        # raz view_toolbar
+        for widget in self.box_toolbar.get_children():
+            Gtk.Widget.destroy(widget)
+
+        self.set_layout(CrudPortail.LAYOUT_VIEW)
+        self.crud.set_portail(self)
+
         self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
 
     def on_button_application_clicked(self, widget, application_file):
@@ -285,22 +306,7 @@ class CrudPortail(GObject.GObject):
 
     def on_button_view_clicked(self, widget, table_id, view_id):
         """ Activation d'une vue """
-        # self.crud.get_view_prop("button").get_style_context().remove_class('button_selected')
-        self.crud.get_view_prop("button").set_sensitive(True)
-
-        # init ctx
-        self.crud.set_table_id(table_id)
-        self.crud.set_view_id(view_id)
-        # self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
-        self.crud.get_view_prop("button").set_sensitive(False)
-        # raz view_toolbar
-        for widget in self.box_toolbar.get_children():
-            Gtk.Widget.destroy(widget)
-
-        self.set_layout(CrudPortail.LAYOUT_VIEW)
-        self.crud.set_portail(self)
-
-        self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
+        self.emit("select_view", table_id, view_id)
 
     def do_form(self, crud_view, crud):
         """ Demande d'activation d'un formulaire """

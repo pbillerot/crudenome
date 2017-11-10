@@ -16,7 +16,7 @@
    height="204"
    viewBox="0 0 204 204"
    sodipodi:docname="crudenome.svg"
-   inkscape:version="0.92.1 r15371">
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)">
   <metadata
      id="metadata8">
     <rdf:RDF>
@@ -25,7 +25,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -40,17 +40,21 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1855"
-     inkscape:window-height="1133"
+     inkscape:window-width="1853"
+     inkscape:window-height="1145"
      id="namedview4"
      showgrid="false"
      inkscape:zoom="4.4019608"
      inkscape:cx="51.567929"
      inkscape:cy="101.09131"
-     inkscape:window-x="65"
-     inkscape:window-y="30"
+     inkscape:window-x="67"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg2" />
+     inkscape:current-layer="svg2"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
   <image
      width="204"
      height="204"
@@ -67,7 +71,7 @@
      width="31.349667"
      height="52.02227"
      x="20.218264"
-     y="36.347435"
+     y="36.347427"
      inkscape:export-xdpi="90.349998"
      inkscape:export-ydpi="90.349998" />
   <rect
@@ -76,7 +80,7 @@
      width="31.349667"
      height="52.02227"
      x="45.20713"
-     y="21.240534"
+     y="21.24054"
      inkscape:export-xdpi="90.349998"
      inkscape:export-ydpi="90.349998" />
   <rect
@@ -85,7 +89,7 @@
      width="60.42762"
      height="60.427616"
      x="65.425392"
-     y="2.3853014"
+     y="2.3852997"
      inkscape:export-xdpi="90.349998"
      inkscape:export-ydpi="90.349998" />
   <rect
@@ -94,13 +98,13 @@
      width="70.423164"
      height="64.743874"
      x="120.85523"
-     y="1.4766167"
+     y="1.4766235"
      inkscape:export-xdpi="90.349998"
      inkscape:export-ydpi="90.349998" />
   <text
      xml:space="preserve"
      style="font-style:normal;font-weight:normal;font-size:47.04008484px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#aa4400;fill-opacity:1;stroke:none;stroke-width:1.17600203"
-     x="29.438053"
+     x="29.438057"
      y="98.503487"
      id="text18"
      transform="matrix(0.94674716,-0.58120436,0.33891766,0.848188,0,0)"
@@ -108,28 +112,28 @@
      inkscape:export-ydpi="90.349998"><tspan
        sodipodi:role="line"
        id="tspan16"
-       x="29.438053"
+       x="29.438057"
        y="98.503487"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:47.04024506px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#aa4400;stroke-width:1.17600203">r</tspan></text>
   <text
      xml:space="preserve"
      style="font-style:normal;font-weight:normal;font-size:44.27881241px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#aa4400;fill-opacity:1;stroke:none;stroke-width:1.10697031"
-     x="88.265259"
-     y="56.782509"
+     x="88.265251"
+     y="56.782513"
      id="text22"
-     transform="matrix(0.94536448,-0.06226032,0.0586642,1.0539295,0,0)"
+     transform="matrix(0.94536451,-0.06226032,0.0586642,1.0539295,0,0)"
      inkscape:export-xdpi="90.349998"
      inkscape:export-ydpi="90.349998"><tspan
        sodipodi:role="line"
        id="tspan20"
-       x="88.265259"
-       y="56.782509"
+       x="88.265251"
+       y="56.782513"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:44.27956772px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#aa4400;stroke-width:1.10697031">u</tspan></text>
   <text
      xml:space="preserve"
      style="font-style:normal;font-weight:normal;font-size:44.4668808px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#aa4400;fill-opacity:1;stroke:none;stroke-width:1.11167204"
      x="131.70891"
-     y="18.678438"
+     y="18.678431"
      id="text26"
      transform="matrix(0.96174746,0.24688609,-0.24292918,0.97741269,0,0)"
      inkscape:export-xdpi="90.349998"
@@ -137,12 +141,12 @@
        sodipodi:role="line"
        id="tspan24"
        x="131.70891"
-       y="18.678438"
+       y="18.678431"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:44.46652985px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:1.11167204">d</tspan></text>
   <text
      xml:space="preserve"
      style="font-style:normal;font-weight:normal;font-size:48.60780334px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#aa4400;fill-opacity:1;stroke:none;stroke-width:1.21519494"
-     x="-22.387575"
+     x="-22.387577"
      y="95.901482"
      id="text14"
      transform="matrix(0.86453867,-0.70007174,0.53685408,0.7219615,0,0)"
@@ -150,7 +154,7 @@
      inkscape:export-ydpi="90.349998"><tspan
        sodipodi:role="line"
        id="tspan12"
-       x="-22.387575"
+       x="-22.387577"
        y="95.901482"
-       style="fill:#aa4400;stroke-width:1.21519494;-inkscape-font-specification:'sans-serif, Bold';font-family:sans-serif;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-size:48.60800159px;text-anchor:start;text-align:start;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal">c</tspan></text>
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:48.60800171px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#aa4400;stroke-width:1.21519494">c</tspan></text>
 </svg>
