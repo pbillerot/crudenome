@@ -326,6 +326,8 @@ class CrudView(GObject.GObject):
                 sql_where = "(" + sql_where + ") AND ("+ self.crud.get_view_prop("sql_where") + ")"
         if sql_where != "":
             sql += " WHERE " + sql_where
+        # save du sql pour l'utiliser et refaire la lecture d'un enregistrement
+        sql_row = sql
         if self.crud.get_view_prop("order_by", None):
             sql += " ORDER BY " + self.crud.get_view_prop("order_by")
 

@@ -76,6 +76,7 @@ class Crudel(GObject.GObject):
         self.type_parent = type_parent
         self.items = {}
         self.params = None
+        self.value = None
 
         self.init_crudel()
 
@@ -104,34 +105,33 @@ class Crudel(GObject.GObject):
 
     def set_value(self, value):
         """ Valorisation dans le crud """
-        self.crud.set_element_prop(self.element, "value", value)
+        self.value = value
 
     def set_value_sql(self, value_sql):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
         if value_sql is None:
             return
-        self.crud.set_element_prop(self.element, "value",\
-            value_sql if isinstance(value_sql, int) or isinstance(value_sql, float)\
-                else value_sql.encode("utf-8"))
+        self.value = value_sql if isinstance(value_sql, int) or isinstance(value_sql, float) else value_sql.encode("utf-8")
 
     def set_value_widget(self):
         """ valorisation à partir de la saisie dans le widget """
-        self.crud.set_element_prop(self.element\
-                    , "value", self.get_widget().get_text())
+        self.value = self.get_widget().get_text()
 
     def set_value_default(self):
         """ valorisation avec la valeur par défaut si valeur '' """
-        if self.crud.get_field_prop(self.element, "value", "") == ""\
+
+        if self.get_value() == ""\
             and self.crud.get_field_prop(self.element, "default", "") != "":
-            self.crud.set_element_prop(self.element, "value", self.crud.get_field_prop(self.element, "default"))
+            self.value = self.crud.get_field_prop(self.element, "default")
+
 
     def get_value(self):
         """ valeur interne de l'élément """
-        return self.crud.get_element_prop(self.element, "value", "")
+        return self.value
 
     def get_value_sql(self):
         """ valeur à enregistrer dans la colonne de l'élément """
-        return self.crud.get_element_prop(self.element, "value", "")
+        return self.value
 
     def get_type_gdk(self):
         """ Type d'objet du GDK """
@@ -217,6 +217,10 @@ class Crudel(GObject.GObject):
     def get_sql_put(self):
         """ l'instruction sql pour écrire la colonne """
         return self.crud.get_element_prop(self.element, "sql_put", "")
+
+    def get_cell_sql_post(self):
+        """ l'instruction sql à exécuter suite à la mise à jour de la cellule """
+        return self.crud.get_element_prop(self.element, "cell_sql_post", False)
 
     def get_height(self, default):
         """ Hauteur du widget """
@@ -479,45 +483,66 @@ class CrudelCheck(Crudel):
         return renderer
 
     def _get_tvc(self, renderer, col_id):
+        renderer.connect("toggled", self.on_cell_toggle)
         tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, active=col_id)
         return tvc
 
     def set_value_widget(self):
-        self.crud.set_element_prop(self.element\
-                    ,"value", self.get_widget().get_active())
+        self.value = self.get_widget().get_active()
+
+
+    def on_cell_toggle(self, cell, path):
+        """ Clic sur la coche """
+        key_id = self.crud.get_key_id()
+        key_value = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        col_id = self.crud.get_column_prop(self.element, "col_id")
+
+        self.set_value(not cell.get_active())
+        value_sql = self.get_value_sql()
+
+        sql = "UPDATE " + self.crud.get_table_id() + " SET "\
+        + self.element + " = :value_sql WHERE " + key_id + " = :key_value"
+        self.crud.exec_sql(self.crud.get_table_prop("basename")\
+            , sql, {"key_value": key_value, "value_sql": value_sql})
+
+        # if self.get_cell_sql_post():
+        #     sql = " ".join(self.get_cell_sql_post())
+        #     params = {}
+        #     for element in self.crud.get_view_elements():
+        #         params[element] = self.crud.get_element_prop(element, "crudel").get_value()
+
+        #     self.crud.exec_sql(self.crud.get_table_prop("basename")\
+        #         , sql, params)
+
+        # cochage / décochage de la ligne
+        self.crud_view.liststore[row_id][col_id] = not cell.get_active()
 
     def get_value_sql(self):
-        if self.crud.get_element_prop(self.element, "value", False) == True:
-            return "1"
-        elif self.crud.get_element_prop(self.element, "value", False) == False:
-            return "0"
-        elif self.crud.get_element_prop(self.element, "value", "") == "1":
-            return "1"
-        elif self.crud.get_element_prop(self.element, "value", "") == "0":
-            return "0"
-        elif self.crud.get_element_prop(self.element, "value", "") == "":
-            return "0"
+        """ valeur à enregistrer dans la colonne de l'élément """
+        if self.get_value():
+            return 1
         else:
-            return "1"
+            return 0
 
     def set_value_sql(self, value_sql):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
         if value_sql == "True":
-            self.crud.set_element_prop(self.element, "value", True)
+            self.value = True
         elif value_sql == "False":
-            self.crud.set_element_prop(self.element, "value", False)
+            self.value = False
         elif value_sql == 1:
-            self.crud.set_element_prop(self.element, "value", True)
+            self.value = True
         elif value_sql == 0:
-            self.crud.set_element_prop(self.element, "value", False)
+            self.value = False
         elif value_sql == "1":
-            self.crud.set_element_prop(self.element, "value", True)
+            self.value = True
         elif value_sql == "0":
-            self.crud.set_element_prop(self.element, "value", False)
+            self.value = False
         elif value_sql == "":
-            self.crud.set_element_prop(self.element, "value", False)
+            self.value = False
         else:
-            self.crud.set_element_prop(self.element, "value", True)
+            self.value = True
 
 class CrudelCounter(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
@@ -612,8 +637,7 @@ class CrudelFloat(Crudel):
         value = self.widget.get_text()
         if value == '':
             value = 0
-        self.crud.set_element_prop(self.element\
-                , "value", float(value))
+        self.value = float(value)
 
 class CrudelForm(Crudel):
     """ Appel d'un formulaire dans une vue
@@ -655,8 +679,7 @@ class CrudelForm(Crudel):
         return tvc
 
     def set_value_widget(self):
-        self.crud.set_element_prop(self.element\
-            ,"value", self.get_widget().get_active())
+        self.value = self.get_widget().get_active()
 
     def get_cell(self):
         # la colonne aura pour valeur le nom de l'icone
@@ -685,86 +708,11 @@ class CrudelForm(Crudel):
         self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
-class CrudelGraph(Crudel):
+class CrudelGraph(CrudelCheck):
     """ Gestion des colonnes et champs de type boîte à cocher """
 
     def __init__(self, crud, element, type_parent):
-        Crudel.__init__(self, crud, element, type_parent)
-
-    def get_type_gdk(self):
-        return GObject.TYPE_BOOLEAN
-
-    def init_value(self):
-        self.set_value(False)
-
-    def get_widget_box(self):
-        # todo
-        hbox = Gtk.HBox()
-        # label = self._get_widget_label()
-        # label.set_label("")
-
-        self.widget = Gtk.CheckButton()
-        if self.is_read_only():
-            self.widget.set_sensitive(False)
-
-        self.widget.set_label(self.get_label_long())
-        self.widget.set_active(self.get_value())
-        # arrangement
-        # hbox.pack_start(label, False, False, 5)
-        hbox.pack_start(self.widget, False, False, 5)
-        return hbox
-
-    def _get_renderer(self, treeview):
-        renderer = Gtk.CellRendererToggle()
-        renderer.connect('toggled', self.on_toggled_in_view)
-        return renderer
-
-    def _get_tvc(self, renderer, col_id):
-        tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, active=col_id)
-        return tvc
-
-    def set_value_widget(self):
-        self.crud.set_element_prop(self.element\
-                    , "value", self.get_widget().get_active())
-
-    def get_value_sql(self):
-        if self.crud.get_element_prop(self.element, "value", False) == True:
-            return "1"
-        elif self.crud.get_element_prop(self.element, "value", False) == False:
-            return "0"
-        elif self.crud.get_element_prop(self.element, "value", "") == "1":
-            return "1"
-        elif self.crud.get_element_prop(self.element, "value", "") == "0":
-            return "0"
-        elif self.crud.get_element_prop(self.element, "value", "") == "":
-            return "0"
-        else:
-            return "1"
-
-    def set_value_sql(self, value_sql):
-        """ Valorisation de l'élément avec le contenu de la colonne de la table """
-        if value_sql == "True":
-            self.crud.set_element_prop(self.element, "value", True)
-        elif value_sql == "False":
-            self.crud.set_element_prop(self.element, "value", False)
-        elif value_sql == 1:
-            self.crud.set_element_prop(self.element, "value", True)
-        elif value_sql == 0:
-            self.crud.set_element_prop(self.element, "value", False)
-        elif value_sql == "1":
-            self.crud.set_element_prop(self.element, "value", True)
-        elif value_sql == "0":
-            self.crud.set_element_prop(self.element, "value", False)
-        elif value_sql == "":
-            self.crud.set_element_prop(self.element, "value", False)
-        else:
-            self.crud.set_element_prop(self.element, "value", True)
-
-    def on_toggled_in_view(self, cell, path):
-        """ Clic sur l'élément dans une vue """
-        key_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
-        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
-        print "Action sur", key_id, row_id
+        CrudelCheck.__init__(self, crud, element, type_parent)
 
 class CrudelInt(Crudel):
     """ Gestion des colonnes et champs de type entier """
@@ -808,8 +756,7 @@ class CrudelInt(Crudel):
         value = self.widget.get_text()
         if value == '':
             value = 0
-        self.crud.set_element_prop(self.element\
-                , "value", int(value))
+        self.value = int(value)
 
 class CrudelJointure(Crudel):
     """ Gestion des colonnes et champs de type jointure entre 2 tables """
@@ -895,9 +842,9 @@ class CrudelCombo(Crudel):
         key = self.crud.get_key_from_bracket(text)
         if text is not None:
             if key:
-                self.crud.set_element_prop(element, "value", key)
+                self.value = key
             else:
-                self.crud.set_element_prop(element, "value", text)
+                self.value = text
 
     def set_value_widget(self):
         pass
@@ -949,8 +896,7 @@ class CrudelRadio(Crudel):
     def on_button_toggled(self, button, name):
         """ Sélection d'un bouton """
         if button.get_active():
-            self.crud.set_element_prop(self.element\
-                ,"value", self.items.get(name))
+            self.value = self.items.get(name)
 
     def set_value_widget(self):
         pass
@@ -975,11 +921,6 @@ class CrudelText(Crudel):
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
-
-    # def set_value_widget(self):
-    #     """ valorisation à partir de la saisie dans le widget """
-    #     self.crud.set_element_prop(self.element\
-    #                 , "value", self.get_widget().get_text().encode("utf-8"))
 
 class CrudelUid(Crudel):
     """ Gestion des colonnes et champs de type Unique IDentifier """

@@ -319,7 +319,7 @@ class Crud:
         if dico is None:
             dico = {}
         for element in self.get_table_elements():
-            dico[element] = self.get_element_prop(element, "value")
+            dico[element] = self.get_element_prop(element, "crudel").get_value()
         return dico
 
     # view
@@ -342,7 +342,7 @@ class Crud:
         if dico is None:
             dico = {}
         for element in self.get_form_elements():
-            dico[element] = self.get_field_prop(element, "value")
+            dico[element] = self.get_field_prop(element, "crudel").get_value()
         return dico
     def get_form_elements(self):
         """ Obtenir la liste des champs du formulaire courant """
@@ -423,7 +423,7 @@ class Crud:
                 sql += element + " = " + self.get_field_prop(element, "sql_put")
             else:
                 sql += element + " = :" + element
-            params[element] = self.get_field_prop(element, "value")
+            params[element] = self.get_field_prop(element, "crudel").get_value()
 
         sql += " WHERE " + self.get_key_id() + " = :" + self.get_key_id()
         params[self.get_key_id()] = self.get_key_value()
@@ -448,7 +448,7 @@ class Crud:
             else:
                 sql += ", "
             sql += element
-            params[element] = self.get_field_prop(element, "value")
+            params[element] = self.get_field_prop(element, "crudel").get_value()
         sql += ") VALUES ("
         b_first = True
         for element in self.get_form_elements():
@@ -481,7 +481,7 @@ class Crud:
         """ Savoir si l'enregsitrement existe """
         sql = "SELECT count(*) as count FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :key_id"
         params = {}
-        params["key_id"] = self.get_field_prop(self.get_key_id(), "value")
+        params["key_id"] = self.get_field_prop(self.get_key_id(), "crudel").get_value()
         rows = self.sql_to_dict(self.get_table_prop("basename"), sql, params)
         if rows[0]["count"] > 0:
             return True

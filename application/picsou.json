@@ -436,6 +436,18 @@
                     "type": "float",
                     "display": "%3.2f €",
                     "sql_color": "case when cours_gain < 0 then '#FF0000' else '#006600' end"
+                },
+                "cours_inptf": {
+                    "label_long": "Ptf",
+                    "label_short": "Ptf",
+                    "type": "check",
+                    "cell_editable": true,
+                    "cell_sql_post": [
+                        "insert into mvt (mvt_ptf_id, mvt_name, mvt_date, mvt_quote)",
+                        "select cours.cours_ptf_id, cours.cours_name, cours.cours_date, cours.cours_close",
+                        "from cours left outer join mvt on mvt.mvt_ptf_id = cours.cours_ptf_id",
+                        "where mvt.mvt_ptf_id is null and cours.cours_inptf = '1' and cours.cours_ptf_id = :cours_ptf_id"
+                    ]
                 }
             },
             "views": {
@@ -445,7 +457,7 @@
                     "icon_name": "go-jump",
                     "limit": 400,
                     "elements": {
-                        "cours_id": {"hide": true},
+                        "cours_id": {},
                         "cours_ptf_id": {},
                         "cours_name": {},
                         "cours_date": {},
@@ -455,7 +467,8 @@
                         "cours_trend": {},
                         "cours_trade": {},
                         "cours_nbj": {},
-                        "cours_gain": {}
+                        "cours_gain": {},
+                        "cours_inptf": {}
                     },
                     "order_by": "cours.cours_ptf_id, cours.cours_date desc"
                 }
@@ -509,6 +522,12 @@
                     "label_short": "Qté",
                     "type": "int"
                 },
+                "mvt_charges": {
+                    "label_long": "Frais",
+                    "label_short": "Frais",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
                 "mvt_gain": {
                     "label_long": "Gain",
                     "label_short": "Gain",
@@ -543,6 +562,7 @@
                         "mvt_trade": {},
                         "mvt_cost": {},
                         "mvt_quantity": {},
+                        "mvt_charges": {},
                         "mvt_gain": {},
                         "mvt_gain_percent": {},
                         "mvt_note": {}
