@@ -443,10 +443,12 @@
                     "type": "check",
                     "cell_editable": true,
                     "cell_sql_post": [
+                        "delete from mvt where mvt_ptf_id = '{cours_ptf_id}' and mvt_date = '{cours_date}';",
                         "insert into mvt (mvt_ptf_id, mvt_name, mvt_date, mvt_quote)",
                         "select cours.cours_ptf_id, cours.cours_name, cours.cours_date, cours.cours_close",
-                        "from cours left outer join mvt on mvt.mvt_ptf_id = cours.cours_ptf_id",
-                        "where mvt.mvt_ptf_id is null and cours.cours_inptf = '1' and cours.cours_ptf_id = :cours_ptf_id"
+                        "from cours left outer join mvt on mvt.mvt_ptf_id = cours.cours_ptf_id and mvt.mvt_date = cours.cours_date",
+                        "where mvt.mvt_ptf_id is null and cours.cours_inptf = '1'",
+                        "and cours.cours_ptf_id = '{cours_ptf_id}' and cours.cours_date = '{cours_date}';"
                     ]
                 }
             },

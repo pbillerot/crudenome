@@ -17,6 +17,9 @@ from collections import OrderedDict
 # import urllib2
 # import time
 # from datetime import datetime
+
+from crudel import Crudel
+
 import re
 import sys
 import itertools
@@ -510,3 +513,67 @@ class Crud:
         module = importlib.import_module(module_path)
         # Finally, we retrieve the Class
         return getattr(module, class_str)
+
+    def get_sql_row(self, params):
+        """ Charger les colonnes de l'enregistreement courant """
+        sql = "SELECT "
+        b_first = True
+        for element in self.get_view_elements():
+            crudel = Crudel.instantiate(self, element, Crudel.TYPE_PARENT_VIEW)
+            crudel.init_value()
+            self.set_column_prop(element, "crudel", crudel)
+            if crudel.is_virtual():
+                continue
+            if crudel.is_type_jointure():
+                continue
+            if b_first:
+                b_first = False
+            else:
+                sql += ", "
+            # colonnes affichées
+            if crudel.get_sql_get() == "":
+                sql += self.get_table_id() + "." + element
+            else:
+                sql += crudel.get_sql_get() + " as " + element
+            # colonnes techniques
+            if crudel.get_sql_color() != "":
+                sql += ", "
+                sql += crudel.get_sql_color() + " as " + element + "_color"
+        
+        # ajout des colonnes de jointure
+        for element in self.get_view_elements():
+            crudel = self.get_column_prop(element, "crudel")
+            if crudel.is_type_jointure():
+                if crudel.get_param("table", None):
+                    sql += ", " + crudel.get_param("table") + "."\
+                    + crudel.get_param("display", crudel.get_param("key"))\
+                    + " as " + element
+                else:
+                    sql += ", " + crudel.get_param("column") + " as " + element
+        
+        sql += " FROM " + self.get_table_id()
+        
+        # ajout des tables de jointure
+        join = ""
+        for element in self.get_view_elements():
+            crudel = self.get_column_prop(element, "crudel")
+            if crudel.is_type_jointure():
+                if crudel.get_param("table", None):
+                    join += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON "\
+                    + crudel.get_param("table") + "." + crudel.get_param("key")\
+                    + " = " + self.get_table_id() + "." + element
+                else:
+                    if crudel.get_param("join"):
+                        join += " " + crudel.get_param("join")
+        if join:
+            sql += join
+
+        sql_where = self.get_key_id() + " = :" + self.get_key_id()
+        if sql_where != "":
+            sql += " WHERE " + sql_where
+
+        rows = self.sql_to_dict(self.get_table_prop("basename"), sql, params)
+        if len(rows) > 0:
+            return rows[0]
+        else:
+            return None

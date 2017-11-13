@@ -8,8 +8,6 @@ from collections import OrderedDict
 import uuid
 from datetime import datetime
 
-from crud import Crud
-
 import gi
 from gi.repository import Gtk, GObject
 gi.require_version('Gtk', '3.0')
@@ -491,14 +489,14 @@ class CrudelCheck(Crudel):
         self.value = self.get_widget().get_active()
 
 
-    def on_cell_toggle(self, cell, path):
+    def on_cell_toggle(self, renderer, path):
         """ Clic sur la coche """
         key_id = self.crud.get_key_id()
         key_value = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
         row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
         col_id = self.crud.get_column_prop(self.element, "col_id")
 
-        self.set_value(not cell.get_active())
+        self.set_value(not renderer.get_active())
         value_sql = self.get_value_sql()
 
         sql = "UPDATE " + self.crud.get_table_id() + " SET "\
@@ -506,17 +504,19 @@ class CrudelCheck(Crudel):
         self.crud.exec_sql(self.crud.get_table_prop("basename")\
             , sql, {"key_value": key_value, "value_sql": value_sql})
 
-        # if self.get_cell_sql_post():
-        #     sql = " ".join(self.get_cell_sql_post())
-        #     params = {}
-        #     for element in self.crud.get_view_elements():
-        #         params[element] = self.crud.get_element_prop(element, "crudel").get_value()
-
-        #     self.crud.exec_sql(self.crud.get_table_prop("basename")\
-        #         , sql, params)
+        if self.get_cell_sql_post():
+            sql = " ".join(self.get_cell_sql_post())
+            params = {
+                key_id: key_value
+            }
+            row = self.crud.get_sql_row(params)
+            sql_post = self.crud.replace_from_dict(sql, row)
+            sqls = sql_post.split(";")
+            for sql in sqls:
+                self.crud.exec_sql(self.crud.get_table_prop("basename"), sql, params)
 
         # cochage / décochage de la ligne
-        self.crud_view.liststore[row_id][col_id] = not cell.get_active()
+        self.crud_view.liststore[row_id][col_id] = not renderer.get_active()
 
     def get_value_sql(self):
         """ valeur à enregistrer dans la colonne de l'élément """
@@ -527,7 +527,9 @@ class CrudelCheck(Crudel):
 
     def set_value_sql(self, value_sql):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
-        if value_sql == "True":
+        if value_sql is None:
+            self.value = False
+        elif value_sql == "True":
             self.value = True
         elif value_sql == "False":
             self.value = False
