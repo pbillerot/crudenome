@@ -119,7 +119,7 @@
                     "label_long": "Note",
                     "label_short": "Note",
                     "type": "text",
-                    "cell_editable": true
+                    "col_editable": true
                 },
                 "_fgraph": {
                     "label_long": "Graph",
@@ -193,7 +193,7 @@
                         "history": 400,
                         "cash": 10000,
                         "amount": 1200,
-                        "cost": 0.01,
+                        "cost": 0.005,
                         "cac40_only": false,
                         "label_myptf": "Mes actions le {}",
                         "label_resistance": "Mes actions en r&eacute;sistance (vendre)",
@@ -441,8 +441,12 @@
                     "label_long": "Ptf",
                     "label_short": "Ptf",
                     "type": "check",
-                    "cell_editable": true,
-                    "cell_sql_post": [
+                    "col_editable": true,
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN mvt ON mvt.mvt_ptf_id = cours.cours_ptf_id AND mvt.mvt_date = cours.cours_date",
+                        "column": "case when mvt.mvt_ptf_id is null then '' else '1' end"
+                    },
+                    "col_sql_update": [
                         "delete from mvt where mvt_ptf_id = '{cours_ptf_id}' and mvt_date = '{cours_date}';",
                         "insert into mvt (mvt_ptf_id, mvt_name, mvt_date, mvt_quote)",
                         "select cours.cours_ptf_id, cours.cours_name, cours.cours_date, cours.cours_close",

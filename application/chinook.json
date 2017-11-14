@@ -12,7 +12,7 @@
                     "label_long": "ID",
                     "label_short": "ID",
                     "type": "counter",
-                    "hide": true
+                    "hide": false
                 },
                 "Name": {
                     "label_long": "Name",
@@ -91,8 +91,12 @@
                 "ArtistId": {
                     "label_long": "Artist",
                     "label_short": "Artist",
-                    "type": "jointure",
-                    "params": {
+                    "type": "text",
+                    "paramss": {
+                        "join": "LEFT OUTER JOIN artists on artists.ArtistId = albums.ArtistId",
+                        "column": "Name"
+                    },
+                    "jointure": {
                         "join": "LEFT OUTER JOIN artists on artists.ArtistId = albums.ArtistId",
                         "column": "Name"
                     },
@@ -197,7 +201,7 @@
                     "deletable": true,
                     "elements": {
                         "MediaTypeId": {},
-                        "Name": {"cell_editable": true}
+                        "Name": {"col_editable": true}
                     }
                 }
             },

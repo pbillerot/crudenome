@@ -67,11 +67,12 @@ class CrudView(GObject.GObject):
             self.treeview.set_cursor(Gtk.TreePath(row_id), None)
             self.treeview.grab_focus()
 
+        self.app_window.show_all()
+
         self.crud.remove_all_selection()
         self.label_select.hide()
         self.button_edit.hide()
         self.button_delete.hide()
-
 
     def get_widget(self):
         """ retourne le container de la vue toolbar + list """
@@ -118,7 +119,7 @@ class CrudView(GObject.GObject):
             # Création du crudel
             crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_VIEW)
             # Sauvegarde du crudel pour utilisation dans liststore et listview
-            self.crud.set_column_prop(element, "crudel", crudel)
+            self.crud.set_element_prop(element, "crudel", crudel)
             if crudel.get_type() == "batch":
                 # print crudel.get_label_short()
                 if crudel.get_param("icon_name", False):
@@ -158,7 +159,7 @@ class CrudView(GObject.GObject):
         self.crud.set_view_prop("col_row_id", col_id)
         col_id += 1
         for element in self.crud.get_view_elements():
-            crudel = self.crud.get_column_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             # colonnes crudel
             # mémorisation du n° de la colonne
             self.crud.set_column_prop(element, "col_id", col_id)
@@ -201,7 +202,7 @@ class CrudView(GObject.GObject):
         # 1ère colonne row_id
         col_store_types.append(GObject.TYPE_INT)
         for element in self.crud.get_view_elements():
-            crudel = self.crud.get_column_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if not crudel.is_hide():
                 # colonnes crudel
                 if crudel.is_display():
@@ -224,7 +225,6 @@ class CrudView(GObject.GObject):
 
         self.liststore = Gtk.ListStore(*col_store_types)
         # print "col_store_types", col_store_types
-
         self.emit("refresh_data_view", "", "")
 
     def update_liststore(self):
@@ -234,10 +234,10 @@ class CrudView(GObject.GObject):
         sql = "SELECT "
         b_first = True
         for element in self.crud.get_view_elements():
-            crudel = self.crud.get_column_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.is_virtual():
                 continue
-            if crudel.is_type_jointure():
+            if crudel.is_type_jointure() or crudel.with_jointure():
                 continue
             if b_first:
                 b_first = False
@@ -255,7 +255,7 @@ class CrudView(GObject.GObject):
         
         # ajout des colonnes de jointure
         for element in self.crud.get_view_elements():
-            crudel = self.crud.get_column_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.is_type_jointure():
                 if crudel.get_param("table", None):
                     sql += ", " + crudel.get_param("table") + "."\
@@ -263,13 +263,15 @@ class CrudView(GObject.GObject):
                     + " as " + element
                 else:
                     sql += ", " + crudel.get_param("column") + " as " + element
-        
+            if crudel.with_jointure():
+                sql += ", " + crudel.get_jointure("column") + " as " + element
+
         sql += " FROM " + self.crud.get_table_id()
-        
+
         # ajout des tables de jointure
         join = ""
         for element in self.crud.get_view_elements():
-            crudel = self.crud.get_column_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.is_type_jointure():
                 if crudel.get_param("table", None):
                     join += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON "\
@@ -278,6 +280,9 @@ class CrudView(GObject.GObject):
                 else:
                     if crudel.get_param("join"):
                         join += " " + crudel.get_param("join")
+            if crudel.with_jointure():
+                join += " " + crudel.get_jointure("join")
+
         if join:
             sql += join
 
@@ -285,7 +290,7 @@ class CrudView(GObject.GObject):
         # prise en compte du search_sql
         if self.search_sql != "":
             for element in self.crud.get_view_elements():
-                crudel = self.crud.get_column_prop(element, "crudel")
+                crudel = self.crud.get_element_prop(element, "crudel")
                 if crudel.is_searchable():
                     if crudel.is_type_jointure():
                         if crudel.get_param("table", None):
@@ -302,6 +307,12 @@ class CrudView(GObject.GObject):
                                 else:
                                     sql_where = "" + sql_where + " or "\
                                     + crudel.get_param("column") + " like '%" + self.search_sql + "%'"
+                    elif crudel.with_jointure():
+                        if sql_where == "":
+                            sql_where = crudel.get_jointure("column") + " like '%" + self.search_sql + "%'"
+                        else:
+                            sql_where = "" + sql_where + " or "\
+                            + crudel.get_jointure("column") + " like '%" + self.search_sql + "%'"
                     else:
                         if sql_where == "":
                             sql_where = self.crud.get_table_id() + "."\
@@ -336,7 +347,7 @@ class CrudView(GObject.GObject):
         self.liststore.clear()
         # remplissage des colonnes item_sql
         for element in self.crud.get_view_elements():
-            crudel = self.crud.get_column_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             crudel.init_crudel_sql()
         row_id = 0
         for row in rows:
@@ -345,7 +356,7 @@ class CrudView(GObject.GObject):
             # 1ère colonne col_row_id
             store.append(row_id)
             for element in self.crud.get_view_elements():
-                crudel = self.crud.get_column_prop(element, "crudel")
+                crudel = self.crud.get_element_prop(element, "crudel")
                 # Valorisation du crudel avec la colonne sql
                 crudel.init_value()
                 if row.has_key(element):
@@ -380,7 +391,7 @@ class CrudView(GObject.GObject):
         else:
             bret = False
             for element in self.crud.get_view_elements():
-                crudel = self.crud.get_column_prop(element, "crudel")
+                crudel = self.crud.get_element_prop(element, "crudel")
                 if crudel.is_searchable():
                     if re.search(self.current_filter,\
                                  model[iter][self.crud.get_column_prop(element, "col_id")],\
@@ -411,8 +422,6 @@ class CrudView(GObject.GObject):
         self.button_edit.hide()
         self.button_delete.hide()
 
-        self.app_window.show_all()
-
     def do_refresh_data_view(self, str_from, str_arg=""):
         """ Les données ont été modifiées -> refresh """
         # print "do_refresh_data_view %s.%s" % (str_from, str_arg)
@@ -427,7 +436,6 @@ class CrudView(GObject.GObject):
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         self.crud.set_crudel(None)
         form = CrudForm(self.crud, self.args)
-        self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_add_clicked")
 
     def on_button_edit_clicked(self, widget):
@@ -439,7 +447,6 @@ class CrudView(GObject.GObject):
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         self.crud.set_crudel(None)
         form = CrudForm(self.crud, self.args)
-        self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
     def on_button_delete_clicked(self, widget):
@@ -554,17 +561,16 @@ class CrudView(GObject.GObject):
     def on_row_actived(self, widget, row, col):
         """ Double clic sur une ligne """
         # print "Activation", widget.get_model()[row][self.crud.get_view_prop("key_id")]
-        key_id = widget.get_model()[row][self.crud.get_view_prop("key_id")]
+        key_value = widget.get_model()[row][self.crud.get_view_prop("key_id")]
         row_id = widget.get_model()[row][0]
         self.crud.set_row_id(row_id)
         self.crud.remove_all_selection()
-        self.crud.add_selection(key_id)
-        self.crud.set_key_value(key_id)
+        self.crud.add_selection(key_value)
+        self.crud.set_key_value(key_value)
         if self.crud.get_view_prop("form_edit", None) is not None:
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
             self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
             self.crud.set_crudel(None)
             form = CrudForm(self.crud, self.args)
-            self.app_window.show_all()
             form.emit("init_widget", self.__class__, "on_row_actived")

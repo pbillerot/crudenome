@@ -216,9 +216,9 @@ class Crudel(GObject.GObject):
         """ l'instruction sql pour écrire la colonne """
         return self.crud.get_element_prop(self.element, "sql_put", "")
 
-    def get_cell_sql_post(self):
+    def get_col_sql_update(self):
         """ l'instruction sql à exécuter suite à la mise à jour de la cellule """
-        return self.crud.get_element_prop(self.element, "cell_sql_post", False)
+        return self.crud.get_element_prop(self.element, "col_sql_update", False)
 
     def get_height(self, default):
         """ Hauteur du widget """
@@ -227,12 +227,29 @@ class Crudel(GObject.GObject):
         else:
             return self.crud.get_field_prop(self.element, "height", default)
 
+    # jointure
+    def with_jointure(self):
+        """ élément avec jointure """
+        return self.crud.get_element_prop(self.element, "jointure", False)
+    def get_jointure(self, param, default=None):
+        """ Retourne la valeur du paramètre d'une jointure """
+        return self.crud.get_element_jointure(self.element, param, default)
+    def get_jointure_replace(self, param, default=None):
+        """ Retourne la valeur du paramètre d'une jointure
+            en remplaçant les rubriques {}
+        """
+        return self.crud.replace_from_dict(\
+            self.crud.get_element_jointure(self.element, param, default), self.crud.get_table_values())
+
+    # params
     def get_param(self, param, default=None):
         """ Retourne la valeur du paramètre """
         return self.crud.get_element_param(self.element, param, default)
 
     def get_param_replace(self, param, default=None):
-        """ Retourne la valeur du paramètre """
+        """ Retourne la valeur du paramètre 
+            en remplaçant les rubriques {}
+        """
         return self.crud.replace_from_dict(\
             self.crud.get_element_param(self.element, param, default), self.crud.get_table_values())
 
@@ -361,7 +378,7 @@ class Crudel(GObject.GObject):
     def _get_renderer(self, treeview):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
-        if self.crud.get_column_prop(self.element, "cell_editable", False):
+        if self.crud.get_column_prop(self.element, "col_editable", False):
             renderer.set_property('editable', True)
             renderer.connect('edited', self.on_cell_edited)
         return renderer
@@ -488,7 +505,6 @@ class CrudelCheck(Crudel):
     def set_value_widget(self):
         self.value = self.get_widget().get_active()
 
-
     def on_cell_toggle(self, renderer, path):
         """ Clic sur la coche """
         key_id = self.crud.get_key_id()
@@ -504,16 +520,17 @@ class CrudelCheck(Crudel):
         self.crud.exec_sql(self.crud.get_table_prop("basename")\
             , sql, {"key_value": key_value, "value_sql": value_sql})
 
-        if self.get_cell_sql_post():
-            sql = " ".join(self.get_cell_sql_post())
+        if self.get_col_sql_update():
+            sql = " ".join(self.get_col_sql_update())
             params = {
                 key_id: key_value
             }
-            row = self.crud.get_sql_row(params)
-            sql_post = self.crud.replace_from_dict(sql, row)
-            sqls = sql_post.split(";")
-            for sql in sqls:
-                self.crud.exec_sql(self.crud.get_table_prop("basename"), sql, params)
+            rows = self.crud.get_sql_row(self.crud.get_view_elements())
+            for row in rows:
+                sql_post = self.crud.replace_from_dict(sql, row)
+                sqls = sql_post.split(";")
+                for sql in sqls:
+                    self.crud.exec_sql(self.crud.get_table_prop("basename"), sql, params)
 
         # cochage / décochage de la ligne
         self.crud_view.liststore[row_id][col_id] = not renderer.get_active()
@@ -630,7 +647,7 @@ class CrudelFloat(Crudel):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
-        if self.crud.get_column_prop(self.element, "cell_editable", False):
+        if self.crud.get_column_prop(self.element, "col_editable", False):
             renderer.set_property('editable', True)
             renderer.connect('edited', self.on_cell_edited)
         return renderer
@@ -744,7 +761,7 @@ class CrudelInt(Crudel):
         """ Renderer de la cellule """
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
-        if self.crud.get_column_prop(self.element, "cell_editable", False):
+        if self.crud.get_column_prop(self.element, "col_editable", False):
             renderer.set_property('editable', True)
             renderer.connect('edited', self.on_cell_edited)
         return renderer
@@ -975,6 +992,7 @@ class CrudelView(Crudel):
 
     def get_widget_box(self):
         from crudview import CrudView
+        from crud import Crud
 
         # clonage du crud et en particulier du contexte
         crud = Crud(self.crud, duplicate=True)

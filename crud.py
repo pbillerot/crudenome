@@ -345,7 +345,7 @@ class Crud:
         if dico is None:
             dico = {}
         for element in self.get_form_elements():
-            dico[element] = self.get_field_prop(element, "crudel").get_value()
+            dico[element] = self.get_element_prop(element, "crudel").get_value()
         return dico
     def get_form_elements(self):
         """ Obtenir la liste des champs du formulaire courant """
@@ -361,6 +361,17 @@ class Crud:
     def set_element_prop(self, element, prop, value):
         """ Ajouter/mettre à jour une propriété d'une rubrique (colonne) de la table courante """
         self.application["tables"][self.ctx["table_id"]]["elements"][element][prop] = value
+
+    # jointure
+    def with_jointure(self):
+        """ élément avec jointure """
+        return self.application["tables"][self.ctx["table_id"]]["elements"][element].get("jointure", False)
+    def get_element_jointure(self, element, params, default=None):
+        """ Obtenir la valeur d'un paramètre d'une jointure """
+        if self.application["tables"][self.ctx["table_id"]]["elements"][element].get("jointure", None):
+            return self.application["tables"][self.ctx["table_id"]]["elements"][element].get("jointure").get(params, default)
+        else:
+            return default
 
     # paramètres
     def get_element_param(self, element, params, default=None):
@@ -426,7 +437,7 @@ class Crud:
                 sql += element + " = " + self.get_field_prop(element, "sql_put")
             else:
                 sql += element + " = :" + element
-            params[element] = self.get_field_prop(element, "crudel").get_value()
+            params[element] = self.get_element_prop(element, "crudel").get_value()
 
         sql += " WHERE " + self.get_key_id() + " = :" + self.get_key_id()
         params[self.get_key_id()] = self.get_key_value()
@@ -451,7 +462,7 @@ class Crud:
             else:
                 sql += ", "
             sql += element
-            params[element] = self.get_field_prop(element, "crudel").get_value()
+            params[element] = self.get_element_prop(element, "crudel").get_value()
         sql += ") VALUES ("
         b_first = True
         for element in self.get_form_elements():
@@ -484,7 +495,7 @@ class Crud:
         """ Savoir si l'enregsitrement existe """
         sql = "SELECT count(*) as count FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :key_id"
         params = {}
-        params["key_id"] = self.get_field_prop(self.get_key_id(), "crudel").get_value()
+        params["key_id"] = self.get_element_prop(self.get_key_id(), "crudel").get_value()
         rows = self.sql_to_dict(self.get_table_prop("basename"), sql, params)
         if rows[0]["count"] > 0:
             return True
@@ -514,14 +525,14 @@ class Crud:
         # Finally, we retrieve the Class
         return getattr(module, class_str)
 
-    def get_sql_row(self, params):
+    def get_sql_row(self, elements):
         """ Charger les colonnes de l'enregistreement courant """
         sql = "SELECT "
         b_first = True
-        for element in self.get_view_elements():
+        for element in elements:
             crudel = Crudel.instantiate(self, element, Crudel.TYPE_PARENT_VIEW)
             crudel.init_value()
-            self.set_column_prop(element, "crudel", crudel)
+            self.set_element_prop(element, "crudel", crudel)
             if crudel.is_virtual():
                 continue
             if crudel.is_type_jointure():
@@ -539,10 +550,10 @@ class Crud:
             if crudel.get_sql_color() != "":
                 sql += ", "
                 sql += crudel.get_sql_color() + " as " + element + "_color"
-        
+
         # ajout des colonnes de jointure
         for element in self.get_view_elements():
-            crudel = self.get_column_prop(element, "crudel")
+            crudel = self.get_element_prop(element, "crudel")
             if crudel.is_type_jointure():
                 if crudel.get_param("table", None):
                     sql += ", " + crudel.get_param("table") + "."\
@@ -550,13 +561,13 @@ class Crud:
                     + " as " + element
                 else:
                     sql += ", " + crudel.get_param("column") + " as " + element
-        
+
         sql += " FROM " + self.get_table_id()
-        
+
         # ajout des tables de jointure
         join = ""
         for element in self.get_view_elements():
-            crudel = self.get_column_prop(element, "crudel")
+            crudel = self.get_element_prop(element, "crudel")
             if crudel.is_type_jointure():
                 if crudel.get_param("table", None):
                     join += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON "\
@@ -568,12 +579,9 @@ class Crud:
         if join:
             sql += join
 
-        sql_where = self.get_key_id() + " = :" + self.get_key_id()
+        sql_where = self.get_key_id() + " = :key_value"
         if sql_where != "":
             sql += " WHERE " + sql_where
 
-        rows = self.sql_to_dict(self.get_table_prop("basename"), sql, params)
-        if len(rows) > 0:
-            return rows[0]
-        else:
-            return None
+        rows = self.sql_to_dict(self.get_table_prop("basename"), sql, self.ctx)
+        return rows

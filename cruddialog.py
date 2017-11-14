@@ -43,10 +43,10 @@ class CrudDialog(Gtk.Dialog):
 
         # Initialisation des widgets
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             crudel.init_widget()
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if not crudel.is_hide() and not crudel.is_read_only():
                 widget = self.crud.get_field_prop(element, "widget")
                 widget.grab_focus()
@@ -58,7 +58,7 @@ class CrudDialog(Gtk.Dialog):
         for element in self.crud.get_form_elements():
             crudel = Crudel(self.app_window, self, self.crud, element, Crudel.TYPE_PARENT_FORM)
             crudel.init_crudel()
-            self.crud.set_field_prop(element, "crudel", crudel)
+            self.crud.get_element_prop(element, "crudel", crudel)
 
         # remplissage des champs avec les colonnes
         if self.crud.get_action() in ("read", "update", "delete"):
@@ -67,7 +67,7 @@ class CrudDialog(Gtk.Dialog):
         # Création des widget dans la box de la dialog
         box = self.get_content_area()
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.is_hide():
                 continue
             # crudel.dump()

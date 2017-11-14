@@ -18,10 +18,10 @@ class CrudForm(GObject.GObject):
         """ Traitement du signal """
         # print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             crudel.emit("init_widget", self.__class__, "")
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if not crudel.is_hide() and not crudel.is_read_only():
                 widget = crudel.get_widget()
                 widget.grab_focus()
@@ -80,29 +80,34 @@ class CrudForm(GObject.GObject):
         for element in self.crud.get_form_elements():
             crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_FORM)
             crudel.init_value()
-            self.crud.set_field_prop(element, "crudel", crudel)
+            self.crud.set_element_prop(element, "crudel", crudel)
 
-        # remplissage des champs avec les colonnes
+        # remplissage des champs avec les colonnes de l'enregistrement
         if self.crud.get_action() in ("read", "update", "delete"):
-            self.sql_select_to_form()
+            rows = self.crud.get_sql_row(self.crud.get_form_elements())
+            for row in rows:
+                for element in self.crud.get_form_elements():
+                    crudel = self.crud.get_element_prop(element, "crudel")
+                    if row.get(element, False):
+                        crudel.set_value_sql(row[element])
 
         # remplissage des champs avec les paramètres du formulaire
         for arg in self.args:
             if self.crud.get_form_elements().get(arg, None):
-                crudel = self.crud.get_field_prop(arg, "crudel")
+                crudel = self.crud.get_element_prop(arg, "crudel")
                 if crudel.crud.get_action() == "create":
                     crudel.set_value(self.args.get(arg))
                 crudel.set_read_only(True)
 
         # valeur par défaut
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             crudel.set_value_default()
 
         # Calcul sql des crudels
         # Création des widget dans la box de la dialog
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             crudel.init_crudel_sql()
             # crudel.dump()
             if crudel.is_hide():
@@ -123,7 +128,7 @@ class CrudForm(GObject.GObject):
         # + mémorisation du type de la clé
         key_type = ""
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if element == self.crud.get_key_id():
                 key_type = crudel.get_type()
             if crudel.is_hide():
@@ -133,7 +138,7 @@ class CrudForm(GObject.GObject):
 
         # CONTROLE DE LA SAISIE
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             crudel.check()
 
         if self.crud.get_errors():
@@ -171,7 +176,7 @@ class CrudForm(GObject.GObject):
         b_first = True
         # ajout des colonnes de la table principale
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.is_virtual():
                 continue
             if b_first:
@@ -186,7 +191,7 @@ class CrudForm(GObject.GObject):
                 self.crud.set_field_prop(element, "read_only", "True")
         # ajout des colonnes de jointure
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.get_type() == "jointure":
                 if crudel.get_param("table", None):
                     sql += ", " + crudel.get_param("table") + "."\
@@ -198,7 +203,7 @@ class CrudForm(GObject.GObject):
         sql += " FROM " + self.crud.get_table_id()
         # ajout des tables de jointure
         for element in self.crud.get_form_elements():
-            crudel = self.crud.get_field_prop(element, "crudel")
+            crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.get_type() == "jointure":
                 if crudel.get_param("table"):
                     sql += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON "\
@@ -215,6 +220,6 @@ class CrudForm(GObject.GObject):
         # remplissage des champs
         for row in rows:
             for element in self.crud.get_form_elements():
-                crudel = self.crud.get_field_prop(element, "crudel")
+                crudel = self.crud.get_element_prop(element, "crudel")
                 if row.get(element, False):
                     crudel.set_value_sql(row[element])
