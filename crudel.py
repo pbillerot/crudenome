@@ -366,6 +366,9 @@ class Crudel(GObject.GObject):
         if self.get_col_width():
             tvc.set_fixed_width(self.get_col_width())
 
+        if self.is_hide():
+            tvc.set_visible(False)
+
         treeview.append_column(tvc)
 
         # on ajoute les colonnes techniques
@@ -525,7 +528,7 @@ class CrudelCheck(Crudel):
             params = {
                 key_id: key_value
             }
-            rows = self.crud.get_sql_row(self.crud.get_view_elements())
+            rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_VIEW)
             for row in rows:
                 sql_post = self.crud.replace_from_dict(sql, row)
                 sqls = sql_post.split(";")

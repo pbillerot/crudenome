@@ -12,7 +12,7 @@
                     "label_long": "ID",
                     "label_short": "ID",
                     "type": "counter",
-                    "hide": false
+                    "hide": true
                 },
                 "Name": {
                     "label_long": "Name",

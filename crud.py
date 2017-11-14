@@ -525,12 +525,13 @@ class Crud:
         # Finally, we retrieve the Class
         return getattr(module, class_str)
 
-    def get_sql_row(self, elements):
+    def get_sql_row(self, type_parent):
         """ Charger les colonnes de l'enregistreement courant """
         sql = "SELECT "
         b_first = True
+        elements = self.get_view_elements() if type_parent == Crudel.TYPE_PARENT_VIEW else self.get_form_elements()
         for element in elements:
-            crudel = Crudel.instantiate(self, element, Crudel.TYPE_PARENT_VIEW)
+            crudel = Crudel.instantiate(self, element, type_parent)
             crudel.init_value()
             self.set_element_prop(element, "crudel", crudel)
             if crudel.is_virtual():

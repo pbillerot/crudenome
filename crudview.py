@@ -167,9 +167,8 @@ class CrudView(GObject.GObject):
             if element == self.crud.get_table_prop("key"):
                 self.crud.set_view_prop("key_id", col_id)
 
-            if not crudel.is_hide():
-                col_id = crudel.add_tree_view_column(self.treeview, col_id)
-                col_id += 1
+            col_id = crudel.add_tree_view_column(self.treeview, col_id)
+            col_id += 1
 
         # ajout de la colonne action
         if self.crud.get_view_prop("deletable", False)\
@@ -203,18 +202,17 @@ class CrudView(GObject.GObject):
         col_store_types.append(GObject.TYPE_INT)
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
-            if not crudel.is_hide():
-                # colonnes crudel
-                if crudel.is_display():
-                    col_store_types.append(GObject.TYPE_STRING)
-                else:
-                    col_store_types.append(crudel.get_type_gdk())
+            # colonnes crudel
+            if crudel.is_display():
+                col_store_types.append(GObject.TYPE_STRING)
+            else:
+                col_store_types.append(crudel.get_type_gdk())
 
-                # colonnes techniques color et sortable
-                if crudel.get_sql_color() != "":
-                    col_store_types.append(GObject.TYPE_STRING)
-                if crudel.is_sortable():
-                    col_store_types.append(crudel.get_type_gdk())
+            # colonnes techniques color et sortable
+            if crudel.get_sql_color() != "":
+                col_store_types.append(GObject.TYPE_STRING)
+            if crudel.is_sortable():
+                col_store_types.append(crudel.get_type_gdk())
 
         # col_action_id
         if self.crud.get_view_prop("deletable", False)\
@@ -361,16 +359,15 @@ class CrudView(GObject.GObject):
                 crudel.init_value()
                 if row.has_key(element):
                     crudel.set_value_sql(row[element])
-                if not crudel.is_hide():
-                    # colonnes crudel
-                    display = crudel.get_cell()
-                    # print element, crudel.get_value(), display
-                    store.append(display)
-                    # colonnes techniques
-                    if crudel.get_sql_color() != "":
-                        store.append(row[element + "_color"])
-                    if crudel.is_sortable():
-                        store.append(crudel.get_value())
+                # colonnes crudel
+                display = crudel.get_cell()
+                # print element, crudel.get_value(), display
+                store.append(display)
+                # colonnes techniques
+                if crudel.get_sql_color() != "":
+                    store.append(row[element + "_color"])
+                if crudel.is_sortable():
+                    store.append(crudel.get_value())
             # col_action_id
             if self.crud.get_view_prop("deletable", False)\
                 or self.crud.get_view_prop("form_edit", None) is not None:

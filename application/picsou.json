@@ -355,7 +355,8 @@
                 "cours_id": {
                     "label_long": "id",
                     "label_short": "id",
-                    "type": "int"
+                    "type": "int",
+                    "hide": true
                 },
                 "cours_ptf_id": {
                     "label_long": "Valeur",

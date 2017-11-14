@@ -84,7 +84,7 @@ class CrudForm(GObject.GObject):
 
         # remplissage des champs avec les colonnes de l'enregistrement
         if self.crud.get_action() in ("read", "update", "delete"):
-            rows = self.crud.get_sql_row(self.crud.get_form_elements())
+            rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_FORM)
             for row in rows:
                 for element in self.crud.get_form_elements():
                     crudel = self.crud.get_element_prop(element, "crudel")
