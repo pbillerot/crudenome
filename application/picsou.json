@@ -445,7 +445,7 @@
                     "col_editable": true,
                     "jointure": {
                         "join": "LEFT OUTER JOIN mvt ON mvt.mvt_ptf_id = cours.cours_ptf_id AND mvt.mvt_date = cours.cours_date",
-                        "column": "case when mvt.mvt_ptf_id is null then '' else '1' end"
+                        "display": "case when mvt.mvt_ptf_id is null then '' else '1' end"
                     },
                     "col_sql_update": [
                         "delete from mvt where mvt_ptf_id = '{cours_ptf_id}' and mvt_date = '{cours_date}';",

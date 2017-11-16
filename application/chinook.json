@@ -91,14 +91,11 @@
                 "ArtistId": {
                     "label_long": "Artist",
                     "label_short": "Artist",
-                    "type": "text",
-                    "paramss": {
-                        "join": "LEFT OUTER JOIN artists on artists.ArtistId = albums.ArtistId",
-                        "column": "Name"
-                    },
+                    "type": "combo",
+                    "sql_items": "SELECT artists.ArtistId, artists.Name From artists",
                     "jointure": {
                         "join": "LEFT OUTER JOIN artists on artists.ArtistId = albums.ArtistId",
-                        "column": "Name"
+                        "display": "artists.Name"
                     },
                     "searchable": true,
                     "sortable": true,
@@ -288,10 +285,10 @@
                 "AlbumId": {
                     "label_long": "Album",
                     "label_short": "Album",
-                    "type": "jointure",
-                    "params": {
+                    "type": "combo",
+                    "jointure": {
                         "join": "LEFT OUTER JOIN albums on albums.AlbumId = tracks.AlbumId",
-                        "column": "albums.Title"
+                        "display": "albums.Title"
                     },
                     "required": true
                 },
@@ -299,20 +296,18 @@
                     "label_long": "Type media",
                     "label_short": "Type media",
                     "type": "combo",
-                    "params": {
-                        "table": "media_types",
-                        "key": "MediaTypeId",
-                        "display": "Name"
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN media_types on media_types.MediaTypeId = tracks.MediaTypeId",
+                        "display": "media_types.Name"
                     }
                 },
                 "GenreId": {
                     "label_long": "Genre",
                     "label_short": "Genre",
                     "type": "combo",
-                    "params": {
-                        "table": "genres",
-                        "key": "GenreId",
-                        "display": "Name"
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN genres on genres.GenreId = tracks.GenreId",
+                        "display": "genres.Name"
                     }
                 },
                 "Composer": {
@@ -325,13 +320,11 @@
                     "label_short": "Duration",
                     "type": "int"
                 },
-                "_Milliseconds": {
+                "milliseconds_": {
                     "label_long": "Duration",
                     "label_short": "Duration",
-                    "type": "jointure",
-                    "params": {
-                        "column": "(tracks.Milliseconds/1000/60) || ' mn ' || (tracks.Milliseconds/1000%60) || ' s'"
-                    },
+                    "type": "text",
+                    "sql_get": "printf('%s mn %s s', tracks.Milliseconds/1000/60, tracks.Milliseconds/1000%60)",
                     "col_align": "right"
                 },
                 "Bytes": {
@@ -339,14 +332,11 @@
                     "label_short": "Size",
                     "type": "int"
                 },
-                "_Bytes": {
+                "bytes_": {
                     "label_long": "Size",
                     "label_short": "Size",
-                    "type": "jointure",
-                    "params": {
-                        "column": "(tracks.Bytes*1.0/1000/1000)"
-                    },
-                    "display": "%.2f M",
+                    "type": "text",
+                    "sql_get": "printf('%.2f M', tracks.Bytes*1.0/1000/1000)",
                     "col_align": "right"
                 },
                 "UnitPrice": {
@@ -355,13 +345,13 @@
                     "type": "float",
                     "display": "%3.2f €"
                 },
-                "_ArtistId": {
+                "Artist_Name": {
                     "label_long": "Artist",
                     "label_short": "Artist",
-                    "type": "jointure",
-                    "params": {
+                    "type": "text",
+                    "jointure": {
                         "join": "LEFT OUTER JOIN albums as alb ON alb.AlbumId = tracks.AlbumId LEFT OUTER JOIN artists on artists.ArtistId = alb.ArtistId",
-                        "column": "artists.Name"
+                        "display": "artists.Name"
                     }
                 }
             },
@@ -372,7 +362,7 @@
                     "icon_name": "media-optical",
                     "elements": {
                         "TrackId": {},
-                        "_ArtistId": {"searchable": true},
+                        "Artist_Name": {"searchable": true},
                         "AlbumId": {"searchable": true},
                         "Name": {"searchable": true},
                         "Composer": {"searchable": true}
@@ -389,8 +379,8 @@
                         "TrackId": {},
                         "Name": {},
                         "GenreId": {},
-                        "_Milliseconds": {},
-                        "_Bytes": {}
+                        "milliseconds_": {},
+                        "bytes_": {}
                     }
                 }
             },

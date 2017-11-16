@@ -26,6 +26,8 @@ class Crudel(GObject.GObject):
             crudel = CrudelButton(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "check":
             crudel = CrudelCheck(crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "combo":
+            crudel = CrudelCombo(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "counter":
             crudel = CrudelCounter(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "date":
@@ -38,10 +40,6 @@ class Crudel(GObject.GObject):
             crudel = CrudelGraph(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "int":
             crudel = CrudelInt(crud, element, type_parent)
-        elif crud.get_element_prop(element, "type", "text") == "jointure":
-            crudel = CrudelJointure(crud, element, type_parent)
-        elif crud.get_element_prop(element, "type", "text") == "combo":
-            crudel = CrudelCombo(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "radio":
             crudel = CrudelRadio(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "uid":
@@ -72,8 +70,8 @@ class Crudel(GObject.GObject):
         self.element = element
         self.widget = None
         self.type_parent = type_parent
-        self.items = {}
-        self.params = None
+        self.items = {} # items d'un combo
+        self.params = None 
         self.value = None
 
         self.init_crudel()
@@ -86,16 +84,8 @@ class Crudel(GObject.GObject):
 
     def init_crudel_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
-        if self.is_type_jointure():
-            if self.get_param("table"):
-                sql = "SELECT " + self.get_param("key") + " AS key, "\
-                    + self.get_param("display", self.get_param("key")) + " as display "\
-                    + "FROM " + self.get_param("table")
-                if self.get_param("where"):
-                    sql += " WHERE " + self.get_param("where")
-                rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql , {})
-                for row in rows:
-                    self.items[row["key"]] = row["display"]
+        if self.get_sql_items():
+            self.items = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), self.get_sql_items() , {})
 
     def init_value(self):
         """ Initialisation de la valeur """
@@ -113,7 +103,8 @@ class Crudel(GObject.GObject):
 
     def set_value_widget(self):
         """ valorisation à partir de la saisie dans le widget """
-        self.value = self.get_widget().get_text()
+        text = self.get_widget().get_text()
+        self.value = text if isinstance(text, (int, float, bool)) else text.decode("utf-8")
 
     def set_value_default(self):
         """ valorisation avec la valeur par défaut si valeur '' """
@@ -187,6 +178,8 @@ class Crudel(GObject.GObject):
             if not self.is_read_only() and self.type_parent == Crudel.TYPE_PARENT_FORM:
                 pass
             else:
+                if isinstance(display, int):
+                    display = str(display)
                 value = display.encode("utf-8") % (value)
         if self.get_type_gdk() == GObject.TYPE_STRING:
             value = str(value)
@@ -203,6 +196,10 @@ class Crudel(GObject.GObject):
     def get_col_align(self):
         """ alignement du texte dans la colonne """
         return self.crud.get_column_prop(self.element, "col_align", "")
+
+    def get_sql_items(self):
+        """ Liste des items d'un combo, radio, tag """
+        return self.crud.get_element_prop(self.element, "sql_items", False)
 
     def get_sql_color(self):
         """ Couleur du texte dans la colonne """
@@ -294,16 +291,6 @@ class Crudel(GObject.GObject):
             return self.crud.get_column_prop(self.element, "read_only", False)
         else:
             return self.crud.get_field_prop(self.element, "read_only", False)
-
-    def is_type_jointure(self):
-        """ est-ce que la colonne est en lien avec une autre table """
-        if self.get_type() in ("combo", "radio", "jointure"):
-            if self.get_param("table"):
-                return True
-            if self.get_param("join"):
-                return True
-            if self.get_param("column"):
-                return True
 
     def is_searchable(self):
         """ le contenu de la colonne sera lue par le moteur de recharche """
@@ -428,8 +415,8 @@ class Crudel(GObject.GObject):
         row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
         col_id = self.crud.get_column_prop(self.element, "col_id")
         # print "on_cell_edited", row_id, col_id, key_value
-        # if self.get_type_gdk() == GObject.TYPE_STRING:
-        #     text = text.decode("utf-8")
+        if not isinstance(text, (int, float, bool)) :
+            text = text.decode("utf-8")
 
         self.crud_view.liststore[row_id][col_id] = text
 
@@ -447,6 +434,13 @@ class Crudel(GObject.GObject):
 ########################################################
 ### Classes des crudel en fonction dy type d'élément ####################################################
 ########################################################
+
+class CrudelBatch(Crudel):
+    """ Plugin """
+
+    def __init__(self, crud, element, type_parent):
+        Crudel.__init__(self, crud, element, type_parent)
+        self.set_hide(True)
 
 class CrudelButton(Crudel):
     """ Gestion des colonnes et champs de type bouton """
@@ -566,6 +560,63 @@ class CrudelCheck(Crudel):
         else:
             self.value = True
 
+class CrudelCombo(Crudel):
+    """ Gestion des colonnes et champs de type list """
+
+    def __init__(self, crud, element, type_parent):
+        Crudel.__init__(self, crud, element, type_parent)
+
+    def get_type_gdk(self):
+        return GObject.TYPE_STRING
+
+    def init_value(self):
+        self.set_value(False)
+
+    def get_widget_box(self):
+        hbox = Gtk.HBox()
+
+        label = self._get_widget_label()
+
+        self.widget = Gtk.ComboBoxText()
+        if self.is_read_only():
+            self.widget.set_sensitive(False)
+
+        # remplissage du combo
+        self.widget.set_entry_text_column(0)
+        index = 0
+        index_selected = None
+        for item in self.items:
+            keys = item.keys()
+            if len(keys) == 1:
+                self.widget.append_text("%s" % (item.get(keys[0])))
+            else:
+                self.widget.append_text("%s (%s)" % (item.get(keys[1]), item.get(keys[0])))
+            if item.get(keys[0]) == self.get_value():
+                index_selected = index
+            index += 1
+
+        self.widget.connect('changed', self.on_changed_combo, self.element)
+        if index_selected is not None:
+            self.widget.set_active(index_selected)
+
+        # arrangement
+        hbox.pack_start(label, False, False, 5)
+        hbox.pack_start(self.widget, False, False, 5)
+        return hbox
+
+    def on_changed_combo(self, widget, element):
+        """ l'item sélectionné a changé """
+        text = self.widget.get_active_text()
+        key = self.crud.get_key_from_bracket(text)
+        if text is not None:
+            if key:
+                self.value = key
+            else:
+                self.value = text
+
+    def set_value_widget(self):
+        pass
+
 class CrudelCounter(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
 
@@ -598,9 +649,6 @@ class CrudelCounter(Crudel):
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
         return renderer
-
-    def set_value_widget(self):
-        pass
 
 class CrudelDate(Crudel):
     """ Gestion des colonnes et champs de type date """
@@ -727,7 +775,7 @@ class CrudelForm(Crudel):
             self.crud.set_form_id(self.get_param("form"))
             from crudform import CrudForm
             form = CrudForm(self.crud, None)
-        self.app_window.show_all()
+        # self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
 class CrudelGraph(CrudelCheck):
@@ -779,104 +827,6 @@ class CrudelInt(Crudel):
         if value == '':
             value = 0
         self.value = int(value)
-
-class CrudelJointure(Crudel):
-    """ Gestion des colonnes et champs de type jointure entre 2 tables """
-
-    def __init__(self, crud, element, type_parent):
-        Crudel.__init__(self, crud, element, type_parent)
-
-    def get_type_gdk(self):
-        return GObject.TYPE_STRING
-
-    def is_read_only(self):
-        return True
-
-    def get_cell(self):
-        return Crudel.get_display(self)
-
-    def get_display(self):
-        value = self.get_value()
-        if self.get_param("table"):
-            sql = "SELECT " + self.get_param("display", self.get_param("key")) + " as value"\
-            + " FROM " + self.get_param("table")\
-            + " WHERE " + self.get_param("key") + " = '" + self.get_value() + "'"
-            rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql, {})
-            for row in rows:
-                value = row["value"]
-        return Crudel.get_display(self)
-
-    def get_widget_box(self):
-        hbox = Gtk.HBox()
-        label = self._get_widget_label()
-        self.widget = self._get_widget_entry()
-        # arrangement
-        hbox.pack_start(label, False, False, 5)
-        hbox.pack_start(self.widget, False, False, 5)
-        return hbox
-
-class CrudelCombo(Crudel):
-    """ Gestion des colonnes et champs de type list """
-
-    def __init__(self, crud, element, type_parent):
-        Crudel.__init__(self, crud, element, type_parent)
-
-    def get_type_gdk(self):
-        return GObject.TYPE_STRING
-
-    def init_value(self):
-        self.set_value(False)
-
-    def get_widget_box(self):
-        hbox = Gtk.HBox()
-
-        label = self._get_widget_label()
-
-        self.widget = Gtk.ComboBoxText()
-        if self.is_read_only():
-            self.widget.set_sensitive(False)
-
-        # remplissage du combo
-        self.widget.set_entry_text_column(0)
-        index = 0
-        index_selected = None
-        for item in self.items:
-            if item == self.get_value():
-                index_selected = index
-            if self.items[item] == item:
-                self.widget.append_text("%s" % (item))
-            else:
-                self.widget.append_text("%s (%s)" % (self.items[item], item))
-            index += 1
-
-        self.widget.connect('changed', self.on_changed_combo, self.element)
-        if index_selected is not None:
-            self.widget.set_active(index_selected)
-
-        # arrangement
-        hbox.pack_start(label, False, False, 5)
-        hbox.pack_start(self.widget, False, False, 5)
-        return hbox
-
-    def on_changed_combo(self, widget, element):
-        """ l'item sélectionné a changé """
-        text = self.widget.get_active_text()
-        key = self.crud.get_key_from_bracket(text)
-        if text is not None:
-            if key:
-                self.value = key
-            else:
-                self.value = text
-
-    def set_value_widget(self):
-        pass
-
-class CrudelBatch(Crudel):
-    """ Plugin """
-
-    def __init__(self, crud, element, type_parent):
-        Crudel.__init__(self, crud, element, type_parent)
-        self.set_hide(True)
 
 class CrudelRadio(Crudel):
     """ Gestion des colonnes et champs de type Radio """

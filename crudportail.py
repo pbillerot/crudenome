@@ -205,6 +205,15 @@ class CrudPortail(GObject.GObject):
         """ Footer pour afficher des infos et le bouton pour ajouter des éléments """
         self.footer_label = Gtk.Label()
         self.footerbar.pack_start(self.footer_label, False, True, 3)
+        self.about()
+
+    def about(self):
+        """ affichage dans le footer """
+        about = '<b>' + self.crud.config["title"] + '</b>'\
+        + " - " + self.crud.config["version"]\
+        + " " + self.crud.config["copyright"]\
+        + ' <a href="' + self.crud.config["web_site"] + '">' + self.crud.config["web_site"] + '</a>'
+        self.emit("refresh_footer", "portail", about)
 
     def create_sidebar(self):
         """ Création des boutons d'activation des vues de l'application """
@@ -297,6 +306,7 @@ class CrudPortail(GObject.GObject):
         self.set_layout(self.LAYOUT_MENU)
         self.create_application_menu()
         self.app_window.show_all()
+        self.about()
 
     def on_button_test_clicked(self, widget):
         """ Window de test """

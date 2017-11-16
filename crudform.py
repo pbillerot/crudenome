@@ -192,24 +192,15 @@ class CrudForm(GObject.GObject):
         # ajout des colonnes de jointure
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
-            if crudel.get_type() == "jointure":
-                if crudel.get_param("table", None):
-                    sql += ", " + crudel.get_param("table") + "."\
-                    + crudel.get_param("display", crudel.get_param("key"))\
-                    + " as " + element
-                else:
-                    sql += ", " + crudel.get_param("column") + " as " + element
+            if crudel.with_jointure():
+                sql += ", " + crudel.get_jointure("display") + " as " + element
 
         sql += " FROM " + self.crud.get_table_id()
         # ajout des tables de jointure
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
-            if crudel.get_type() == "jointure":
-                if crudel.get_param("table"):
-                    sql += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON "\
-                    + crudel.get_param("table") + "." + crudel.get_param("key")\
-                    + " = " + self.crud.get_table_id() + "." + element
-                if crudel.get_param("join"):
+            if crudel.with_jointure():
+                if crudel.get_jointure("join"):
                     sql += " " + crudel.get_param("join")
 
         # le WHERE

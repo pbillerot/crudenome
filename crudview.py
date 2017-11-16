@@ -235,7 +235,7 @@ class CrudView(GObject.GObject):
             crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.is_virtual():
                 continue
-            if crudel.is_type_jointure() or crudel.with_jointure():
+            if crudel.with_jointure():
                 continue
             if b_first:
                 b_first = False
@@ -254,15 +254,8 @@ class CrudView(GObject.GObject):
         # ajout des colonnes de jointure
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
-            if crudel.is_type_jointure():
-                if crudel.get_param("table", None):
-                    sql += ", " + crudel.get_param("table") + "."\
-                    + crudel.get_param("display", crudel.get_param("key"))\
-                    + " as " + element
-                else:
-                    sql += ", " + crudel.get_param("column") + " as " + element
             if crudel.with_jointure():
-                sql += ", " + crudel.get_jointure("column") + " as " + element
+                sql += ", " + crudel.get_jointure("display") + " as " + element
 
         sql += " FROM " + self.crud.get_table_id()
 
@@ -270,16 +263,9 @@ class CrudView(GObject.GObject):
         join = ""
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
-            if crudel.is_type_jointure():
-                if crudel.get_param("table", None):
-                    join += " LEFT OUTER JOIN " + crudel.get_param("table") + " ON "\
-                    + crudel.get_param("table") + "." + crudel.get_param("key")\
-                    + " = " + self.crud.get_table_id() + "." + element
-                else:
-                    if crudel.get_param("join"):
-                        join += " " + crudel.get_param("join")
             if crudel.with_jointure():
-                join += " " + crudel.get_jointure("join")
+                if crudel.get_jointure("join"):
+                    join += " " + crudel.get_jointure("join")
 
         if join:
             sql += join
@@ -290,49 +276,28 @@ class CrudView(GObject.GObject):
             for element in self.crud.get_view_elements():
                 crudel = self.crud.get_element_prop(element, "crudel")
                 if crudel.is_searchable():
-                    if crudel.is_type_jointure():
-                        if crudel.get_param("table", None):
-                            if sql_where == "":
-                                sql_where = self.crudel.get_param("table") + "."\
-                                + self.crudel.get_param("display") + " like '%" + self.search_sql + "%'"
-                            else:
-                                sql_where = "" + sql_where + " or " + self.crudel.get_param("table") + "."\
-                                + self.crudel.get_param("display") + " like '%" + self.search_sql + "%'"
-                        else:
-                            if crudel.get_param("column"):
-                                if sql_where == "":
-                                    sql_where = crudel.get_param("column") + " like '%" + self.search_sql + "%'"
-                                else:
-                                    sql_where = "" + sql_where + " or "\
-                                    + crudel.get_param("column") + " like '%" + self.search_sql + "%'"
-                    elif crudel.with_jointure():
-                        if sql_where == "":
-                            sql_where = crudel.get_jointure("column") + " like '%" + self.search_sql + "%'"
-                        else:
-                            sql_where = "" + sql_where + " or "\
-                            + crudel.get_jointure("column") + " like '%" + self.search_sql + "%'"
+                    if crudel.with_jointure():
+                        if sql_where != "":
+                            sql_where += " or "
+                        sql_where += crudel.get_jointure("display") + " like '%" + self.search_sql + "%'"
                     else:
-                        if sql_where == "":
-                            sql_where = self.crud.get_table_id() + "."\
-                            + element + " like '%" + self.search_sql + "%'"
-                        else:
-                            sql_where = "" + sql_where + " or " + self.crud.get_table_id() + "."\
+                        if sql_where != "":
+                            sql_where += " or "
+                        sql_where += self.crud.get_table_id() + "."\
                             + element + " like '%" + self.search_sql + "%'"
         if sql_where != "":
             sql_where = "(" + sql_where + ")"
         # Les arguments de la vue entrent dans le where
         for arg in self.args:
-            if sql_where == "":
-                sql_where = self.crudel.get_param("table") + "." + arg + " = '" + self.args.get(arg) + "'"
-            else:
-                sql_where = "" + sql_where + " and " + self.crudel.get_view_table() + "." + arg + " = '"\
+            if sql_where != "":
+                sql_where += " AND "
+            sql_where += self.crud.get_table_id() + "." + arg + " = '"\
                 + self.crudel.crud.replace_from_dict(self.args.get(arg), self.crudel.crud.get_form_values()) + "'"
         # prise en compte du sql_where de la vue 
         if self.crud.get_view_prop("sql_where"):
-            if sql_where == "":
-                sql_where = self.crud.get_view_prop("sql_where")
-            else:
-                sql_where = "(" + sql_where + ") AND ("+ self.crud.get_view_prop("sql_where") + ")"
+            if sql_where != "":
+                sql_where += " AND "
+            sql_where += self.crud.get_view_prop("sql_where")
         if sql_where != "":
             sql += " WHERE " + sql_where
         if self.crud.get_view_prop("order_by", None):
@@ -346,7 +311,7 @@ class CrudView(GObject.GObject):
         # remplissage des colonnes item_sql
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
-            crudel.init_crudel_sql()
+            # crudel.init_crudel_sql()
         row_id = 0
         for row in rows:
             store = []
