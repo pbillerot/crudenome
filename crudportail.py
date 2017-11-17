@@ -294,6 +294,7 @@ class CrudPortail(GObject.GObject):
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         self.crud.set_portail(self)
 
+        self.crud.set_crudel(None)
         self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
 
     def on_button_application_clicked(self, widget, application_file):

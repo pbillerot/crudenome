@@ -322,7 +322,9 @@ class Crud:
         if dico is None:
             dico = {}
         for element in self.get_table_elements():
-            dico[element] = self.get_element_prop(element, "crudel").get_value()
+            crudel = self.get_element_prop(element, "crudel", None)
+            if crudel is not None:
+                dico[element] = self.get_element_prop(element, "crudel").get_value()
         return dico
 
     # view
@@ -534,8 +536,8 @@ class Crud:
             self.set_element_prop(element, "crudel", crudel)
             if crudel.is_virtual():
                 continue
-            # if crudel.with_jointure():
-            #     continue
+            if crudel.is_read_only() and crudel.with_jointure():
+                continue
             if b_first:
                 b_first = False
             else:
@@ -551,18 +553,18 @@ class Crud:
                 sql += crudel.get_sql_color() + " as " + element + "_color"
 
         # ajout des colonnes de jointure
-        # for element in self.get_view_elements():
-        #     crudel = self.get_element_prop(element, "crudel")
-        #     if crudel.with_jointure():
-        #         sql += ", " + crudel.get_jointure("display") + " as " + element
+        for element in elements:
+            crudel = self.get_element_prop(element, "crudel")
+            if crudel.is_read_only() and crudel.with_jointure():
+                sql += ", " + crudel.get_jointure("display") + " as " + element
 
         sql += " FROM " + self.get_table_id()
 
         # ajout des tables de jointure
         join = ""
-        for element in self.get_view_elements():
+        for element in elements:
             crudel = self.get_element_prop(element, "crudel")
-            if crudel.with_jointure():
+            if crudel.is_read_only() and crudel.with_jointure():
                 if crudel.get_jointure("join"):
                     join += " " + crudel.get_jointure("join")
         if join:

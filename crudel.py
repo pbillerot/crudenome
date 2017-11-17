@@ -82,10 +82,19 @@ class Crudel(GObject.GObject):
             self.items = self.crud.get_element_prop(self.element, "items")
         self.params = self.crud.get_element_prop(self.element, "params", None)
 
-    def init_crudel_sql(self):
+    def init_items_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
-        if self.get_sql_items():
+        if not self.is_read_only() and self.get_sql_items():
             self.items = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), self.get_sql_items() , {})
+
+    def init_text_sql(self):
+        """ Initialisation calcul, remplissage des items de liste """
+        if self.get_sql_text():
+            values = self.crud.get_table_values()
+            sql = self.crud.replace_from_dict(self.get_sql_text(), values)
+            rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql , {})
+            for row in rows:
+                self.set_value(row.values()[0])
 
     def init_value(self):
         """ Initialisation de la valeur """
@@ -200,6 +209,10 @@ class Crudel(GObject.GObject):
     def get_sql_items(self):
         """ Liste des items d'un combo, radio, tag """
         return self.crud.get_element_prop(self.element, "sql_items", False)
+
+    def get_sql_text(self):
+        """ Liste des items d'un combo, radio, tag """
+        return self.crud.get_element_prop(self.element, "sql_text", False)
 
     def get_sql_color(self):
         """ Couleur du texte dans la colonne """
@@ -577,27 +590,30 @@ class CrudelCombo(Crudel):
 
         label = self._get_widget_label()
 
-        self.widget = Gtk.ComboBoxText()
         if self.is_read_only():
-            self.widget.set_sensitive(False)
+            self.widget = self._get_widget_entry()
+        else:
+            self.widget = Gtk.ComboBoxText()
+            if self.is_read_only():
+                self.widget.set_sensitive(False)
 
-        # remplissage du combo
-        self.widget.set_entry_text_column(0)
-        index = 0
-        index_selected = None
-        for item in self.items:
-            keys = item.keys()
-            if len(keys) == 1:
-                self.widget.append_text("%s" % (item.get(keys[0])))
-            else:
-                self.widget.append_text("%s (%s)" % (item.get(keys[1]), item.get(keys[0])))
-            if item.get(keys[0]) == self.get_value():
-                index_selected = index
-            index += 1
+            # remplissage du combo
+            self.widget.set_entry_text_column(0)
+            index = 0
+            index_selected = None
+            for item in self.items:
+                keys = item.keys()
+                if len(keys) == 1:
+                    self.widget.append_text("%s" % (item.get(keys[0])))
+                else:
+                    self.widget.append_text("%s (%s)" % (item.get(keys[1]), item.get(keys[0])))
+                if item.get(keys[0]) == self.get_value():
+                    index_selected = index
+                index += 1
 
-        self.widget.connect('changed', self.on_changed_combo, self.element)
-        if index_selected is not None:
-            self.widget.set_active(index_selected)
+            self.widget.connect('changed', self.on_changed_combo, self.element)
+            if index_selected is not None:
+                self.widget.set_active(index_selected)
 
         # arrangement
         hbox.pack_start(label, False, False, 5)
@@ -975,7 +991,8 @@ class CrudelView(Crudel):
         self.box_content.pack_end(self.scroll_window, True, True, 3)
 
         crud.set_crudel(self)
-        self.widget_view = CrudView(crud, self.box_main, self.box_toolbar, self.scroll_window, self.get_args_replace())
+        args = self.get_args_replace()
+        self.widget_view = CrudView(crud, self.box_main, self.box_toolbar, self.scroll_window, args)
         self.widget = self.widget_view.get_widget()
         # arrangement
         hbox.pack_start(label, False, False, 5)

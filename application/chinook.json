@@ -11,8 +11,7 @@
                 "ArtistId": {
                     "label_long": "ID",
                     "label_short": "ID",
-                    "type": "counter",
-                    "hide": true
+                    "type": "counter"
                 },
                 "Name": {
                     "label_long": "Name",
@@ -101,6 +100,19 @@
                     "sortable": true,
                     "col_width": 250
                 },
+                "_ArtistName": {
+                    "label_long": "Artist",
+                    "label_short": "Artist",
+                    "type": "text",
+                    "sql_text": "SELECT artists.Name From artists where artists.ArtistId = '{ArtistId}'",
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN artists on artists.ArtistId = albums.ArtistId",
+                        "display": "artists.Name"
+                    },
+                    "searchable": true,
+                    "sortable": true,
+                    "col_width": 250
+                },
                 "_vtracks": {
                     "label_long": "Tracks",
                     "label_short": "Tracks",
@@ -118,7 +130,6 @@
             "views": {
                 "vall": {
                     "title": "Albums",
-                    "form_add": "fadd",
                     "form_edit": "fedit",
                     "icon_name": "folder-music",
                     "deletable": true,
@@ -145,15 +156,15 @@
                             "hide": true
                         },
                         "Title": {}
-                    },
-                    "sql_where": "1 = 1"
+                    }
                 }
             },
             "forms": {
                 "fadd": {
                     "title": "Add an album",
                     "elements": {
-                        "ArtistId": {},
+                        "ArtistId": {"read_only": true},
+                        "_ArtistName": {"read_only": true},
                         "AlbumId": {},
                         "Title": {}
                     }
@@ -161,8 +172,8 @@
                 "fedit": {
                     "title": "Album",
                     "elements": {
-                        "ArtistId": {},
-                        "AlbumId": {},
+                        "ArtistId": {"read_only": true},
+                        "AlbumId": {"read_only": true},
                         "Title": {},
                         "_vtracks": {}
                     }
@@ -286,6 +297,18 @@
                     "label_long": "Album",
                     "label_short": "Album",
                     "type": "combo",
+                    "sql_items": "SELECT albums.AlbumId, albums.Title From albums",
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN albums on albums.AlbumId = tracks.AlbumId",
+                        "display": "albums.Title"
+                    },
+                    "required": true
+                },
+                "_AlbumID": {
+                    "label_long": "Album",
+                    "label_short": "Album",
+                    "type": "text",
+                    "sql_text": "SELECT albums.Title From albums WHERE albums.AlbumId = '{AlbumId}'",
                     "jointure": {
                         "join": "LEFT OUTER JOIN albums on albums.AlbumId = tracks.AlbumId",
                         "display": "albums.Title"
@@ -296,6 +319,7 @@
                     "label_long": "Type media",
                     "label_short": "Type media",
                     "type": "combo",
+                    "sql_items": "SELECT MediaTypeId, Name From media_types",
                     "jointure": {
                         "join": "LEFT OUTER JOIN media_types on media_types.MediaTypeId = tracks.MediaTypeId",
                         "display": "media_types.Name"
@@ -305,6 +329,7 @@
                     "label_long": "Genre",
                     "label_short": "Genre",
                     "type": "combo",
+                    "sql_items": "SELECT GenreId, Name From genres",
                     "jointure": {
                         "join": "LEFT OUTER JOIN genres on genres.GenreId = tracks.GenreId",
                         "display": "genres.Name"
@@ -345,10 +370,11 @@
                     "type": "float",
                     "display": "%3.2f €"
                 },
-                "Artist_Name": {
+                "_ArtistName": {
                     "label_long": "Artist",
                     "label_short": "Artist",
                     "type": "text",
+                    "sql_text": "SELECT artists.Name from artists LEFT OUTER JOIN albums ON albums.ArtistId = artists.ArtistId WHERE albums.AlbumId = '{AlbumId}'",
                     "jointure": {
                         "join": "LEFT OUTER JOIN albums as alb ON alb.AlbumId = tracks.AlbumId LEFT OUTER JOIN artists on artists.ArtistId = alb.ArtistId",
                         "display": "artists.Name"
@@ -358,16 +384,18 @@
             "views": {
                 "vall": {
                     "title": "Tracks",
+                    "form_edit": "fedit",
                     "searchable_sql": true,
                     "icon_name": "media-optical",
                     "elements": {
                         "TrackId": {},
-                        "Artist_Name": {"searchable": true},
+                        "_ArtistName": {"searchable": true},
                         "AlbumId": {"searchable": true},
                         "Name": {"searchable": true},
                         "Composer": {"searchable": true}
                     },
-                    "order_by": "artists.Name, albums.Title"
+                    "order_by": "artists.Name, albums.Title",
+                    "limit": 200
                 },
                 "vtracks": {
                     "title": "Tracks",
@@ -388,7 +416,9 @@
                 "fadd": {
                     "title": "Add a track",
                     "elements": {
-                        "AlbumId": {},
+                        "_ArtistName": {"read_only": true},
+                        "AlbumId": {"hide": true},
+                        "_AlbumID": {"read_only": true},
                         "TrackId": {},
                         "Name": {},
                         "MediaTypeId": {},
@@ -402,8 +432,9 @@
                 "fedit": {
                     "title": "Track",
                     "elements": {
-                        "_ArtistId": {"read_only": true},
-                        "AlbumId": {"read_only": true},
+                        "_ArtistName": {"read_only": true},
+                        "AlbumId": {"hide": true},
+                        "_AlbumID": {"read_only": true},
                         "TrackId": {},
                         "Name": {},
                         "MediaTypeId": {},

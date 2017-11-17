@@ -32,7 +32,6 @@ class CrudView(GObject.GObject):
         self.crud.set_view(self)
         self.app_window = crud.get_window()
         self.crudel = crud.get_crudel()
-
         self.box_main = box_main
         self.box_toolbar = box_toolbar
         self.scroll_window = scroll_window
@@ -40,6 +39,12 @@ class CrudView(GObject.GObject):
             self.args = args
         else:
             self.args = {}
+
+        print "View", self.crud.get_table_id(), self.crud.get_view_id()
+
+        if self.crudel: 
+            print "View Crudel", self.crudel.element
+        print "View Args", self.args
 
         # Déclaration des variables globales
         self.treeview = None
@@ -293,7 +298,7 @@ class CrudView(GObject.GObject):
                 sql_where += " AND "
             sql_where += self.crud.get_table_id() + "." + arg + " = '"\
                 + self.crudel.crud.replace_from_dict(self.args.get(arg), self.crudel.crud.get_form_values()) + "'"
-        # prise en compte du sql_where de la vue 
+        # prise en compte du sql_where de la vue
         if self.crud.get_view_prop("sql_where"):
             if sql_where != "":
                 sql_where += " AND "

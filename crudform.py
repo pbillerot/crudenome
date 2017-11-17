@@ -42,6 +42,11 @@ class CrudForm(GObject.GObject):
         else:
             self.args = {}
 
+        print "Form", self.crud.get_table_id(), self.crud.get_view_id(), self.crud.get_form_id(), self.crud.get_key_value()
+        if self.crudel:
+            print "Form Crudel", self.crudel.element
+        print "Form Args", self.args
+
         # pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale('crudenome.svg', 24, 24, True) # preserve ratio
         # image = Gtk.Image.new_from_pixbuf(pixbuf)
         # cancel_button = Gtk.Button(label="Cancel", image=image)
@@ -108,7 +113,8 @@ class CrudForm(GObject.GObject):
         # Création des widget dans la box de la dialog
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
-            crudel.init_crudel_sql()
+            crudel.init_items_sql()
+            crudel.init_text_sql()
             # crudel.dump()
             if crudel.is_hide():
                 continue
