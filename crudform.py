@@ -42,10 +42,10 @@ class CrudForm(GObject.GObject):
         else:
             self.args = {}
 
-        print "Form", self.crud.get_table_id(), self.crud.get_view_id(), self.crud.get_form_id(), self.crud.get_key_value()
-        if self.crudel:
-            print "Form Crudel", self.crudel.element
-        print "Form Args", self.args
+        # print "Form", self.crud.get_table_id(), self.crud.get_view_id(), self.crud.get_form_id(), self.crud.get_key_value()
+        # if self.crudel:
+        #     print "Form Crudel", self.crudel.element
+        # print "Form Args", self.args
 
         # pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale('crudenome.svg', 24, 24, True) # preserve ratio
         # image = Gtk.Image.new_from_pixbuf(pixbuf)

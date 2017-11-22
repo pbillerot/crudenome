@@ -5,7 +5,7 @@
     "icon_file": "picsou.jpg",
     "tables": {
         "ptf": {
-            "basename": "/mnt/sandisk/grive/zim/Bourse/picsou.sqlite",
+            "basename": "/mnt/sandisk/data/picsou/picsou.sqlite",
             "key": "ptf_id",
             "elements": {
                 "ptf_id": {

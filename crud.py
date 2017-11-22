@@ -18,13 +18,15 @@ from collections import OrderedDict
 # import time
 # from datetime import datetime
 
-from crudel import Crudel
 
 import re
 import sys
 import itertools
 import smtplib
 import importlib
+
+from crudel import Crudel
+
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -58,9 +60,18 @@ class Crud:
         """
         if crud is None:
             dir_path = os.path.dirname(os.path.realpath(__file__))
+            # chargement de config.json
             os.chdir(dir_path)
             with open("config.json") as json_data_file:
                 self.config = json.load(json_data_file)
+            # chargement de smtp.json et fusion dans config
+            with open(self.config["smtp_config"]) as json_data_file:
+                conf = json.load(json_data_file)
+                self.config.update(conf)
+            # # chargement de dropbox.json et fusion dans config
+            # with open(self.config["dropbox_config"]) as json_data_file:
+            #     conf = json.load(json_data_file)
+            #     self.config.update(conf)
         else:
             if duplicate:
                 self.application = dict(crud.application)
@@ -70,7 +81,9 @@ class Crud:
                 self.application = crud.application
                 self.ctx = crud.ctx
                 self.config = crud.config
-
+    #
+    # FONCTIONS GENERALES
+    #
     def get_json_content(self, path):
         """
         Retourne le contenu d'un fichier json dans un dictionnaire
@@ -163,7 +176,7 @@ class Crud:
             file_list.append(filename)
         return file_list
 
-    # GETTER SETTER
+    # GETTER SETTER DU CRUD
 
     # app: nom de l'application
     def get_app(self):
