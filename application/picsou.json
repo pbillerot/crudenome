@@ -3,9 +3,11 @@
     "desc": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
     "menu_orientation": "horizontal",
     "icon_file": "picsou.jpg",
+    "on_start": "picsou_backup.PicsouRestore",
+    "on_update": "picsou_backup.PicsouBackup",
     "tables": {
         "ptf": {
-            "basename": "/mnt/sandisk/data/picsou/picsou.sqlite",
+            "basename": "~/data/picsou/picsou.sqlite",
             "key": "ptf_id",
             "elements": {
                 "ptf_id": {
@@ -348,7 +350,7 @@
             }
         },
         "cours": {
-            "basename": "/mnt/sandisk/grive/zim/Bourse/picsou.sqlite",
+            "basename": "~/data/picsou/picsou.sqlite",
             "key": "cours_id",
             "elements": {
                 "cours_id": {
@@ -483,7 +485,7 @@
             }
         },
         "mvt": {
-            "basename": "/mnt/sandisk/grive/zim/Bourse/picsou.sqlite",
+            "basename": "~/data/picsou/picsou.sqlite",
             "key": "mvt_ptf_id",
             "elements": {
                 "mvt_ptf_id": {

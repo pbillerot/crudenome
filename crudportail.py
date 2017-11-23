@@ -267,6 +267,11 @@ class CrudPortail(GObject.GObject):
         self.crud.set_application(application)
         self.crud.set_portail(self)
 
+        # Exécution du script on_start
+        if self.crud.get_application_prop("on_start"):
+            plugin_class = self.crud.load_class("plugin." + self.crud.get_application_prop("on_start"))
+            plugin_class(self.crud)
+
         # on change l'icône système
         if self.crud.get_application().has_key("icon_file"):
            self.crud.get_window().set_icon_from_file("data/" + self.crud.get_application_prop("icon_file"))

@@ -85,14 +85,14 @@ class Crudel(GObject.GObject):
     def init_items_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
         if not self.is_read_only() and self.get_sql_items():
-            self.items = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), self.get_sql_items() , {})
+            self.items = self.crud.sql_to_dict(self.crud.get_table_basename(), self.get_sql_items() , {})
 
     def init_text_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
         if self.get_sql_text():
             values = self.crud.get_table_values()
             sql = self.crud.replace_from_dict(self.get_sql_text(), values)
-            rows = self.crud.sql_to_dict(self.crud.get_table_prop("basename"), sql , {})
+            rows = self.crud.sql_to_dict(self.crud.get_table_basename(), sql , {})
             for row in rows:
                 self.set_value(row.values()[0])
 
@@ -441,7 +441,7 @@ class Crudel(GObject.GObject):
 
         sql = "UPDATE " + self.crud.get_table_id() + " SET "\
         + self.element + " = :text WHERE " + self.crud.get_key_id() + " = :key_value"
-        self.crud.exec_sql(self.crud.get_table_prop("basename")\
+        self.crud.exec_sql(self.crud.get_table_basename()\
             , sql, {"key_value": key_value, "text": text})
 
 ########################################################
@@ -527,7 +527,7 @@ class CrudelCheck(Crudel):
 
         sql = "UPDATE " + self.crud.get_table_id() + " SET "\
         + self.element + " = :value_sql WHERE " + key_id + " = :key_value"
-        self.crud.exec_sql(self.crud.get_table_prop("basename")\
+        self.crud.exec_sql(self.crud.get_table_basename()\
             , sql, {"key_value": key_value, "value_sql": value_sql})
 
         if self.get_col_sql_update():
@@ -540,7 +540,7 @@ class CrudelCheck(Crudel):
                 sql_post = self.crud.replace_from_dict(sql, row)
                 sqls = sql_post.split(";")
                 for sql in sqls:
-                    self.crud.exec_sql(self.crud.get_table_prop("basename"), sql, params)
+                    self.crud.exec_sql(self.crud.get_table_basename(), sql, params)
 
         # cochage / décochage de la ligne
         self.crud_view.liststore[row_id][col_id] = not renderer.get_active()
