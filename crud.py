@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding:Utf-8 -*-
-# http://python-gtk-3-tutorial.readthedocs.io/en/latest/index.html
 """
     Fonctions utiles regroupées dans une classe
 """
@@ -25,10 +24,6 @@ import smtplib
 import importlib
 
 from crudel import Crudel
-
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
 
 class Crud:
     """
