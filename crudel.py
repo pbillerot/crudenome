@@ -9,8 +9,8 @@ import uuid
 from datetime import datetime
 
 import gi
-from gi.repository import Gtk, GObject
 gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, GObject
 
 class Crudel(GObject.GObject):
     """ Gestion des Elements """

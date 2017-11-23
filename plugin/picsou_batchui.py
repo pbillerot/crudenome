@@ -8,7 +8,7 @@
 from picsou_loader import PicsouLoadQuotes
 from gi.repository import Gtk, GObject
 
-class PicsouBatch(Gtk.Window):
+class PicsouBatchUi(Gtk.Window):
     """ Actualisation des données """
 
     __gsignals__ = {

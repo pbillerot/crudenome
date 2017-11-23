@@ -187,7 +187,7 @@
                     "label_short": "Actualiser...",
                     "type": "batch",
                     "params": {
-                        "plugin": "picsou_batch.PicsouBatch",
+                        "plugin": "picsou_batchui.PicsouBatchUi",
                         "icon_name": "view-refresh",
                         "day": 14,
                         "history": 400,
@@ -242,7 +242,6 @@
                     "icon_name": "folder",
                     "deletable": true,
                     "searchable": true,
-                    "pluginss": ["_batch"],
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},

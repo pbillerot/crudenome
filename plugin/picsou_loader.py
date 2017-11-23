@@ -6,7 +6,6 @@ import sqlite3
 import time
 import datetime
 import re
-import csv
 import sys
 import requests
 import numpy as np

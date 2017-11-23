@@ -4,9 +4,9 @@
 """
 from crud import Crud
 from crudel import Crudel
-from gi.repository import Gtk
 import gi
 gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
 
 
 class CrudDialog(Gtk.Dialog):
