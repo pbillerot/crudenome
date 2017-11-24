@@ -28,11 +28,11 @@ class PicsouGraph(Gtk.Window):
 
         self.crud = crud
         ptf_id = crud.get_key_value()
-        ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM PTF WHERE ptf_id = :id
         """, {"id": ptf_id})
         ptf = ptfs[0]
-        cours = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        cours = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM cours WHERE cours_ptf_id = :id order by cours_date
         """, {"id": ptf_id})
 

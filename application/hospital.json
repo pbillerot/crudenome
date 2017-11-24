@@ -3,9 +3,9 @@
     "desc": "Hospital Activities",
     "menu_orientation": "vertical",
     "icon_name": "folder-publicshare",
+    "basename": "./data/hospital.sqlite",
     "tables": {
         "Department": {
-            "basename": "./data/hospital.sqlite",
             "key": "DepartmentID",
             "key_display": "{Name}",
             "elements": {
@@ -66,7 +66,6 @@
             }
         },
         "Physician": {
-            "basename": "./data/hospital.sqlite",
             "key": "EmployeeID",
             "elements": {
                 "EmployeeID": {
@@ -129,7 +128,6 @@
             }
         },
         "Room": {
-            "basename": "./data/hospital.sqlite",
             "key": "Number",
             "elements": {
                 "Number": {

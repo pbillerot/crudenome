@@ -132,7 +132,7 @@ class PicsouBatchUi(Gtk.Window):
         """ docstring """
         if self.with_histo.get_active():
             loader = PicsouLoadQuotes(self, self.crud)
-            ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf ORDER BY ptf_id
             """, {})
             for ptf in ptfs:
@@ -149,7 +149,7 @@ class PicsouBatchUi(Gtk.Window):
 
         # Chargement des 10 derniers cours
         loader = PicsouLoadQuotes(self, self.crud)
-        ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM ptf ORDER BY ptf_id
         """, {})
         for ptf in ptfs:
@@ -160,12 +160,12 @@ class PicsouBatchUi(Gtk.Window):
 
         loader.simulateur()
 
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
         set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
         WHERE ptf_inptf = 'PPP'
         """, {})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
         set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
         WHERE ptf_inptf = 'PPP'
@@ -175,20 +175,20 @@ class PicsouBatchUi(Gtk.Window):
         self.rsi_date = loader.quote["date"]
         # self.rsi_time = loader.quote["time"]
         self.rsi_time = "00:00"
-        gain = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        gain = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_inptf = 'PPP'
         """, {})
-        investi = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        investi = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_inptf = 'PPP'
         """, {})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE RESUME
         set resume_date = :date 
         ,resume_time = :time 
         ,resume_investi = :investi
         ,resume_gain = :gain
         """, {"date": self.rsi_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"]})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE RESUME
         set resume_percent = (resume_gain / resume_investi) * 100
         """, {})
@@ -196,7 +196,7 @@ class PicsouBatchUi(Gtk.Window):
         # Mail de compte-rendu
         if self.with_mail.get_active():
             # TOP 14
-            ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             select * from ptf order by ptf_macd desc limit 14
             """, {})
             for ptf in ptfs:
@@ -212,7 +212,7 @@ class PicsouBatchUi(Gtk.Window):
                 self.top14.append(msg)
 
             # Mon portefeuille
-            ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             select * from ptf order by ptf_gain_percent desc
             """, {})
             msg = """<tr>

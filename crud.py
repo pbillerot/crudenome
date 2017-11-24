@@ -45,6 +45,7 @@ class Crud:
         "action": None, # create read update delete
         "selected": [],
         "errors": [],
+        "ticket": None
     }
     config = {}
 
@@ -188,6 +189,14 @@ class Crud:
         """ Valoriser le nom de l'application courante """
         self.ctx["app"] = val
 
+    # ticket
+    def get_ticket(self):
+        """ Obtenir le ticket de la base de données lors de la prise """
+        return self.ctx["ticket"]
+    def set_ticket(self, val):
+        """ Mettre à jour le ticket de la base de données de la prise """
+        self.ctx["ticket"] = val
+
     # window
     def get_window(self):
         """ window """
@@ -318,13 +327,21 @@ class Crud:
     def get_application_tables(self):
         """ Obtenir la liste des tables de l'application courante """
         return self.application["tables"]
-
-    # table
-    def get_table_basename(self):
+    def get_basename(self):
         """ Obtenir le chemin d'accès à la base de données de la table courante """
-        basename = self.application["tables"][self.ctx["table_id"]]["basename"]
+        basename = self.application.get("basename")
         path = basename.replace("~", os.path.expanduser("~"))
         return path
+    def get_basehost(self):
+        """ Obtenir le chemin d'accès à la base de données de la table courante """
+        basehost = self.application.get("basehost", None)
+        if basehost:
+            path = basehost.replace("~", os.path.expanduser("~"))
+            return path
+        else:
+            return None
+
+    # table
     def get_table_views(self):
         """ Obtenir la liste des vues de la table courante """
         return self.application["tables"][self.ctx["table_id"]]["views"]
@@ -467,10 +484,10 @@ class Crud:
         # on remplace les {rubrique} par leur valeur
         sql = self.replace_from_dict(sql, params)
         # print sql, params
-        self.exec_sql(self.get_table_basename(), sql, params)
+        self.exec_sql(self.get_basename(), sql, params)
         if self.get_form_prop("sql_post", "") != "":
             sql = self.replace_from_dict(self.get_form_prop("sql_post"), params)
-            self.exec_sql(self.get_table_basename(), sql, params)
+            self.exec_sql(self.get_basename(), sql, params)
 
     def sql_insert_record(self):
         """ Création de l'enregistrement du formulaire courant """
@@ -500,11 +517,11 @@ class Crud:
         # on remplace les {rubrique} par leur valeur
         sql = self.replace_from_dict(sql, params)
         # print sql, params
-        self.exec_sql(self.get_table_basename(), sql, params)
+        self.exec_sql(self.get_basename(), sql, params)
         # post_sql
         if self.get_form_prop("sql_post", "") != "":
             sql = self.replace_from_dict(self.get_form_prop("sql_post"), params)
-            self.exec_sql(self.get_table_basename(), sql, params)
+            self.exec_sql(self.get_basename(), sql, params)
 
     def sql_delete_record(self, key_value):
         """ Suppression d'un enregistrement de la vue courante """
@@ -512,14 +529,14 @@ class Crud:
         params = {}
         params[self.get_key_id()] = key_value
         # print sql, params
-        self.exec_sql(self.get_table_basename(), sql, params)
+        self.exec_sql(self.get_basename(), sql, params)
 
     def sql_exist_key(self):
         """ Savoir si l'enregsitrement existe """
         sql = "SELECT count(*) as count FROM " + self.get_table_id() + " WHERE " + self.get_key_id() + " = :key_id"
         params = {}
         params["key_id"] = self.get_element_prop(self.get_key_id(), "crudel").get_value()
-        rows = self.sql_to_dict(self.get_table_basename(), sql, params)
+        rows = self.sql_to_dict(self.get_basename(), sql, params)
         if rows[0]["count"] > 0:
             return True
         else:
@@ -597,5 +614,5 @@ class Crud:
         if sql_where != "":
             sql += " WHERE " + sql_where
 
-        rows = self.sql_to_dict(self.get_table_basename(), sql, self.ctx)
+        rows = self.sql_to_dict(self.get_basename(), sql, self.ctx)
         return rows

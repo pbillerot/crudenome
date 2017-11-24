@@ -30,7 +30,7 @@ class PicsouLoadQuotes():
         """
         self.parent.display(ptf_id + " loading...")
 
-        ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM PTF WHERE ptf_id = :id
         """, {"id": ptf_id})
         self.ptf = ptfs[0]
@@ -39,12 +39,12 @@ class PicsouLoadQuotes():
 
         # un petit nettoyage
         # ajout des lignes dans la table COURS
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         delete from cours
         where cours_ptf_id = :id and cours_ptf_id || cours_date in
         (select id || date from quotes)
         """, {"id": ptf_id})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         insert into cours
         (cours_ptf_id, cours_name, cours_date, cours_close
         , cours_open, cours_volume, cours_low, cours_high)
@@ -53,7 +53,7 @@ class PicsouLoadQuotes():
         left outer join cours on cours_ptf_id = quotes.id and cours_date = quotes.date
         where cours_ptf_id is null and quotes.id = :id
         """, {"id": ptf_id})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE COURS
         set cours_percent = ( (cours_close - cours_open) / cours_open) * 100 
         """, {})
@@ -102,7 +102,7 @@ class PicsouLoadQuotes():
         """
         # print "csv_to_sql", ptf["ptf_id"], nbj
         if nbj > 10 :
-            self.crud.exec_sql(self.crud.get_table_basename(), """
+            self.crud.exec_sql(self.crud.get_basename(), """
             DELETE FROM COURS WHERE cours_ptf_id = :id
             """, {"id": ptf["ptf_id"]})
 
@@ -133,7 +133,7 @@ class PicsouLoadQuotes():
                 # to_db = [(ptf["ptf_id"], ptf['ptf_name']\
                 #     ,i['Date'], i['Open'], i['High'], i['Low'], i['Close'], i['Adj Close'], i['Volume'])\
                 #     for i in reader]
-                conn = sqlite3.connect(self.crud.get_table_basename())
+                conn = sqlite3.connect(self.crud.get_basename())
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM QUOTES WHERE id = ?", (ptf["ptf_id"],))
                 cursor.executemany("""INSERT INTO QUOTES 
@@ -198,7 +198,7 @@ class PicsouLoadQuotes():
         """
         # print "Analyse de ", ptf["ptf_id"]
         sql = "SELECT * from COURS where cours_ptf_id = :ptf_id ORDER by cours_date ASC"
-        courss = self.crud.sql_to_dict(self.crud.get_table_basename(), sql, {"ptf_id": ptf["ptf_id"]})
+        courss = self.crud.sql_to_dict(self.crud.get_basename(), sql, {"ptf_id": ptf["ptf_id"]})
         # RSI sur 14 jours
         quote = [0] * n
         rsi = 0.0
@@ -243,7 +243,7 @@ class PicsouLoadQuotes():
             cours["cours_macd"] = macd[0]
             cours["cours_trend"] = trend[0]
 
-            self.crud.exec_sql(self.crud.get_table_basename(), """
+            self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE COURS
             set cours_rsi = :cours_rsi
             , cours_ema12 = :cours_ema12, cours_ema26 = :cours_ema26, cours_ema50 = :cours_ema50
@@ -254,7 +254,7 @@ class PicsouLoadQuotes():
             WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
             """, cours)
         # nettoyage
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         DELETE from COURS WHERE cours_rsi is null
         """, {})
 
@@ -268,13 +268,13 @@ class PicsouLoadQuotes():
         Boucle sur les dates de l'historiques tri /date,action
         """
         # Raz de la dernière simulation
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
         set ptf_intest = "", ptf_test_cost = 0, ptf_test_quantity = 0
         ,ptf_test_gain = 0, ptf_test_gain_percent = 0
         ,ptf_test_nbj = 0, ptf_test_cumul = 0
         """, {})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE COURS
         set cours_trade = '', cours_quantity = 0, cours_nbj = 0
         ,cours_cost = 0, cours_gain = 0, cours_gain_percent = 0
@@ -285,12 +285,12 @@ class PicsouLoadQuotes():
         cumul = 0
         cumulptf = 0
         if self.crudel.get_param("cac40_only"):
-            ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf WHERE ptf_cac40 = 1
             ORDER BY ptf_id
             """, {})
         else:
-            ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf
             ORDER BY ptf_id
             """, {})
@@ -305,7 +305,7 @@ class PicsouLoadQuotes():
             sql = """SELECT * FROM COURS
             WHERE cours_ptf_id = :ptf_id
             ORDER BY cours_date ASC"""
-            courss = self.crud.sql_to_dict(self.crud.get_table_basename(), sql, ptf)
+            courss = self.crud.sql_to_dict(self.crud.get_basename(), sql, ptf)
 
             n = 2 # plage nécessaire pour identifier les changements
             quotes = [0] * n
@@ -412,7 +412,7 @@ class PicsouLoadQuotes():
                     cours["cours_gain"] = gain
                     cours["cours_gain_percent"] = gain_percent
 
-                    self.crud.exec_sql(self.crud.get_table_basename(), """
+                    self.crud.exec_sql(self.crud.get_basename(), """
                     UPDATE COURS
                     set cours_trade = :cours_trade, cours_nbj = :cours_nbj, cours_quantity = :cours_quantity, cours_cost = :cours_cost
                     , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
@@ -491,7 +491,7 @@ class PicsouLoadQuotes():
                         cours["cours_trade"] = intest
                         cours["cours_nbj"] = nbj
 
-                        self.crud.exec_sql(self.crud.get_table_basename(), """
+                        self.crud.exec_sql(self.crud.get_basename(), """
                         UPDATE COURS
                         set cours_trade = :cours_trade, cours_nbj = :cours_nbj
                         , cours_quantity = :cours_quantity, cours_cost = :cours_cost
@@ -517,7 +517,7 @@ class PicsouLoadQuotes():
                             .format(test_date, cours["cours_date"], motif, rsi_achat, rsis[0]\
                             , macd[0], nbj, gain))
         
-                            self.crud.exec_sql(self.crud.get_table_basename(), """
+                            self.crud.exec_sql(self.crud.get_basename(), """
                             UPDATE COURS
                             set cours_trade = :cours_trade, cours_nbj = :cours_nbj
                             , cours_quantity = :cours_quantity, cours_cost = :cours_cost
@@ -546,7 +546,7 @@ class PicsouLoadQuotes():
                             cours["cours_trade"] = "TTT"
                             cours["cours_nbj"] = nbj
 
-                            self.crud.exec_sql(self.crud.get_table_basename(), """UPDATE COURS
+                            self.crud.exec_sql(self.crud.get_basename(), """UPDATE COURS
                             set cours_trade = :cours_trade, cours_nbj = :cours_nbj
                             , cours_quantity = :cours_quantity, cours_cost = :cours_cost
                             , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
@@ -581,7 +581,7 @@ class PicsouLoadQuotes():
             ptf["ptf_test_nbj"] = nbj
             ptf["ptf_intest"] = intest
             ptf["ptf_test_date"] = test_date
-            self.crud.exec_sql(self.crud.get_table_basename(), """
+            self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE PTF
             set ptf_quote = :ptf_quote 
             ,ptf_percent = :ptf_percent 
@@ -605,7 +605,7 @@ class PicsouLoadQuotes():
             , cumulptf, cumul))
 
         # Résumé de la simulation - boucle sur les cours par date pour connaître le cash nécessaire
-        courss = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        courss = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM COURS
         WHERE cours_trade in ('SSS','TTT','RRR')
         ORDER BY cours_date, cours_ptf_id
@@ -623,7 +623,7 @@ class PicsouLoadQuotes():
                 qamount -= 1
         # prise en compte des actions en test
         gain_acquis = cumul
-        ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM PTF
         WHERE ptf_intest = 'TTT'
         """, ptf)
@@ -634,7 +634,7 @@ class PicsouLoadQuotes():
         resume_sql = u"Nbre de mises: <b>{}</b> Cash: <b>{:.2f} €</b> Gain acquis: <b>{:.2f} €</b> Gain : <b>{:.2f} €</b> <b>{:.2f}%</b>"\
         .format(qamount, -cash, gain_acquis, cumul, (cumul/-cash)*100)
         self.parent.display(resume)
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE RESUME
         SET resume_simul = :resume
         """, {"resume": resume_sql})

@@ -2,6 +2,9 @@
 """
     Gestion du portail, layout
 """
+import os
+import shutil
+import datetime
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
@@ -35,10 +38,10 @@ class CrudPortail(GObject.GObject):
     LAYOUT_FORM = 5
 
     __gsignals__ = {
-        'refresh_footer': (GObject.SIGNAL_RUN_FIRST, None, (str,str,)),
+        'refresh_footer': (GObject.SIGNAL_RUN_FIRST, None, (str, str, )),
         'select_application': (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         'update_application': (GObject.SIGNAL_RUN_FIRST, None, (str,)),
-        'select_view': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
+        'select_view': (GObject.SIGNAL_RUN_FIRST, None, (str, str,))
     }
 
     def __init__(self, crud):
@@ -269,10 +272,15 @@ class CrudPortail(GObject.GObject):
         self.crud.set_application(application)
         self.crud.set_portail(self)
 
-        # Exécution du script on_start
-        if self.crud.get_application_prop("on_start"):
-            plugin_class = self.crud.load_class("plugin." + self.crud.get_application_prop("on_start"))
-            self.ticket = plugin_class(self.crud).run()
+        # Récupération de la base du serveur si elle est différente
+        if self.crud.get_basehost():
+            ticket_host = os.path.getmtime(self.crud.get_basehost())
+            ticket_local = os.path.getmtime(self.crud.get_basename())
+            if ticket_local != ticket_host:
+                # on récupére la base du serveur
+                shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
+                print "Restore OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+            self.crud.set_ticket(ticket_host)
 
         # on change l'icône système
         if self.crud.get_application().has_key("icon_file"):
@@ -317,6 +325,7 @@ class CrudPortail(GObject.GObject):
 
     def on_button_home_clicked(self, widget):
         """ Retour au menu général """
+        crud = self.crud
         self.layout_type = CrudPortail.LAYOUT_MENU
         self.set_layout(self.LAYOUT_MENU)
         self.create_application_menu()

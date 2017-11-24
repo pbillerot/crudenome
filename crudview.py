@@ -309,7 +309,7 @@ class CrudView(GObject.GObject):
 
         sql += " LIMIT " + str(self.crud.get_view_prop("limit", 500))
         # print "VIEW", sql
-        rows = self.crud.sql_to_dict(self.crud.get_table_basename(), sql, self.crud.ctx)
+        rows = self.crud.sql_to_dict(self.crud.get_basename(), sql, self.crud.ctx)
         # print len(rows)
         self.liststore.clear()
         # remplissage des colonnes item_sql
@@ -372,7 +372,7 @@ class CrudView(GObject.GObject):
             , "") ## raz du footer
         sql = self.crud.get_view_prop("sql_footer", False)
         if sql:
-            rows = self.crud.sql_to_dict(self.crud.get_table_basename()\
+            rows = self.crud.sql_to_dict(self.crud.get_basename()\
                 , sql, self.crud.ctx)
             for row in rows:
                 if row.has_key("sql_footer"):

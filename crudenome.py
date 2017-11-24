@@ -4,6 +4,8 @@
     Module principal, c'est le point d'entrée
 """
 import os
+import shutil
+import datetime
 import sys
 import argparse
 import gi
@@ -15,12 +17,24 @@ from crudportail import CrudPortail
 
 class AppWindow(Gtk.ApplicationWindow):
     """ La fenêtre principale du Gtk """
-    def __init__(self, app, args, crud):
+    def __init__(self, app, args):
         Gtk.ApplicationWindow.__init__(self, title="Welcome to CRUDENOME", application=app)
+
+        # When the window is given the "delete_event" signal (this is given
+        # by the window manager, usually by the "close" option, or on the
+        # titlebar), we ask it to call the delete_event () function
+        # as defined above. The data passed to the callback
+        # function is NULL and is ignored in the callback function.
+        self.connect('delete-event', self.delete_event)
+
+        # Here we connect the "destroy" event to a signal handler.  
+        # This event occurs when we call gtk_widget_destroy() on the window,
+        # or if we return FALSE in the "delete_event" callback.
+        self.connect("destroy", self.destroy)
 
         self.args = args # paramètre
         # Chargement des paramètres
-        self.crud = Crud(crud)
+        self.crud = Crud()
         self.crud.set_window(self)
         if args.application:
             self.crud.set_app(args.application)
@@ -34,7 +48,46 @@ class AppWindow(Gtk.ApplicationWindow):
         if self.crud.config.has_key("icon_name"):
             self.set_icon_name(self.crud.config["icon_name"])
 
-        self.crud_portail = CrudPortail(crud)
+        self.crud_portail = CrudPortail(self.crud)
+
+    def delete_event(self, widget, event, data=None):
+        # If you return FALSE in the "delete_event" signal handler,
+        # GTK will emit the "destroy" signal. Returning TRUE means
+        # you don't want the window to be destroyed.
+        # This is useful for popping up 'are you sure you want to quit?'
+        # type dialogs.
+        # print "delete event occurred"
+
+        if self.crud.get_basehost():
+            ticket_user = os.path.getmtime(self.crud.get_basename())
+            ticket_host = os.path.getmtime(self.crud.get_basehost())
+            ticket = self.crud.get_ticket()
+            if ticket_user != ticket:
+                # la base locale a évoluée
+                if self.crud.get_ticket() != ticket_host:
+                    # la base du host a changée depuis la dernière prise
+                    dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
+                                        Gtk.ButtonsType.YES_NO, "La base sur le serveur a changée")
+                    dialog.format_secondary_text("Veux-tu écraser la base du serveur ?")
+                    response = dialog.run()
+                    if response == Gtk.ResponseType.YES:
+                        shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+                        print "Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                    elif response == Gtk.ResponseType.NO:
+                        print("Backup abandonné")
+
+                    dialog.destroy()
+                else:
+                    shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+                    print "Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+
+        # Change FALSE to TRUE and the main window will not be destroyed
+        # with a "delete_event".
+        return False
+
+    def destroy(self, widget, data=None):
+        # print "destroy signal occurred"
+        Gtk.main_quit()
 
 class Application(Gtk.Application):
     """ La classe principale d'une application Gnome """
@@ -51,9 +104,6 @@ class Application(Gtk.Application):
 
         self.window = None
 
-        # Chargement des paramètres
-        self.crud = Crud()
-
     def do_activate(self):
         """
         show the window and all its content
@@ -64,7 +114,7 @@ class Application(Gtk.Application):
         if not self.window:
             # Windows are associated with the application
             # when the last one is closed the application shuts down
-            self.window = AppWindow(self, self.args, self.crud)
+            self.window = AppWindow(self, self.args)
 
     def do_startup(self):
         """
@@ -148,6 +198,7 @@ class Application(Gtk.Application):
         """
         Fin de l'application
         """
+        print "quit"
         self.quit()
 
 # get the style from the css file and apply it

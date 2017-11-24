@@ -3,9 +3,10 @@
     "desc": "Chinook sample database",
     "menu_orientation": "vertical",
     "icon_name": "folder-music",
+    "basename": "./data/chinook.sqlite",
     "tables": {
         "artists": {
-            "basename": "./data/chinook.sqlite",
+            
             "key": "ArtistId",
             "elements": {
                 "ArtistId": {
@@ -69,7 +70,6 @@
             }
         },
         "albums": {
-            "basename": "./data/chinook.sqlite",
             "key": "AlbumId",
             "elements": {
                 "AlbumId": {
@@ -181,7 +181,6 @@
             }
         },
         "media_types": {
-            "basename": "./data/chinook.sqlite",
             "key": "MediaTypeId",
             "elements": {
                 "MediaTypeId": {
@@ -231,7 +230,6 @@
             }
         },
         "genres": {
-            "basename": "./data/chinook.sqlite",
             "key": "GenreId",
             "elements": {
                 "GenreId": {
@@ -278,7 +276,6 @@
             }
         },
         "tracks": {
-            "basename": "./data/chinook.sqlite",
             "key": "TrackId",
             "elements": {
                 "TrackId": {

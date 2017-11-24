@@ -14,18 +14,10 @@ from plugin.picsou_backup import PicsouBackup, PicsouRestore
 
 class PicsouBatch():
     """ Actualisation des données """
-    DIR_HOST = "/mnt/freebox"
-    PATH_BASENAME = "/data/picsou/picsou.sqlite"
-    def __init__(self):
+    # Planification dans cron
+    # 55 9,11,16,17 * * 1-5 pi ./git/crudenome/picsou_batch.py
 
-        # # Get de la base de données sur la box
-        # path_host = self.DIR_HOST + self.PATH_BASENAME
-        # path_user = os.path.expanduser("~") + self.PATH_BASENAME
-        # ticket_host = os.path.getmtime(path_host)
-        # ticket_user = os.path.getmtime(path_user)
-        # if ticket_host != ticket_user:
-        #     print "Get %s %s" % (path_host, datetime.datetime.fromtimestamp(ticket_host))
-        #     shutil.copy2(path_host, path_user)
+    def __init__(self):
 
         # Chargement des paramètres
         self.crud = Crud()
@@ -34,13 +26,17 @@ class PicsouBatch():
             self.crud.config["application_directory"] + "/" + "picsou.json")
 
         self.crud.set_application(application)
-        self.crud.set_table_id("ptf")
-        self.crud.set_view_id("vsimul")
 
         # Récupération éventuelle de la base sur le host
-        ticket = PicsouRestore(self.crud).run()
+        ticket_user = os.path.getmtime(self.crud.get_basename())
+        ticket_host = os.path.getmtime(self.crud.get_basehost())
+        if ticket_user != ticket_host:
+            shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
+            print "Restore OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
 
         element = "_batch"
+        self.crud.set_table_id("ptf")
+        self.crud.set_view_id("vsimul")
         self.crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_VIEW)
         self.crudel.init_value()
         self.crud.set_element_prop(element, "crudel", self.crudel)
@@ -55,7 +51,9 @@ class PicsouBatch():
         self.run_calcul()
 
         # Put de la base de données sur la box
-        PicsouBackup(self.crud).run(ticket, False)
+        ticket_user = os.path.getmtime(self.crud.get_basename())
+        shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+        print "Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user))
 
     def display(self, msg):
         """ docstring """
@@ -65,7 +63,7 @@ class PicsouBatch():
         """ docstring """
 
         loader = PicsouLoadQuotes(self, self.crud)
-        ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM ptf ORDER BY ptf_id
         """, {})
         print "Chargement de l'historique..."
@@ -74,12 +72,12 @@ class PicsouBatch():
 
         loader.simulateur()
 
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
         set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
         WHERE ptf_inptf = 'PPP'
         """, {})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
         set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
         WHERE ptf_inptf = 'PPP'
@@ -89,20 +87,20 @@ class PicsouBatch():
         self.rsi_date = loader.quote["date"]
         # self.rsi_time = loader.quote["time"]
         self.rsi_time = "00:00"
-        gain = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        gain = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_inptf = 'PPP'
         """, {})
-        investi = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+        investi = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_inptf = 'PPP'
         """, {})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE RESUME
         set resume_date = :date 
         ,resume_time = :time 
         ,resume_investi = :investi
         ,resume_gain = :gain
         """, {"date": self.rsi_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"]})
-        self.crud.exec_sql(self.crud.get_table_basename(), """
+        self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE RESUME
         set resume_percent = (resume_gain / resume_investi) * 100
         """, {})
@@ -110,7 +108,7 @@ class PicsouBatch():
         # Mail de compte-rendu
         if 1==0:
             # TOP 14
-            ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             select * from ptf order by ptf_macd desc limit 14
             """, {})
             for ptf in ptfs:
@@ -126,7 +124,7 @@ class PicsouBatch():
                 self.top14.append(msg)
 
             # Mon portefeuille
-            ptfs = self.crud.sql_to_dict(self.crud.get_table_basename(), """
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             select * from ptf order by ptf_gain_percent desc
             """, {})
             msg = """<tr>
