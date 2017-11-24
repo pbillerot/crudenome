@@ -8,5 +8,5 @@
     "icon_file": "crudenome.png",
     "icon_nameX": "folder",
     "application_directory": "./application",
-    "smtp_config": "/mnt/sandisk/data/crudenome/smtp.json"
+    "smtp_config": "~/data/crudenome/smtp.json"
 }

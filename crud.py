@@ -58,6 +58,10 @@ class Crud:
             os.chdir(dir_path)
             with open("config.json") as json_data_file:
                 self.config = json.load(json_data_file)
+
+            # Remplacement de ~
+            for key in self.config:
+                self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
             # chargement de smtp.json et fusion dans config
             with open(self.config["smtp_config"]) as json_data_file:
                 conf = json.load(json_data_file)
@@ -66,6 +70,10 @@ class Crud:
             # with open(self.config["dropbox_config"]) as json_data_file:
             #     conf = json.load(json_data_file)
             #     self.config.update(conf)
+
+            # Remplacement de ~
+            for key in self.config:
+                self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
         else:
             if duplicate:
                 self.application = dict(crud.application)
