@@ -38,7 +38,7 @@ class PicsouBatch():
         self.crud.set_view_id("vsimul")
 
         # Récupération éventuelle de la base sur le host
-        PicsouRestore(self.crud)
+        ticket = PicsouRestore(self.crud).run()
 
         element = "_batch"
         self.crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_VIEW)
@@ -55,7 +55,7 @@ class PicsouBatch():
         self.run_calcul()
 
         # Put de la base de données sur la box
-        PicsouBackup(self.crud)
+        PicsouBackup(self.crud).run(ticket, False)
 
     def display(self, msg):
         """ docstring """
