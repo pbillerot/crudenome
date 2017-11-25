@@ -10,12 +10,11 @@ import datetime
 from crud import Crud
 from crudel import Crudel
 from plugin.picsou_loader import PicsouLoadQuotes
-from plugin.picsou_backup import PicsouBackup, PicsouRestore
 
 class PicsouBatch():
     """ Actualisation des données """
     # Planification dans cron
-    # 55 9,11,16,17 * * 1-5 pi ./git/crudenome/picsou_batch.py
+    # 55 9,11,16,17 * * 1-5 ./git/crudenome/picsou_batch.py
 
     def __init__(self):
 
@@ -61,126 +60,141 @@ class PicsouBatch():
 
     def run_calcul(self):
         """ docstring """
+        if 1==0:
+            loader = PicsouLoadQuotes(self, self.crud)
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM ptf ORDER BY ptf_id
+            """, {})
+            print "Chargement de l'historique..."
+            for ptf in ptfs:
+                loader.run(ptf["ptf_id"], 10)
 
-        loader = PicsouLoadQuotes(self, self.crud)
-        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM ptf ORDER BY ptf_id
-        """, {})
-        print "Chargement de l'historique..."
-        for ptf in ptfs:
-            loader.run(ptf["ptf_id"], 10)
+            loader.simulateur()
 
-        loader.simulateur()
+            self.crud.exec_sql(self.crud.get_basename(), """
+            UPDATE PTF
+            set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
+            WHERE ptf_inptf = 'PPP'
+            """, {})
+            self.crud.exec_sql(self.crud.get_basename(), """
+            UPDATE PTF
+            set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
+            WHERE ptf_inptf = 'PPP'
+            """, {})
 
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE PTF
-        set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
-        WHERE ptf_inptf = 'PPP'
-        """, {})
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE PTF
-        set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
-        WHERE ptf_inptf = 'PPP'
-        """, {})
-
-        # mise à jour du résumé
-        self.rsi_date = loader.quote["date"]
-        # self.rsi_time = loader.quote["time"]
-        self.rsi_time = "00:00"
-        gain = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_inptf = 'PPP'
-        """, {})
-        investi = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_inptf = 'PPP'
-        """, {})
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE RESUME
-        set resume_date = :date 
-        ,resume_time = :time 
-        ,resume_investi = :investi
-        ,resume_gain = :gain
-        """, {"date": self.rsi_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"]})
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE RESUME
-        set resume_percent = (resume_gain / resume_investi) * 100
-        """, {})
+            # mise à jour du résumé
+            self.rsi_date = loader.quote["date"]
+            # self.rsi_time = loader.quote["time"]
+            self.rsi_time = "00:00"
+            gain = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+            """, {})
+            investi = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+            """, {})
+            self.crud.exec_sql(self.crud.get_basename(), """
+            UPDATE RESUME
+            set resume_date = :date 
+            ,resume_time = :time 
+            ,resume_investi = :investi
+            ,resume_gain = :gain
+            """, {"date": self.rsi_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"]})
+            self.crud.exec_sql(self.crud.get_basename(), """
+            UPDATE RESUME
+            set resume_percent = (resume_gain / resume_investi) * 100
+            """, {})
 
         # Mail de compte-rendu
-        if 1==0:
-            # TOP 14
-            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            select * from ptf order by ptf_macd desc limit 14
-            """, {})
-            for ptf in ptfs:
-                url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])
-                msg = """<tr>
-                <td style="text-align: right">{0:3.2f}%</td>
-                <td>{1}</td><td>{2}</td>
-                <td style="text-align: right">{3:.2f}</td>
-                <td style="text-align: right">{4:.2f}%</td>
-                <td>{5}</td>
-                </tr>
-                """.format(ptf["ptf_macd"], ptf["ptf_inptf"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], url)
-                self.top14.append(msg)
-
+        if 1==1:
             # Mon portefeuille
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            select * from ptf order by ptf_gain_percent desc
+            SELECT * FROM ptf WHERE ptf_inptf = 'PPP' ORDER by ptf_name
             """, {})
             msg = """<tr>
             <th>Action</th>
             <th>Cours</th>
-            <th>du J</th>
-            <th>Revient</th>
-            <th>Nbre</th>
-            <th>Gain</th>
+            <th>Evol</th>
+            <th>Gain du J</th>
+            <th>Gain Tot.</th>
             <th>en %</th>
-            <th>14 j</th>
+            <th>Trade</th>
+            <th>RSI</th>
+            <th>E50</th>
+            <th>E200</th>
+            <th>Note</th>
             <th>&nbsp;</th>
             </tr>"""
             self.myptf.append(msg)
+            tot_gainj = 0.0
+            tot_cost = 0.0
+            tot_brut = 0.0
             for ptf in ptfs:
-                url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])                
-                if ptf["ptf_inptf"] == "PPP" :
-                    msg = """<tr>
-                    <td>{0}</td>
-                    <td style="text-align: right">{1:.2f}</td>
-                    <td style="text-align: right">{2:.2f}%</td>
-                    <td style="text-align: right">{3:.2f}</td>
-                    <td style="text-align: right">{4}</td>
-                    <td style="text-align: right">{5:.2f} €</td>
-                    <td style="text-align: right">{6:.2f}%</td>
-                    <td style="text-align: right">{7:.2f}%</td>
-                    <td>{8}</td>
-                    </tr>""".format(ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_cost"], ptf["ptf_quantity"], ptf["ptf_gain"], ptf["ptf_gain_percent"], ptf["ptf_macd"], url)                     
-                    self.myptf.append(msg)
+                url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])
+                quote1 = ptf["ptf_quote"] * 100 / (ptf["ptf_percent"] + 100)
+                gainj = (ptf["ptf_quote"] - quote1) * ptf["ptf_quantity"]
+                # gainj = ptf["ptf_quote"] * ptf["ptf_percent"] / 100 * ptf["ptf_quantity"]
+                tot_gainj += gainj
+                tot_cost += ptf["ptf_cost"] * ptf["ptf_quantity"]
+                tot_brut += ptf["ptf_quote"] * ptf["ptf_quantity"]
+                msg = """<tr>
+                <td>{0}</td>
+                <td style="text-align: right">{1:3.2f}</td>
+                <td style="text-align: right">{3:2.2f} %</td>
+                <td style="text-align: right">{2:4.2f} €</td>
+                <td style="text-align: right">{4:4.2f} €</td>
+                <td style="text-align: right">{5:3.2f} %</td>
+                <td style="text-align: right">{6}</td>
+                <td style="text-align: right">{7:2.0f}</td>
+                <td style="text-align: right">{8:2.2f} %</td>
+                <td style="text-align: right">{9:3.2f} %</td>
+                <td>{10}</td>
+                </tr>""".format(ptf["ptf_name"]\
+                , ptf["ptf_quote"]\
+                , ptf["ptf_percent"]\
+                , gainj\
+                , ptf["ptf_gain"]\
+                , ptf["ptf_gain_percent"]\
+                , ptf["ptf_resistance"]\
+                , ptf["ptf_rsi"]\
+                , ptf["ptf_macd"]\
+                , ptf["ptf_e200"]\
+                , url)
+                self.myptf.append(msg)
 
-                if ptf["ptf_inptf"] == "PPP" and ptf["ptf_resistance"] == "RRR":
-                    msg = '<tr><td>{0}</td><td>{1}</td><td style="text-align: right">{2:.2f}</td><td>{3}</td></tr>'\
-                    .format(ptf["ptf_date"], ptf["ptf_name"], ptf["ptf_quote"], url)
-                    self.resistances.append(msg)
-
-                if ptf["ptf_support"] == "SSS":
-                    msg = '<tr><td>{0}</td><td>{1}</td><td style="text-align: right">{2:.2f}</td><td style="text-align: right">{3}</td><td>{4}</td></tr>'\
-                    .format(ptf["ptf_date"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_quantity"], url)
-                    self.supports.append(msg)
+            msg = """<tr>
+            <td>{0}</td>
+            <td style="text-align: right"></td>
+            <td style="text-align: right">{2}</td>
+            <td style="text-align: right">{3:4.2f} €</td>
+            <td style="text-align: right">{4:4.2f} €</td>
+            <td style="text-align: right">{5:3.2f} %</td>
+            <td style="text-align: right">{6}</td>
+            <td style="text-align: right">{7}</td>
+            <td style="text-align: right">{8}</td>
+            <td style="text-align: right">{9}</td>
+            <td>{10}</td>
+            </tr>""".format("Total"\
+            , ""\
+            , ""\
+            , tot_gainj\
+            , tot_brut - tot_cost\
+            , ((tot_brut - tot_cost) / tot_cost) * 100\
+            , ""\
+            , ""\
+            , ""\
+            , ""\
+            , "")
+            self.myptf.append(msg)
 
             # envoi du mail
-            msg = '<h3>{}</h3>\n<table>\n'.format("Mes actions au {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"]))
+            msg = '<h3>{}</h3>\n<table>\n'.format("Mes actions au {}".format(self.rsi_date))
             msg += '\n'.join(self.myptf)
-            msg += '</table>\n'
-            msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_resistance"))
-            msg += '\n'.join(self.resistances)
-            msg += '</table>\n'
-            msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_support"))
-            msg += '\n'.join(self.supports)
-            msg += '</table>\n'
-            msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_top14"))
-            msg += '\n'.join(self.top14)
             msg += '</table>\n'
             dest = self.crudel.get_param("smtp_dest")
 
-            self.crud.send_mail(dest, "Picsou du {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"]), msg)
+            self.crud.send_mail(dest, "Picsou du {} Jour {:.2f} € Total {:.2f} €"\
+            .format(self.rsi_date, tot_gainj, tot_brut - tot_cost)\
+            , msg)
 
 if __name__ == '__main__':
     PicsouBatch()

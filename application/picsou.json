@@ -200,8 +200,6 @@
                         "label_resistance": "Mes actions en r&eacute;sistance (vendre)",
                         "label_support": "Liste des actions en support (achat)",
                         "label_top14": "TOP 14 des actions",
-                        "smtp_host": "smtp.free.fr",
-                        "smtp_from": "Picsou <pbillerot@yahoo.com>",
                         "smtp_dest": [
                             "bill.tero@free.fr"
                         ]

@@ -64,9 +64,10 @@ class Crud:
             for key in self.config:
                 self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
             # chargement de smtp.json et fusion dans config
-            with open(self.config["smtp_config"]) as json_data_file:
-                conf = json.load(json_data_file)
-                self.config.update(conf)
+            if self.config["smtp_config"]:
+                with open(self.config["smtp_config"]) as json_data_file:
+                    conf = json.load(json_data_file)
+                    self.config.update(conf)
             # # chargement de dropbox.json et fusion dans config
             # with open(self.config["dropbox_config"]) as json_data_file:
             #     conf = json.load(json_data_file)
