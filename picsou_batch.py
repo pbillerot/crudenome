@@ -192,9 +192,9 @@ class PicsouBatch():
             msg += '</table>\n'
             dest = self.crudel.get_param("smtp_dest")
 
-            self.crud.send_mail(dest, "Picsou du {} Jour {:.2f} € Total {:.2f} €"\
+            self.crud.send_mail(dest, "Picsou du {} Jour {:.2f} € Total {:.2f} €".decode("utf-8")\
             .format(self.rsi_date, tot_gainj, tot_brut - tot_cost)\
-            , msg)
+            , msg.decode("utf-8"))
 
 if __name__ == '__main__':
     PicsouBatch()
