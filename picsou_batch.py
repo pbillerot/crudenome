@@ -60,7 +60,7 @@ class PicsouBatch():
 
     def run_calcul(self):
         """ docstring """
-        if 1==0:
+        if 1==1:
             loader = PicsouLoadQuotes(self, self.crud)
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf ORDER BY ptf_id

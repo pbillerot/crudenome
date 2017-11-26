@@ -168,6 +168,7 @@ class Crud:
         smtp.connect(self.config["smtp_host"])
         for _i in dests:
             smtp.sendmail(from_addr, _i, mail.as_string())
+            print "Mail to %s %s" % (_i, subject)
 
         smtp.close()
 
