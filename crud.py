@@ -160,15 +160,15 @@ class Crud:
         """
         from_addr = self.config["smtp_from"]
 
-        mail = MIMEText(body, "html", "utf-8")
+        mail = MIMEText(body.decode("utf-8"), "html", "utf-8")
         mail['From'] = from_addr
-        mail['Subject'] = subject
+        mail['Subject'] = subject.decode("utf-8")
 
         smtp = smtplib.SMTP()
         smtp.connect(self.config["smtp_host"])
         for _i in dests:
             smtp.sendmail(from_addr, _i, mail.as_string())
-            print "Mail to %s %s" % (_i, subject)
+            print "Mail to %s %s" % (_i, subject.decode("utf-8"))
 
         smtp.close()
 
