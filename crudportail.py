@@ -156,7 +156,7 @@ class CrudPortail(GObject.GObject):
 
     def display(self, msg):
         """ Affichage de message dans la fenêtre des traces """
-        print msg
+        self.crud.logger.info(msg)
 
     def create_application_menu(self):
         """ menu des applications """
@@ -279,7 +279,7 @@ class CrudPortail(GObject.GObject):
             if ticket_local != ticket_host:
                 # on récupére la base du serveur
                 shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
-                print "Restore OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                self.crud.logger.info("Restore OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
             self.crud.set_ticket(ticket_host)
 
         # on change l'icône système

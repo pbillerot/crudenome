@@ -417,7 +417,7 @@ class CrudView(GObject.GObject):
 
     def on_button_delete_clicked(self, widget):
         """ Suppression des éléments sélectionnés """
-        print "Suppression de ", self.crud.get_selection()
+        # print "Suppression de ", self.crud.get_selection()
         dialog = Gtk.MessageDialog(parent=self.app_window,\
             flags=Gtk.DialogFlags.MODAL,\
             type=Gtk.MessageType.WARNING,\

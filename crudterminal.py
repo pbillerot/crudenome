@@ -52,7 +52,8 @@ class CrudTerminal(Gtk.Window):
         # Scoll to end of Buffer
         iter = self.textbuffer.get_iter_at_line(self.textbuffer.get_line_count())
         self.textview.scroll_to_iter(iter, 0, 0, 0, 0)
-
+        self.crud.logger.info(msg)
+        
     def on_input_cmd_activate(self, widget):
         """ CR dans le champ """
         self.run_button.do_activate(self.run_button)

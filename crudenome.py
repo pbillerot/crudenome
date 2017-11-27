@@ -72,14 +72,14 @@ class AppWindow(Gtk.ApplicationWindow):
                     response = dialog.run()
                     if response == Gtk.ResponseType.YES:
                         shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-                        print "Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                        self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
                     elif response == Gtk.ResponseType.NO:
-                        print("Backup abandonné")
+                        self.crud.logger.info("Backup abandonné")
 
                     dialog.destroy()
                 else:
                     shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-                    print "Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                    self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
 
         # Change FALSE to TRUE and the main window will not be destroyed
         # with a "delete_event".

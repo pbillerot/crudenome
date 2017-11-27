@@ -127,6 +127,7 @@ class PicsouBatchUi(Gtk.Window):
         # Scoll to end of Buffer
         iter = self.textbuffer.get_iter_at_line(self.textbuffer.get_line_count())
         self.textview.scroll_to_iter(iter, 0, 0, 0, 0)
+        self.crud.logger.info(msg)
     
     def run_calcul(self):
         """ docstring """
@@ -268,4 +269,5 @@ class PicsouBatchUi(Gtk.Window):
             msg += '</table>\n'
             dest = self.crudel.get_param("smtp_dest")
 
-            self.crud.send_mail(dest, "Picsou du {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"]), msg)
+            subject = u"Picsou du {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"])
+            self.crud.send_mail(dest, subject, msg)
