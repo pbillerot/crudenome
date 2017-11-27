@@ -8,5 +8,5 @@
     "icon_file": "crudenome.png",
     "icon_nameX": "folder",
     "application_directory": "./application",
-    "smtp_config": "~/data/crudenome/smtp.json"
+    "local_config": "~/data/crudenome/local.json"
 }

@@ -31,7 +31,7 @@ class PicsouBatch():
         ticket_host = os.path.getmtime(self.crud.get_basehost())
         if ticket_user != ticket_host:
             shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
-            print "Restore OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+            self.display("Restore OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host)))
 
         element = "_batch"
         self.crud.set_table_id("ptf")
@@ -52,11 +52,11 @@ class PicsouBatch():
         # Put de la base de données sur la box
         ticket_user = os.path.getmtime(self.crud.get_basename())
         shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-        print "Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user))
+        self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
 
     def display(self, msg):
         """ docstring """
-        print msg
+        self.crud.logger.info(msg)
 
     def run_calcul(self):
         """ docstring """
@@ -65,7 +65,7 @@ class PicsouBatch():
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf ORDER BY ptf_id
             """, {})
-            print "Chargement de l'historique..."
+            self.display("Chargement de l'historique...")
             for ptf in ptfs:
                 loader.run(ptf["ptf_id"], 10)
 
@@ -128,6 +128,7 @@ class PicsouBatch():
             tot_gainj = 0.0
             tot_cost = 0.0
             tot_brut = 0.0
+            sms = ""
             for ptf in ptfs:
                 url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])
                 quote1 = ptf["ptf_quote"] * 100 / (ptf["ptf_percent"] + 100)
@@ -139,8 +140,8 @@ class PicsouBatch():
                 msg = """<tr>
                 <td>{0}</td>
                 <td style="text-align: right">{1:3.2f}</td>
-                <td style="text-align: right">{3:2.2f} %</td>
-                <td style="text-align: right">{2:4.2f} €</td>
+                <td style="text-align: right">{2:2.2f} %</td>
+                <td style="text-align: right">{3:4.2f} €</td>
                 <td style="text-align: right">{4:4.2f} €</td>
                 <td style="text-align: right">{5:3.2f} %</td>
                 <td style="text-align: right">{6}</td>
@@ -160,10 +161,11 @@ class PicsouBatch():
                 , ptf["ptf_e200"]\
                 , url)
                 self.myptf.append(msg)
+                sms += u" :: %s %s %3.2f %2.2f%% %3.2f€" % ( ptf["ptf_id"], ptf["ptf_resistance"], ptf["ptf_quote"], ptf["ptf_percent"], gainj)
 
             msg = """<tr>
             <td>{0}</td>
-            <td style="text-align: right"></td>
+            <td style="text-align: right">{1}</td>
             <td style="text-align: right">{2}</td>
             <td style="text-align: right">{3:4.2f} €</td>
             <td style="text-align: right">{4:4.2f} €</td>
@@ -187,14 +189,15 @@ class PicsouBatch():
             self.myptf.append(msg)
 
             # envoi du mail
+            subject = u"Picsou du {} Jour {:.2f} € Total {:.2f} €".format(self.rsi_date, tot_gainj, tot_brut - tot_cost)
             msg = '<h3>{}</h3>\n<table>\n'.format("Mes actions au {}".format(self.rsi_date))
             msg += '\n'.join(self.myptf)
             msg += '</table>\n'
             dest = self.crudel.get_param("smtp_dest")
 
-            self.crud.send_mail(dest, "Picsou du {} Jour {:.2f} € Total {:.2f} €"\
-            .format(self.rsi_date, tot_gainj, tot_brut - tot_cost)\
-            , msg)
+            # self.crud.send_mail(dest, subject, msg)
+
+            self.crud.send_sms(subject.encode("utf-8") + sms.encode("utf-8"))
 
 if __name__ == '__main__':
     PicsouBatch()

@@ -70,7 +70,7 @@ class PicsouLoadQuotes():
         for l in lines:
             if re.findall(r'CrumbStore', l):
                 return l
-        print "Did not find CrumbStore"
+        self.crud.logger.error("Did not find CrumbStore")
 
     def get_cookie_value(self, r):
         return {'B': r.cookies['B']}
@@ -80,7 +80,7 @@ class PicsouLoadQuotes():
         try:
             res = requests.get(url)
         except ValueError:
-            print "Error %s %s" % (ValueError, url)
+            self.crud.logger.error("Error %s %s", (ValueError, url))
             sys.exit(1)
         cookie = self.get_cookie_value(res)
         # lines = r.text.encode('utf-8').strip().replace('}', '\n')
@@ -141,7 +141,7 @@ class PicsouLoadQuotes():
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", quotes)
                 conn.commit()
                 if len(quotes) == 0:
-                    print "Erreur quotes", ptf["ptf_id"]
+                    self.crud.logger.error("Erreur quotes %s", ptf["ptf_id"])
                     exit(1)
                 else:
                     # on alimente quote avec la dernière cotation
@@ -151,10 +151,10 @@ class PicsouLoadQuotes():
             except sqlite3.Error, e:
                 if conn:
                     conn.rollback()
-                print "execSql Error {}".format(e.args[0])
+                self.crud.logger.error("execSql Error %s", e.args[0])
                 sys.exit(1)
             except ValueError:
-                print("Error {} {}".format(ValueError, url))
+                self.crud.logger.error("Error %s %s", ValueError, url)
             finally:
                 if conn:
                     conn.close()
@@ -186,7 +186,7 @@ class PicsouLoadQuotes():
                         bret = True
                     iline += 1
             except ValueError:
-                print "Error {} {}".format(ValueError, url)
+                self.crud.logger.error("Error %s %s", ValueError, url)
                 bret = False
             finally:
                 pass

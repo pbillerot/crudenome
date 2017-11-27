@@ -11,12 +11,11 @@ import sqlite3
 import os
 import json
 from collections import OrderedDict
-# import urlparse
-# import httplib
-# import urllib2
+import requests
 # import time
 # from datetime import datetime
-
+import logging
+from logging.handlers import RotatingFileHandler
 
 import re
 import itertools
@@ -63,19 +62,18 @@ class Crud:
             # Remplacement de ~
             for key in self.config:
                 self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
-            # chargement de smtp.json et fusion dans config
-            if self.config["smtp_config"]:
-                with open(self.config["smtp_config"]) as json_data_file:
+            # chargement de local.json et fusion dans config
+            if self.config["local_config"]:
+                with open(self.config["local_config"]) as json_data_file:
                     conf = json.load(json_data_file)
                     self.config.update(conf)
-            # # chargement de dropbox.json et fusion dans config
-            # with open(self.config["dropbox_config"]) as json_data_file:
-            #     conf = json.load(json_data_file)
-            #     self.config.update(conf)
 
             # Remplacement de ~
             for key in self.config:
                 self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
+            
+            self.init_logger()
+
         else:
             if duplicate:
                 self.application = dict(crud.application)
@@ -88,6 +86,36 @@ class Crud:
     #
     # FONCTIONS GENERALES
     #
+    def send_sms(self, msg):
+        """ envoi d'un sms """
+        result = requests.get(self.config["sms"] % requests.utils.quote(msg))
+        self.logger.info("SMS %s %s %s", result.status_code, result.headers, result.content)
+
+    def init_logger(self):
+        """ Initialisation du logger """
+        # création de l'objet logger qui va nous servir à écrire dans les logs
+        self.logger = logging.getLogger()
+        # on met le niveau du logger à DEBUG, comme ça il écrit tout
+        self.logger.setLevel(logging.DEBUG)
+
+        # création d'un formateur qui va ajouter le temps, le niveau
+        # de chaque message quand on écrira un message dans le log
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(module)s.%(funcName)s :: %(message)s')
+        # création d'un handler qui va rediriger une écriture du log vers
+        # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
+        file_handler = RotatingFileHandler('log/crud.log', 'a', 1000000, 3)
+        # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
+        # créé précédement et on ajoute ce handler au logger
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        self.logger.addHandler(file_handler)
+
+        # création d'un second handler qui va rediriger chaque écriture de log
+        # sur la console
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(stream_handler)
+
     def get_json_content(self, path):
         """
         Retourne le contenu d'un fichier json dans un dictionnaire
@@ -119,7 +147,7 @@ class Crud:
             if conn:
                 conn.rollback()
 
-            print "Error", exc.args[0], sql, params
+            self.logger.error("Error %s %s %s", exc.args[0], sql, params)
             self.add_error("%s %s %s" % (exc.args[0], sql, params))
             # sys.exit(1)
         finally:
@@ -168,7 +196,7 @@ class Crud:
         smtp.connect(self.config["smtp_host"])
         for _i in dests:
             smtp.sendmail(from_addr, _i, mail.as_string())
-            print "Mail to %s %s" % (_i, subject.decode("utf-8"))
+            self.logger.info("Mail to %s %s" % (_i, subject.decode("utf-8")))
 
         smtp.close()
 
