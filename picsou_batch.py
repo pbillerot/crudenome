@@ -5,7 +5,9 @@
 """
 import shutil
 import os
+import sys
 import datetime
+import argparse
 
 from crud import Crud
 from crudel import Crudel
@@ -14,10 +16,12 @@ from plugin.picsou_loader import PicsouLoadQuotes
 class PicsouBatch():
     """ Actualisation des données """
     # Planification dans cron
-    # 55 9,11,16,17 * * 1-5 ./git/crudenome/picsou_batch.py
+    # 55 9,11,16 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -stock -simul -sms
+    # 55 17 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -stock -simul -sms -mail
 
-    def __init__(self):
+    def __init__(self, args):
 
+        self.args = args
         # Chargement des paramètres
         self.crud = Crud()
 
@@ -51,8 +55,9 @@ class PicsouBatch():
 
         # Put de la base de données sur la box
         ticket_user = os.path.getmtime(self.crud.get_basename())
-        shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-        self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
+        if ticket_user != ticket_host:
+            shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+            self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
 
     def display(self, msg):
         """ docstring """
@@ -60,15 +65,24 @@ class PicsouBatch():
 
     def run_calcul(self):
         """ docstring """
-        if 1==1:
-            loader = PicsouLoadQuotes(self, self.crud)
+        loader = PicsouLoadQuotes(self, self.crud)
+        if self.args.stock:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf ORDER BY ptf_id
             """, {})
-            self.display("Chargement de l'historique...")
+            self.display("Actualisation des cours...")
             for ptf in ptfs:
                 loader.run(ptf["ptf_id"], 10)
 
+        if self.args.histo:
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM ptf ORDER BY ptf_id
+            """, {})
+            self.display("Actualisation des cours...")
+            for ptf in ptfs:
+                loader.run(ptf["ptf_id"], 400)
+
+        if self.args.simul:
             loader.simulateur()
 
             self.crud.exec_sql(self.crud.get_basename(), """
@@ -105,7 +119,7 @@ class PicsouBatch():
             """, {})
 
         # Mail de compte-rendu
-        if 1==1:
+        if self.args.mail or self.args.sms:
             # Mon portefeuille
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf WHERE ptf_inptf = 'PPP' ORDER by ptf_name
@@ -195,9 +209,23 @@ class PicsouBatch():
             msg += '</table>\n'
             dest = self.crudel.get_param("smtp_dest")
 
-            # self.crud.send_mail(dest, subject, msg)
+        if self.args.mail:
+            self.crud.send_mail(dest, subject.encode("utf-8"), msg)
 
+        if self.args.sms:
             self.crud.send_sms(subject.encode("utf-8") + sms.encode("utf-8"))
 
 if __name__ == '__main__':
-    PicsouBatch()
+
+    parser = argparse.ArgumentParser(prog='picsou_batch')
+    # add a -c/--color option
+    parser.add_argument('-mail', '--mail', action='store_true', default=False, help="Envoi mail à la fin")
+    parser.add_argument('-sms', '--sms', action='store_true', default=False, help="Envoi SMS à la fin")
+    parser.add_argument('-histo', '--histo', action='store_true', default=False, help="Rechargement de l'historique des cours sur 400 jours")
+    parser.add_argument('-simul', '--simul', action='store_true', default=False, help="Avec recalcul du simulateur")
+    parser.add_argument('-stock', '--stock', action='store_true', default=False, help="Requête pour actualiser le cours du jour")
+    # parse the command line stored in args, but skip the first element (the filename)
+    # self.args = parser.parse_args(args.get_arguments()[1:])
+    print parser.parse_args()
+
+    PicsouBatch(parser.parse_args())

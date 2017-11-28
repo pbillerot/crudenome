@@ -17,7 +17,7 @@ from crudportail import CrudPortail
 
 class AppWindow(Gtk.ApplicationWindow):
     """ La fenêtre principale du Gtk """
-    def __init__(self, app, args):
+    def __init__(self, app, args, crud):
         Gtk.ApplicationWindow.__init__(self, title="Welcome to CRUDENOME", application=app)
 
         # When the window is given the "delete_event" signal (this is given
@@ -33,11 +33,12 @@ class AppWindow(Gtk.ApplicationWindow):
         self.connect("destroy", self.destroy)
 
         self.args = args # paramètre
-        # Chargement des paramètres
-        self.crud = Crud()
-        self.crud.set_window(self)
-        if args.application:
-            self.crud.set_app(args.application)
+        self.crud = crud
+        # # Chargement des paramètres
+        # self.crud = Crud()
+        # self.crud.set_window(self)
+        # if args.application:
+        #     self.crud.set_app(args.application)
 
         self.set_title(self.crud.config["name"])
         self.activate_focus()
@@ -100,7 +101,7 @@ class Application(Gtk.Application):
         Note that the function in C activate() becomes do_activate() in Python
         """
         Gtk.Application.__init__(self, flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE, **kwargs)
-        self.args = None # store for parsed command line options
+        self.args = args # store for parsed command line options
 
         self.window = None
 
@@ -114,7 +115,14 @@ class Application(Gtk.Application):
         if not self.window:
             # Windows are associated with the application
             # when the last one is closed the application shuts down
-            self.window = AppWindow(self, self.args)
+    
+            # Chargement des paramètres
+            self.crud = Crud()
+            self.crud.set_window(self)
+            if self.args.application:
+                self.crud.set_app(self.args.application)
+    
+            self.window = AppWindow(self, self.args, self.crud)
 
     def do_startup(self):
         """

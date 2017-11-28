@@ -96,7 +96,8 @@ class Crud:
         # création de l'objet logger qui va nous servir à écrire dans les logs
         self.logger = logging.getLogger()
         # on met le niveau du logger à DEBUG, comme ça il écrit tout
-        self.logger.setLevel(logging.DEBUG)
+        # self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.INFO)
 
         # création d'un formateur qui va ajouter le temps, le niveau
         # de chaque message quand on écrira un message dans le log
@@ -106,7 +107,7 @@ class Crud:
         file_handler = RotatingFileHandler('log/crud.log', 'a', 1000000, 3)
         # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
         # créé précédement et on ajoute ce handler au logger
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
 
