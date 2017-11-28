@@ -16,8 +16,8 @@ from plugin.picsou_loader import PicsouLoadQuotes
 class PicsouBatch():
     """ Actualisation des données """
     # Planification dans cron
-    # 55 9,11,16 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -stock -simul -sms
-    # 55 17 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -stock -simul -sms -mail
+    # 55 9,11,16 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -quote -simul -sms
+    # 55 17 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -quote -simul -sms -mail
 
     def __init__(self, args):
 
@@ -48,7 +48,7 @@ class PicsouBatch():
         self.supports = []
         self.resistances = []
         self.top14 = []
-        self.rsi_date = "2017-07-11"
+        self.last_date = "2017-07-11"
         self.rsi_time = "14:35"
         self.myptf = []
         self.run_calcul()
@@ -66,7 +66,7 @@ class PicsouBatch():
     def run_calcul(self):
         """ docstring """
         loader = PicsouLoadQuotes(self, self.crud)
-        if self.args.stock:
+        if self.args.quote:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf ORDER BY ptf_id
             """, {})
@@ -97,7 +97,10 @@ class PicsouBatch():
             """, {})
 
             # mise à jour du résumé
-            self.rsi_date = loader.quote["date"]
+            last_dates = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT max(cours_date) as last_date FROM cours
+            """, {})
+            self.last_date = last_dates[0]["last_date"]
             # self.rsi_time = loader.quote["time"]
             self.rsi_time = "00:00"
             gain = self.crud.sql_to_dict(self.crud.get_basename(), """
@@ -112,7 +115,7 @@ class PicsouBatch():
             ,resume_time = :time 
             ,resume_investi = :investi
             ,resume_gain = :gain
-            """, {"date": self.rsi_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"]})
+            """, {"date": self.last_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"]})
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE RESUME
             set resume_percent = (resume_gain / resume_investi) * 100
@@ -145,10 +148,7 @@ class PicsouBatch():
             sms = ""
             for ptf in ptfs:
                 url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])
-                quote1 = ptf["ptf_quote"] * 100 / (ptf["ptf_percent"] + 100)
-                gainj = (ptf["ptf_quote"] - quote1) * ptf["ptf_quantity"]
-                # gainj = ptf["ptf_quote"] * ptf["ptf_percent"] / 100 * ptf["ptf_quantity"]
-                tot_gainj += gainj
+                tot_gainj += ptf["ptf_gainj"]
                 tot_cost += ptf["ptf_cost"] * ptf["ptf_quantity"]
                 tot_brut += ptf["ptf_quote"] * ptf["ptf_quantity"]
                 msg = """<tr>
@@ -166,7 +166,7 @@ class PicsouBatch():
                 </tr>""".format(ptf["ptf_name"]\
                 , ptf["ptf_quote"]\
                 , ptf["ptf_percent"]\
-                , gainj\
+                , ptf["ptf_gainj"]\
                 , ptf["ptf_gain"]\
                 , ptf["ptf_gain_percent"]\
                 , ptf["ptf_resistance"]\
@@ -175,7 +175,7 @@ class PicsouBatch():
                 , ptf["ptf_e200"]\
                 , url)
                 self.myptf.append(msg)
-                sms += u" :: %s %s %3.2f %2.2f%% %3.2f€" % ( ptf["ptf_id"], ptf["ptf_resistance"], ptf["ptf_quote"], ptf["ptf_percent"], gainj)
+                sms += u" :: %s %s %3.2f %2.2f%% %3.2f€" % ( ptf["ptf_id"], ptf["ptf_resistance"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_gainj"])
 
             msg = """<tr>
             <td>{0}</td>
@@ -203,8 +203,8 @@ class PicsouBatch():
             self.myptf.append(msg)
 
             # envoi du mail
-            subject = u"Picsou du {} Jour {:.2f} € Total {:.2f} €".format(self.rsi_date, tot_gainj, tot_brut - tot_cost)
-            msg = '<h3>{}</h3>\n<table>\n'.format("Mes actions au {}".format(self.rsi_date))
+            subject = u"Picsou du {} Jour {:.2f} € Total {:.2f} €".format(self.last_date, tot_gainj, tot_brut - tot_cost)
+            msg = '<h3>{}</h3>\n<table>\n'.format("Mes actions au {}".format(self.last_date))
             msg += '\n'.join(self.myptf)
             msg += '</table>\n'
             dest = self.crudel.get_param("smtp_dest")
@@ -223,9 +223,7 @@ if __name__ == '__main__':
     parser.add_argument('-sms', '--sms', action='store_true', default=False, help="Envoi SMS à la fin")
     parser.add_argument('-histo', '--histo', action='store_true', default=False, help="Rechargement de l'historique des cours sur 400 jours")
     parser.add_argument('-simul', '--simul', action='store_true', default=False, help="Avec recalcul du simulateur")
-    parser.add_argument('-stock', '--stock', action='store_true', default=False, help="Requête pour actualiser le cours du jour")
-    # parse the command line stored in args, but skip the first element (the filename)
-    # self.args = parser.parse_args(args.get_arguments()[1:])
-    print parser.parse_args()
+    parser.add_argument('-quote', '--quote', action='store_true', default=False, help="Requête pour actualiser le cours du jour")
+    # print parser.parse_args()
 
     PicsouBatch(parser.parse_args())

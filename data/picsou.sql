@@ -13,6 +13,7 @@ CREATE TABLE PTF (
     "ptf_e200" REAL DEFAULT(0),
     "ptf_quantity" INTEGER DEFAULT(0),
     "ptf_cost" REAL DEFAULT(0),
+    "ptf_gainj" REAL DEFAULT(0),
     "ptf_gain" REAL DEFAULT(0),
     "ptf_gain_percent" REAL DEFAULT(0),
     "ptf_resistance" TEXT,
@@ -52,6 +53,7 @@ CREATE TABLE COURS (
     "cours_quantity" REAL,
     "cours_cost" REAL,
     "cours_nbj" REAL,
+    "cours_gainj" REAL,
     "cours_gain" REAL,
     "cours_gain_percent" REAL
 )
