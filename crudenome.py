@@ -34,11 +34,7 @@ class AppWindow(Gtk.ApplicationWindow):
 
         self.args = args # paramètre
         self.crud = crud
-        # # Chargement des paramètres
-        # self.crud = Crud()
-        # self.crud.set_window(self)
-        # if args.application:
-        #     self.crud.set_app(args.application)
+        self.crud.set_window(self)
 
         self.set_title(self.crud.config["name"])
         self.activate_focus()
@@ -118,7 +114,6 @@ class Application(Gtk.Application):
     
             # Chargement des paramètres
             self.crud = Crud()
-            self.crud.set_window(self)
             if self.args.application:
                 self.crud.set_app(self.args.application)
     

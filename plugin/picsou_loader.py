@@ -249,7 +249,7 @@ class PicsouLoadQuotes():
             , cours_ema12 = :cours_ema12, cours_ema26 = :cours_ema26, cours_ema50 = :cours_ema50
             , cours_macd = :cours_macd
             , cours_trend = :cours_trend
-            , cours_trade = '', cours_quantity = 0, cours_cost = 0, cours_gain = 0, cours_gain_percent = 0
+            , cours_trade = '', cours_quantity = 0, cours_cost = 0, cours_gainj = 0, cours_gain = 0, cours_gain_percent = 0
             , cours_nbj = -1
             WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
             """, cours)
@@ -317,6 +317,8 @@ class PicsouLoadQuotes():
             trend = [0] * n
 
             quote = 0.0
+            percent = 0
+            gainj = 0
             intest = ""
             quantity = 0
             cost = 0.0
@@ -399,6 +401,7 @@ class PicsouLoadQuotes():
                     amount = quantity * quote
                     cost = quote + quote * self.crudel.get_param("cost") * 2 # frais
                     gain = amount - quantity * cost
+                    gainj = (cours["cours_close"] - cours["cours_open"]) * quantity
                     gain_percent = (gain / amount) * 100
                     nbj = 0
                     test_date = cours["cours_date"]
@@ -409,12 +412,14 @@ class PicsouLoadQuotes():
                     cours["cours_nbj"] = nbj
                     cours["cours_quantity"] = quantity
                     cours["cours_cost"] = cost
+                    cours["cours_gainj"] = gainj
                     cours["cours_gain"] = gain
                     cours["cours_gain_percent"] = gain_percent
 
                     self.crud.exec_sql(self.crud.get_basename(), """
                     UPDATE COURS
-                    set cours_trade = :cours_trade, cours_nbj = :cours_nbj, cours_quantity = :cours_quantity, cours_cost = :cours_cost
+                    set cours_trade = :cours_trade, cours_nbj = :cours_nbj, cours_quantity = :cours_quantity
+                    , cours_cost = :cours_cost, cours_gainj = :cours_gainj
                     , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
                     WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
                     """, cours)
@@ -429,12 +434,14 @@ class PicsouLoadQuotes():
                     # cas des pertes sans palier dans les 26 jours
                     amount = quantity * quote
                     gain = amount - quantity * cost
+                    gainj = (cours["cours_close"] - cours["cours_open"]) * quantity
                     if amount > 0:
                         gain_percent = (gain / amount) * 100
 
                     # maj du cours
                     cours["cours_quantity"] = quantity
                     cours["cours_cost"] = cost
+                    cours["cours_gainj"] = gainj
                     cours["cours_gain"] = gain
                     cours["cours_gain_percent"] = gain_percent
 
@@ -495,6 +502,7 @@ class PicsouLoadQuotes():
                         UPDATE COURS
                         set cours_trade = :cours_trade, cours_nbj = :cours_nbj
                         , cours_quantity = :cours_quantity, cours_cost = :cours_cost
+                        , cours_gainj = :cours_gainj
                         , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
                         WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
                         """, cours)
@@ -521,6 +529,7 @@ class PicsouLoadQuotes():
                             UPDATE COURS
                             set cours_trade = :cours_trade, cours_nbj = :cours_nbj
                             , cours_quantity = :cours_quantity, cours_cost = :cours_cost
+                            , cours_gainj = :cours_gainj
                             , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
                             WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
                             """, cours)
@@ -549,6 +558,7 @@ class PicsouLoadQuotes():
                             self.crud.exec_sql(self.crud.get_basename(), """UPDATE COURS
                             set cours_trade = :cours_trade, cours_nbj = :cours_nbj
                             , cours_quantity = :cours_quantity, cours_cost = :cours_cost
+                            , cours_gainj = :cours_gainj
                             , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
                             WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
                             """, cours)
@@ -564,6 +574,7 @@ class PicsouLoadQuotes():
 
                 # maj du PTF avec les données du cours
                 ptf["ptf_quote"] = cours["cours_close"]
+                ptf["ptf_gainj"] = cours["cours_gainj"]
                 ptf["ptf_percent"] = cours["cours_percent"]
                 ptf["ptf_rsi"] = cours["cours_rsi"]
                 ptf["ptf_macd"] = cours["cours_trend"]
@@ -584,6 +595,7 @@ class PicsouLoadQuotes():
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE PTF
             set ptf_quote = :ptf_quote 
+            ,ptf_gainj = :ptf_gainj 
             ,ptf_percent = :ptf_percent 
             ,ptf_quantity = :ptf_quantity
             ,ptf_resistance = :ptf_resistance

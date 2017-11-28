@@ -29,6 +29,9 @@
             "pythonPath": "${config:python.pythonPath}",
             "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
+            "args": [
+                "-simul"
+            ],
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
