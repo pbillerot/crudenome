@@ -176,6 +176,9 @@ class PicsouBatchUi(Gtk.Window):
         self.rsi_date = loader.quote["date"]
         # self.rsi_time = loader.quote["time"]
         self.rsi_time = "00:00"
+        gainj = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT sum(ptf_gainj) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+        """, {})
         gain = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_inptf = 'PPP'
         """, {})
@@ -187,8 +190,9 @@ class PicsouBatchUi(Gtk.Window):
         set resume_date = :date 
         ,resume_time = :time 
         ,resume_investi = :investi
+        ,resume_gainj = :gainj
         ,resume_gain = :gain
-        """, {"date": self.rsi_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"]})
+        """, {"date": self.rsi_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"], "gainj": gainj[0]["result"]})
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE RESUME
         set resume_percent = (resume_gain / resume_investi) * 100

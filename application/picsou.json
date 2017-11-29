@@ -232,7 +232,7 @@
                     },
                     "sql_where": "ptf_inptf = 'PPP'",
                     "limitX": 1,
-                    "sql_footer": "SELECT printf('Le <b>%s</b> Gain: <b>%.2f</b> €', resume_date, resume_gain) as sql_footer FROM RESUME"
+                    "sql_footer": "SELECT printf('Le <b>%s</b> Gain du jour: <b>%.2f</b> € Gain: <b>%.2f</b> €', resume_date, resume_gainj, resume_gain) as sql_footer FROM RESUME"
                 },
                 "vall": {
                     "title": "Les valeurs",
