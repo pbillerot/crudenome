@@ -5,6 +5,12 @@
     "icon_file": "picsou.jpg",
     "basename": "~/data/picsou/picsou.sqlite",
     "basehost": "/mnt/freebox/data/picsou/picsou.sqlite",
+    "shell": {
+        "Test": "./batch_test.py",
+        "Picsou Simul": "./picsou_batch.py -simul",
+        "Picsou Quote": "./picsou_batch.py -quote",
+        "Picsou Mail Sms": "./picsou_batch.py -quote -simul -mail -sms"
+    },
     "tables": {
         "ptf": {
             "key": "ptf_id",

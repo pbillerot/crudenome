@@ -333,6 +333,7 @@ class PicsouLoadQuotes():
             b_en_production = False
             e200 = []
             rsi_67 = False
+            max_quote = 0
             for cours in courss:
                 # boucle pour récupérer le cours de j-1
                 for i in range(n-1, 0, -1):
@@ -480,14 +481,23 @@ class PicsouLoadQuotes():
                     # avec >70 Nbre de mises: -3 Cash: -2114.33 € Gain acquis: 155.79 € Gain : 503.30 €
                     if rsis[0] > 67:
                         rsi_67 = True 
+                        b_vendre = True
+
+                    # if rsi_67 and quotes[0] < quotes[1]:
+                    #     if max < quotes[0]:
+                    #         max = quotes[0]
+                    #     else:
+                    #         if emas12[0] < emas12[1]:
+                    #             motif += " >67"
+                    #             b_vendre = True
 
                     if rsi_67 and rsis[0] < rsis[1]:
                         motif += " >67"
                         b_vendre = True
 
                     # garde-fou : croisemnt 26x12 avant la hausse du 50
-                    # if not b_vendre and emas50[0] < emas50[1] and gain < 0 and nbj > 24:
-                    #     motif += " 24J"
+                    # if not b_vendre and emas12[0] < emas12[1] and gain < 0 and nbj > 12:
+                    #     motif += " 12J"
                     #     b_vendre = True
 
                     if b_vendre and b_en_production:
@@ -548,6 +558,7 @@ class PicsouLoadQuotes():
                             gain_percent = 0
                             test_date = ""
                             rsi_67 = False
+                            max_quote = 0
                         else:
                             # Maj du cours
                             nbj += 1

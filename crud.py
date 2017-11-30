@@ -61,7 +61,9 @@ class Crud:
 
             # Remplacement de ~
             for key in self.config:
-                self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
+                param = self.config[key]
+                if isinstance(self.config[key], unicode):
+                    self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
             # chargement de local.json et fusion dans config
             if self.config["local_config"]:
                 with open(self.config["local_config"]) as json_data_file:
@@ -70,7 +72,8 @@ class Crud:
 
             # Remplacement de ~
             for key in self.config:
-                self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
+                if isinstance(self.config[key], str):
+                    self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
             
             self.init_logger()
 

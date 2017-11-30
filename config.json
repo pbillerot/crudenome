@@ -8,5 +8,10 @@
     "icon_file": "crudenome.png",
     "icon_nameX": "folder",
     "application_directory": "./application",
-    "local_config": "~/data/crudenome/local.json"
+    "local_config": "~/data/crudenome/local.json",
+    "shell": {
+        "Picsou Simul": "picsou_batch.py -simul",
+        "Picsou Quote": "picsou_batch.py -quote",
+        "Picsou Mail Sms": "picsou_batch.py -quote -simul -mail -sms"
+    }
 }

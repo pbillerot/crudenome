@@ -48,8 +48,8 @@ class PicsouBatch():
         self.supports = []
         self.resistances = []
         self.top14 = []
-        self.last_date = "2017-07-11"
-        self.rsi_time = "14:35"
+        self.last_date = "1953-06-21"
+        self.rsi_time = "12:32"
         self.myptf = []
         self.run_calcul()
 
@@ -61,7 +61,8 @@ class PicsouBatch():
 
     def display(self, msg):
         """ docstring """
-        self.crud.logger.info(msg)
+        print msg
+        # self.crud.logger.info(msg)
 
     def run_calcul(self):
         """ docstring """

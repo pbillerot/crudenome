@@ -6,11 +6,13 @@
 from shell import shell
 
 import sys
+import os
+import io
 import subprocess
 import logging
 import logging.handlers
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib, GObject
 
 
 class CrudTerminal(Gtk.Window):
@@ -20,6 +22,11 @@ class CrudTerminal(Gtk.Window):
 
         self.crud = crud
 
+        self.spawn = GAsyncSpawn()
+        self.spawn.connect("process-done", self.on_process_done)
+        self.spawn.connect("stdout-data", self.on_stdout_data)
+        self.spawn.connect("stderr-data", self.on_stderr_data)
+
         self.activate_focus()
         self.set_border_width(10)
         self.set_default_size(1200, 800)
@@ -27,15 +34,24 @@ class CrudTerminal(Gtk.Window):
         vbox = Gtk.VBox()
         self.add(vbox)
 
-        self.toolbar = Gtk.HBox()
-        vbox.pack_start(self.toolbar, False, True, 5)
+        if self.crud.get_application_prop("shell", False):
+            self.toolbar_shell = Gtk.HBox()
+            commands = self.crud.get_application_prop("shell")
+            for key in commands:
+                button = Gtk.Button(key, image=Gtk.Image(stock=Gtk.STOCK_EXECUTE))
+                button.connect("clicked", self.on_shell_button_clicked, commands[key])
+                self.toolbar_shell.pack_end(button, False, True, 3)
+            vbox.pack_start(self.toolbar_shell, False, True, 5)
+
+        self.toolbar_input = Gtk.HBox()
+        vbox.pack_start(self.toolbar_input, False, True, 5)
 
         self.input_cmd = Gtk.SearchEntry()
         self.input_cmd.connect("activate", self.on_input_cmd_activate)
-        self.toolbar.pack_start(self.input_cmd, True, True, 3)
+        self.toolbar_input.pack_start(self.input_cmd, True, True, 3)
         self.run_button = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_EXECUTE))
         self.run_button.connect("clicked", self.on_run_button_clicked)
-        self.toolbar.pack_end(self.run_button, False, True, 3)
+        self.toolbar_input.pack_end(self.run_button, False, True, 3)
 
         scrolledwindow = Gtk.ScrolledWindow()
         vbox.pack_start(scrolledwindow, True, True, 5)
@@ -59,60 +75,157 @@ class CrudTerminal(Gtk.Window):
         self.textview.scroll_to_iter(iter, 0, 0, 0, 0)
         # self.crud.logger.info(msg)
 
+    def on_shell_button_clicked(self, widget, command):
+        """ Démarrage du shell """
+        # print command
+        self.display(">>> [%s]" % command)
+
+        # Methode 1
+        # pid = self.spawn.run(str(command).split(" "))
+        # print "Started as process #", pid
+
+        # Methode 2
+        # self.source_id = None
+        # pid, stdin, stdout, stderr = GLib.spawn_async(str(command).split(' '),
+        #                                 flags=GLib.SpawnFlags.SEARCH_PATH,
+        #                                 standard_output=True)
+        # io = GLib.IOChannel(stdout)
+        # self.source_id = io.add_watch(GLib.IO_IN|GLib.IO_HUP,
+        #                               self.write_to_textview,
+        #                               priority=GLib.PRIORITY_HIGH)
+
+        # Methode 3
+        # process = subprocess.Popen(str(command).split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
+        # with process.stdout:
+        #     for line in iter(process.stdout.readline, b''):
+        #         print line,
+        # process.wait() # wait for the subprocess to exit
+        # while True:
+        #     output = process.stdout.readline()
+        #     while Gtk.events_pending():
+        #         Gtk.main_iteration()
+        #     if output == '' and process.poll() is not None:
+        #         break
+        #     if output:
+        #         print(output.strip())
+        #         # self.display(output.strip())
+
+        # print "Process done %s" % process.poll()
+
+        # méthode 4
+        old_stdout = sys.stdout
+        sys.stdout = MyStdout(self)
+        process = subprocess.call(str(command).split(" "))
+        sys.stdout = old_stdout
+        print process
+
+
     def on_input_cmd_activate(self, widget):
         """ CR dans le champ """
         self.run_button.do_activate(self.run_button)
 
     def on_run_button_clicked(self, widget):
         """ Démarrage du shell """
-        command = self.input_cmd.get_text().encode("utf-8").split()
+        command = self.input_cmd.get_text().encode("utf-8")
+        self.display(">>> [%s]" % command)
+        pid = self.spawn.run(command.split(" "))
+        print "Started as process #", pid
 
-        proc = subprocess.Popen(command, shell=False, 
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (stdout, stderr) = proc.communicate()
+    def on_process_done(self, sender, retval):
+        print "Done. exit code:", retval
 
-        sys.stdout = StdoutDirector(self)
-        sys.stderr = StderrDirector(self)
+    def on_stdout_data(self, sender, line):
+        print "[STDOUT]", line.strip("\n")
+        # while Gtk.events_pending():
+        #     Gtk.main_iteration()
+        # self.display("[STDOUT] %s" % line.strip("\n"))
 
-        # logger = logging.getLogger('TERMINAL')
-        # logger.setLevel(logging.DEBUG)
-        # handler = RequestsHandler(self)
-        # formatter = logging.Formatter('%(asctime)s %(levelname)s %(module)s.%(funcName)s :: %(message)s')
-        # # formatter = LogstashFormatter('BATCH')
-        # handler.setFormatter(formatter)
-        # logger.addHandler(handler)
-        # self.crud.logger.info(stdout)
-        # self.crud.logger.error(stderr)
-        # logger.removeHandler(handler)
+    def on_stderr_data(self, sender, line):
+        print "[STDERR]", line.strip("\n")
+        # while Gtk.events_pending():
+        #     Gtk.main_iteration()
+        # self.display("[STDERR] %s" % line.strip("\n"))
 
-        # self.display("Exécution de [%s]" % command)
-        # cmd = shell(command)
-        # for line in cmd.output():
-        #     self.display(line)
+    # def write_to_textview(self, io, condition):
+    #     print condition
+    #     if condition is GLib.IO_IN:
+    #         line = io.readline()
+    #         self.textbuffer.insert_at_cursor(line)
+    #         return True
+    #     elif condition is GLib.IO_HUP|GLib.IO_IN:
+    #         GLib.source_remove(self.source_id)
+    #         return False
 
-class RequestsHandler(logging.Handler):
-    def __init__(self, window):
-        logging.Handler.__init__(self)
-        self.window = window
+class MyStdout:
+    def __init__(self, parent):
+        self.parent = parent
 
-    def emit(self, record):
-        log_entry = self.format(record)
-        print log_entry
-        self.window.display(record)
+    def write(self, string):
+       if string:
+           self.parent.display(string)
+        #    print string
 
-        return log_entry
 
-class IODirector(object):
-    def __init__(self, window):
-        self.window = window
+class GAsyncSpawn(GObject.GObject):
+    """ GObject class to wrap GLib.spawn_async().
+    Use:
+        s = GAsyncSpawn()
+        s.connect('process-done', mycallback)
+        s.run(command)
+            #command: list of strings
+    """
+    __gsignals__ = {
+        'process-done' : (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+                          (GObject.TYPE_INT, )),
+        'stdout-data'  : (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+                          (GObject.TYPE_STRING, )),
+        'stderr-data'  : (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+                          (GObject.TYPE_STRING, )),
+    }
+    def __init__(self):
+        GObject.GObject.__init__(self)
 
-class StdoutDirector(IODirector):
-    def write(self,str):
-        self.window.display(str)
-    def flush(self):
-        pass
-class StderrDirector(IODirector):
-    def write(self,str):
-        self.window.display(str)
-    def flush(self):
-        pass
+    def run(self, cmd):
+        """ Run de la commande """
+        # print "GAsyncSpawn", cmd
+        try:
+            ret = GLib.spawn_async(cmd, flags=GLib.SPAWN_DO_NOT_REAP_CHILD|GLib.SPAWN_SEARCH_PATH, standard_output=True, standard_error=True)
+        except:
+            self._emit_std("stdout", sys.exc_info()[1])
+            return
+
+        self.pid, self.idin, self.idout, self.iderr = ret
+        self.fout = os.fdopen(self.idout, "r")
+        self.ferr = os.fdopen(self.iderr, "r")
+
+        self.source_id = GLib.child_watch_add(self.pid, self._on_done)
+        fout_id = GLib.io_add_watch(self.fout, GLib.IO_IN, self._on_stdout)
+        GLib.io_add_watch(self.ferr, GLib.IO_IN, self._on_stderr)
+
+        return self.pid
+
+    def _on_done(self, pid, retval, *argv):
+        # GLib.source_remove(self.source_id)
+        # os.close(self.fout)
+        # os.close(self.ferr)
+        self.emit("process-done", retval)
+
+    def _emit_std(self, name, value):
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        self.emit(name + "-data", value)
+
+    def _on_stdout(self, fobj, cond):
+        for line in fobj:
+            # print line
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            self._emit_std("stdout", line)
+        return True
+
+    def _on_stderr(self, fobj, cond):
+        for line in fobj:
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            self._emit_std("stderr", line)
+        return True
