@@ -55,6 +55,7 @@ class PicsouBatch():
 
         # Put de la base de données sur la box
         ticket_user = os.path.getmtime(self.crud.get_basename())
+        ticket_host = os.path.getmtime(self.crud.get_basehost())
         if ticket_user != ticket_host:
             shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
             self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))

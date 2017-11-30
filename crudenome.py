@@ -61,7 +61,7 @@ class AppWindow(Gtk.ApplicationWindow):
             ticket = self.crud.get_ticket()
             if ticket_user != ticket:
                 # la base locale a évoluée
-                if self.crud.get_ticket() != ticket_host:
+                if ticket != ticket_host:
                     # la base du host a changée depuis la dernière prise
                     dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
                                         Gtk.ButtonsType.YES_NO, "La base sur le serveur a changée")

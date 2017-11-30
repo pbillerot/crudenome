@@ -40,7 +40,6 @@ class CrudPortail(GObject.GObject):
     __gsignals__ = {
         'refresh_footer': (GObject.SIGNAL_RUN_FIRST, None, (str, str, )),
         'select_application': (GObject.SIGNAL_RUN_FIRST, None, (str,)),
-        'update_application': (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         'select_view': (GObject.SIGNAL_RUN_FIRST, None, (str, str,))
     }
 
@@ -290,13 +289,6 @@ class CrudPortail(GObject.GObject):
 
         self.create_sidebar()
         self.emit("select_view", self.crud.get_table_id(), self.crud.get_view_id())
-
-    def do_update_application(self, application_file):
-        """ Backup d'une application """
-        # Exécution du script on_update
-        if self.crud.get_application_prop("on_update"):
-            plugin_class = self.crud.load_class("plugin." + self.crud.get_application_prop("on_update"))
-            self.ticket = plugin_class(self.crud).run(self.ticket, force=True)
 
     def do_select_view(self, table_id, view_id):
         """ Sélection d'une vue """
