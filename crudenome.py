@@ -39,7 +39,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_title(self.crud.config["name"])
         self.activate_focus()
         self.set_border_width(10)
-        self.set_default_size(1200, 600)
+        self.set_default_size(1280, 600)
         if self.crud.config.has_key("icon_file"):
             self.set_icon_from_file(self.crud.config["icon_file"])
         if self.crud.config.has_key("icon_name"):

@@ -47,6 +47,15 @@
                     "display": "%3.2f %%",
                     "sortable": true
                 },
+                "ptf_gainj": {
+                    "label_long": "Gain du jour",
+                    "label_short": "Gain J",
+                    "type": "float",
+                    "col_align": "right",
+                    "sql_color": "case when ptf_gainj > 0 then '#006600' else '#FF0000' end",
+                    "display": "%3.2f €",
+                    "sortable": true
+                },
                 "ptf_rsi": {
                     "label_long": "RSI",
                     "label_short": "RSI",
@@ -221,6 +230,7 @@
                         "ptf_name": {},
                         "ptf_quote": {},
                         "ptf_percent": {},
+                        "ptf_gainj": {},
                         "ptf_rsi": {},
                         "ptf_macd": {},
                         "ptf_e200": {},

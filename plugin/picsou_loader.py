@@ -372,7 +372,7 @@ class PicsouLoadQuotes():
                 # SUPPORT -> ACHAT
                 b_achat = False
 
-                # if intest == "" and rsis[0] < 37:
+                # if intest == "" and rsis[1] < 37 and rsis[0] > rsis[1]:
                 #     motif = " <37"
                 #     b_achat = True
 

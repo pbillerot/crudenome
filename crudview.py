@@ -35,6 +35,7 @@ class CrudView(GObject.GObject):
         self.box_main = box_main
         self.box_toolbar = box_toolbar
         self.scroll_window = scroll_window
+        self.qligne_view = 0 # nbre de lignes de la vue
         if args:
             self.args = args
         else:
@@ -105,6 +106,9 @@ class CrudView(GObject.GObject):
                 self.search_sql = self.crud.get_view_prop("filter")
             if not self.crudel:
                 self.search_entry_sql.grab_focus()
+        # 
+        self.qligne_label = Gtk.Label()
+        self.box_toolbar.pack_start(self.qligne_label, False, True, 3)
 
         self.box_toolbar_select = Gtk.HBox()
         self.button_delete = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_REMOVE))
@@ -347,6 +351,7 @@ class CrudView(GObject.GObject):
             self.liststore.append(store)
             row_id += 1
 
+        self.qligne_view = len(rows)
         # suppression de la sélection
         self.emit("init_widget", self.__class__, "update_listore")
 
@@ -387,6 +392,7 @@ class CrudView(GObject.GObject):
         self.label_select.hide()
         self.button_edit.hide()
         self.button_delete.hide()
+        self.qligne_label.set_text(str(self.qligne_view) + " ligne(s)")
 
     def do_refresh_data_view(self, str_from, str_arg=""):
         """ Les données ont été modifiées -> refresh """

@@ -36,11 +36,12 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
 
         self.activate_focus()
         self.set_border_width(10)
-        self.set_default_size(1200, 800)
+        self.set_default_size(1024, 800)
 
         vbox = Gtk.VBox()
         self.add(vbox)
 
+        # Raccourcis de commande
         if self.crud.get_application_prop("shell", False):
             self.toolbar_shell = Gtk.HBox()
             commands = self.crud.get_application_prop("shell")
@@ -50,12 +51,19 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
                 self.toolbar_shell.pack_end(button, False, True, 3)
             vbox.pack_start(self.toolbar_shell, False, True, 5)
 
+        # Barre input + raz console
         self.toolbar_input = Gtk.HBox()
         vbox.pack_start(self.toolbar_input, False, True, 5)
 
         self.input_cmd = Gtk.SearchEntry()
         self.input_cmd.connect("activate", self.on_input_cmd_activate)
         self.toolbar_input.pack_start(self.input_cmd, True, True, 3)
+        
+        self.raz_button = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_DELETE))
+        self.raz_button.set_tooltip_text("Nettoyer la console")
+        self.raz_button.connect("clicked", self.on_raz_button_clicked)
+        self.toolbar_input.pack_end(self.raz_button, False, True, 3)
+        
         self.run_button = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_EXECUTE))
         self.run_button.connect("clicked", self.on_run_button_clicked)
         self.toolbar_input.pack_end(self.run_button, False, True, 3)
@@ -148,6 +156,10 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
         self.display(">>> [%s]" % command)
         pid = self.spawn.run(command.split(" "))
         print "Started as process #", pid
+
+    def on_raz_button_clicked(self, widget):
+        """ Nettoyage de la console """
+        self.textbuffer.set_text('')
 
     def on_process_done(self, sender, retval):
         print "Done. exit code:", retval
