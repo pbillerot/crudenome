@@ -8,6 +8,7 @@ from shell import shell
 import sys
 import os
 import io
+import threading
 import subprocess
 import logging
 import logging.handlers
@@ -15,10 +16,16 @@ import logging.handlers
 from gi.repository import Gtk, GLib, GObject
 
 
-class CrudTerminal(Gtk.Window):
+class CrudTerminal(Gtk.Window, GObject.GObject):
     """ Fenêtre terminal """
+
+    __gsignals__ = {
+        'display': (GObject.SIGNAL_RUN_FIRST, None, (str,))
+    }
+
     def __init__(self, crud):
         Gtk.Window.__init__(self, title="Terminal")
+        GObject.GObject.__init__(self) # pour  gérer les signaux
 
         self.crud = crud
 
@@ -75,14 +82,24 @@ class CrudTerminal(Gtk.Window):
         self.textview.scroll_to_iter(iter, 0, 0, 0, 0)
         # self.crud.logger.info(msg)
 
+    def on_display(self, msg):
+        print msg
+        self.textbuffer.insert_at_cursor(msg + "\n", len(msg + "\n"))
+        self.textview.set_cursor_visible(True)
+        # Scoll to end of Buffer
+        iter = self.textbuffer.get_iter_at_line(self.textbuffer.get_line_count())
+        self.textview.scroll_to_iter(iter, 0, 0, 0, 0)
+        # self.crud.logger.info(msg)
+
     def on_shell_button_clicked(self, widget, command):
         """ Démarrage du shell """
         # print command
+        # self.emit("display", ">>> [%s]" % command)
         self.display(">>> [%s]" % command)
 
         # Methode 1
-        # pid = self.spawn.run(str(command).split(" "))
-        # print "Started as process #", pid
+        pid = self.spawn.run(str(command).split(" "))
+        print "Started as process #", pid
 
         # Methode 2
         # self.source_id = None
@@ -112,13 +129,14 @@ class CrudTerminal(Gtk.Window):
 
         # print "Process done %s" % process.poll()
 
-        # méthode 4
-        old_stdout = sys.stdout
-        sys.stdout = MyStdout(self)
-        process = subprocess.call(str(command).split(" "))
-        sys.stdout = old_stdout
-        print process
+        # threading.Thread(target=self.thread_process, args=(command,)).start()
 
+    def thread_process(self, command):
+        process = subprocess.Popen(str(command).split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
+        with process.stdout:
+            for line in iter(process.stdout.readline, b''):
+                self.display(line)
+        process.wait() # wait for the subprocess to exit
 
     def on_input_cmd_activate(self, widget):
         """ CR dans le champ """
@@ -135,16 +153,16 @@ class CrudTerminal(Gtk.Window):
         print "Done. exit code:", retval
 
     def on_stdout_data(self, sender, line):
-        print "[STDOUT]", line.strip("\n")
+        # print "[STDOUT]", line.strip("\n")
         # while Gtk.events_pending():
         #     Gtk.main_iteration()
-        # self.display("[STDOUT] %s" % line.strip("\n"))
+        self.display("[STDOUT] %s" % line.strip("\n"))
 
     def on_stderr_data(self, sender, line):
-        print "[STDERR]", line.strip("\n")
+        # print "[STDERR]", line.strip("\n")
         # while Gtk.events_pending():
         #     Gtk.main_iteration()
-        # self.display("[STDERR] %s" % line.strip("\n"))
+        self.display("[STDERR] %s" % line.strip("\n"))
 
     # def write_to_textview(self, io, condition):
     #     print condition
@@ -162,9 +180,8 @@ class MyStdout:
 
     def write(self, string):
        if string:
-           self.parent.display(string)
+           self.parent.emit("display", string)
         #    print string
-
 
 class GAsyncSpawn(GObject.GObject):
     """ GObject class to wrap GLib.spawn_async().

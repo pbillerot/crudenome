@@ -57,13 +57,12 @@
                     "sortable": true
                 },
                 "ptf_macd": {
-                    "label_long": "E50",
-                    "label_short": "E50",
-                    "type": "float",
-                    "display": "%3.2f",
+                    "label_long": "J26",
+                    "label_short": "J26+",
+                    "type": "int",
                     "col_align": "right",
                     "sortable": true,
-                    "sql_color": "case when ptf_macd > 0 then '#006600' else '#FF0000' end"
+                    "sql_color": "case when ptf_macd > 12 then '#006600' else '#FF0000' end"
                 },
                 "ptf_e200": {
                     "label_long": "E200",

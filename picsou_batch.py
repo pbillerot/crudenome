@@ -80,7 +80,7 @@ class PicsouBatch():
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf ORDER BY ptf_id
             """, {})
-            self.display("Actualisation des cours...")
+            self.display("Chargement de l'historique...")
             for ptf in ptfs:
                 loader.run(ptf["ptf_id"], 400)
 

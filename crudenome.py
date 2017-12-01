@@ -30,7 +30,7 @@ class AppWindow(Gtk.ApplicationWindow):
         # Here we connect the "destroy" event to a signal handler.  
         # This event occurs when we call gtk_widget_destroy() on the window,
         # or if we return FALSE in the "delete_event" callback.
-        self.connect("destroy", self.destroy)
+        self.connect("destroy", Gtk.main_quit)
 
         self.args = args # paramètre
         self.crud = crud
@@ -81,10 +81,6 @@ class AppWindow(Gtk.ApplicationWindow):
         # Change FALSE to TRUE and the main window will not be destroyed
         # with a "delete_event".
         return False
-
-    def destroy(self, widget, data=None):
-        # print "destroy signal occurred"
-        Gtk.main_quit()
 
 class Application(Gtk.Application):
     """ La classe principale d'une application Gnome """

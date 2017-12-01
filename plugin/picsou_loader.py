@@ -233,8 +233,10 @@ class PicsouLoadQuotes():
             emas26[0] = self.ema(quote_r, 26)
             emas50[0] = self.ema(quote_r, 50)
             macd[0] = emas12[0] - emas26[0]
-            if emas50[1] != 0:
-                trend[0] = ((emas50[0] - emas50[1]) / emas50[1]) * 100 * 50 # 50 jours en %
+            if emas26[1] != 0:
+                # trend[0] = ((emas50[0] - emas50[1]) / emas50[1]) * 100 * 50 # 50 jours en %
+                # trend = nbre de jour de hausse à la suite du ema26
+                trend[0] = trend[0] + 1 if emas26[0] > emas26[1] else 0
 
             cours["cours_rsi"] = rsi
             cours["cours_ema12"] = emas12[0]
@@ -370,8 +372,12 @@ class PicsouLoadQuotes():
                 # SUPPORT -> ACHAT
                 b_achat = False
 
-                if intest == "" and rsis[0] < 37:
-                    motif += " <37"
+                # if intest == "" and rsis[0] < 37:
+                #     motif = " <37"
+                #     b_achat = True
+
+                if intest == "" and not b_achat and trend[0] > 7 and rsis[0] < 50:
+                    motif = " >7J"
                     b_achat = True
 
                 # on évite les tendances plates
@@ -390,6 +396,7 @@ class PicsouLoadQuotes():
                 #     b_achat = True
 
                 if intest == "" and b_en_production:
+                    motif = " PPP"
                     b_achat = True
 
                 if b_achat:
@@ -481,24 +488,20 @@ class PicsouLoadQuotes():
                     # avec >70 Nbre de mises: -3 Cash: -2114.33 € Gain acquis: 155.79 € Gain : 503.30 €
                     if rsis[0] > 67:
                         rsi_67 = True 
-                        b_vendre = True
+                        # b_vendre = True
 
-                    # if rsi_67 and quotes[0] < quotes[1]:
-                    #     if max < quotes[0]:
-                    #         max = quotes[0]
-                    #     else:
-                    #         if emas12[0] < emas12[1]:
-                    #             motif += " >67"
-                    #             b_vendre = True
-
-                    if rsi_67 and rsis[0] < rsis[1]:
+                    if rsi_67 and emas12[0] < emas12[1]:
                         motif += " >67"
                         b_vendre = True
 
-                    # garde-fou : croisemnt 26x12 avant la hausse du 50
-                    # if not b_vendre and emas12[0] < emas12[1] and gain < 0 and nbj > 12:
-                    #     motif += " 12J"
+                    # if rsi_67 and rsis[0] < rsis[1]:
+                    #     motif += " >67"
                     #     b_vendre = True
+
+                    # garde-fou : 
+                    if not b_vendre and emas50[0] < emas50[1] and gain < 0 and nbj > 26:
+                        motif += " 26J"
+                        b_vendre = True
 
                     if b_vendre and b_en_production:
                         # on signale que la valeur en production doit être vendue
