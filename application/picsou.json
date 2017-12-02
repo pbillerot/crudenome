@@ -93,6 +93,7 @@
                     "label_long": "Trade",
                     "label_short": "Trade",
                     "type": "text",
+                    "searchable": true,
                     "sql_get": "case when ptf_support = 'SSS' then 'SSS' when ptf_resistance = 'RRR' then 'RRR' else '' end"
                 },
                 "ptf_date": {
@@ -310,6 +311,7 @@
                     "icon_name": "media-playback-start",
                     "searchable": true,
                     "elements": {
+                        "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_quote": {},
@@ -337,6 +339,7 @@
                     "title": "Ajout d'une valeur",
                     "elements": {
                         "ptf_id": {},
+                        "ptf_account": {"hide": true},
                         "ptf_name": {"hide": true},
                         "ptf_quote": {"hide": true},
                         "ptf_rsi": {"hide": true},

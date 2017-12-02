@@ -87,6 +87,7 @@ class PicsouBatch():
         if self.args.simul:
             loader.simulateur()
 
+            # Maj PTF gain des valeurs en production
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE PTF
             set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
@@ -96,6 +97,15 @@ class PicsouBatch():
             UPDATE PTF
             set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
             WHERE ptf_account is not null and ptf_account <> ''
+            """, {})
+
+            # Maj PTF quantité cout des valeurs non sélectionnées (en ptf ou test)
+            self.crud.exec_sql(self.crud.get_basename(), """
+            UPDATE PTF
+            set ptf_quantity = round(1200 / ptf_quote)
+            ,ptf_cost = ptf_quote + ptf_quote * 0.01
+            , ptf_gain = 0, ptf_gain_percent = 0
+            WHERE ptf_account is null or ptf_account = ''
             """, {})
 
             # mise à jour du résumé
