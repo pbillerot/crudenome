@@ -7,7 +7,8 @@ import shutil
 import datetime
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GObject
+gi.require_version('Notify', '0.7')
+from gi.repository import Gtk, GObject, Notify
 
 from crudview import CrudView
 from crudform import CrudForm
@@ -279,6 +280,10 @@ class CrudPortail(GObject.GObject):
                 # on récupére la base du serveur
                 shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
                 self.crud.logger.info("Restore OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                notif = Notify.Notification.new('Restore OK'\
+                , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
+                , 'dialog-information').show()
+
             self.crud.set_ticket(ticket_host)
 
         # on change l'icône système

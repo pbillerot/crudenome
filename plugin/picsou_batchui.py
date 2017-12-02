@@ -164,12 +164,12 @@ class PicsouBatchUi(Gtk.Window):
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
         set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
-        WHERE ptf_inptf = 'PPP'
+        WHERE ptf_account is not null and ptf_account <> ''
         """, {})
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
         set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
-        WHERE ptf_inptf = 'PPP'
+        WHERE ptf_account is not null and ptf_account <> ''
         """, {})
 
         # mise à jour du résumé
@@ -177,13 +177,13 @@ class PicsouBatchUi(Gtk.Window):
         # self.rsi_time = loader.quote["time"]
         self.rsi_time = "00:00"
         gainj = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT sum(ptf_gainj) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+        SELECT sum(ptf_gainj) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
         """, {})
         gain = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+        SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
         """, {})
         investi = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+        SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
         """, {})
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE RESUME
@@ -213,7 +213,7 @@ class PicsouBatchUi(Gtk.Window):
                 <td style="text-align: right">{4:.2f}%</td>
                 <td>{5}</td>
                 </tr>
-                """.format(ptf["ptf_macd"], ptf["ptf_inptf"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], url)
+                """.format(ptf["ptf_macd"], ptf["ptf_account"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], url)
                 self.top14.append(msg)
 
             # Mon portefeuille
@@ -234,7 +234,7 @@ class PicsouBatchUi(Gtk.Window):
             self.myptf.append(msg)
             for ptf in ptfs:
                 url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])                
-                if ptf["ptf_inptf"] == "PPP" :
+                if ptf["ptf_account"] is not None and ptf["ptf_account"] != "":
                     msg = """<tr>
                     <td>{0}</td>
                     <td style="text-align: right">{1:.2f}</td>
@@ -248,7 +248,7 @@ class PicsouBatchUi(Gtk.Window):
                     </tr>""".format(ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_cost"], ptf["ptf_quantity"], ptf["ptf_gain"], ptf["ptf_gain_percent"], ptf["ptf_macd"], url)                     
                     self.myptf.append(msg)
 
-                if ptf["ptf_inptf"] == "PPP" and ptf["ptf_resistance"] == "RRR":
+                if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and ptf["ptf_resistance"] == "RRR":
                     msg = '<tr><td>{0}</td><td>{1}</td><td style="text-align: right">{2:.2f}</td><td>{3}</td></tr>'\
                     .format(ptf["ptf_date"], ptf["ptf_name"], ptf["ptf_quote"], url)
                     self.resistances.append(msg)

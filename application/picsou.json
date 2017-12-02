@@ -30,6 +30,13 @@
                     "sortable": true,
                     "col_width": 140
                 },
+                "ptf_account": {
+                    "label_long": "Compte",
+                    "label_short": "CPT",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true
+                },
                 "ptf_quote": {
                     "label_long": "Cours",
                     "label_short": "Cours",
@@ -81,13 +88,6 @@
                     "col_align": "right",
                     "sortable": true,
                     "sql_color": "case when ptf_e200 > 0 then '#006600' else '#FF0000' end"
-                },
-                "ptf_inptf": {
-                    "label_long": "Valeur en Production",
-                    "label_short": "Prod",
-                    "type": "check",
-                    "sql_get": "case when ptf_inptf = 'PPP' then 1 else 0 end",
-                    "sql_put": "case when :ptf_inptf = 1 then 'PPP' else '' end"
                 },
                 "ptf_trade": {
                     "label_long": "Trade",
@@ -222,10 +222,11 @@
             },
             "views": {
                 "vopen": {
-                    "title": "En production",
+                    "title": "Mes Portefeuilles",
                     "form_edit": "fedit",
                     "icon_name": "folder-download",
                     "elements": {
+                        "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_quote": {},
@@ -234,7 +235,6 @@
                         "ptf_rsi": {},
                         "ptf_macd": {},
                         "ptf_e200": {},
-                        "ptf_inptf": {},
                         "ptf_trade": {},
                         "ptf_date": {},
                         "ptf_quantity": {},
@@ -245,7 +245,8 @@
                         "_fgraph": {},
                         "_batch": {}
                     },
-                    "sql_where": "ptf_inptf = 'PPP'",
+                    "sql_where": "ptf_account is not null and ptf_account <> ''",
+                    "order_by": "ptf_account, ptf_id",
                     "limitX": 1,
                     "sql_footer": "SELECT printf('Le <b>%s</b> Gain du jour: <b>%.2f</b> € Gain: <b>%.2f</b> €', resume_date, resume_gainj, resume_gain) as sql_footer FROM RESUME"
                 },
@@ -257,6 +258,7 @@
                     "deletable": true,
                     "searchable": true,
                     "elements": {
+                        "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_quote": {},
@@ -264,7 +266,6 @@
                         "ptf_rsi": {},
                         "ptf_macd": {},
                         "ptf_e200": {},
-                        "ptf_inptf": {},
                         "ptf_trade": {},
                         "ptf_test_date": {},
                         "ptf_test_quantity": {},
@@ -284,6 +285,7 @@
                     "form_edit": "fedit",
                     "icon_name": "folder-documents",
                     "elements": {
+                        "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_quote": {},
@@ -291,7 +293,6 @@
                         "ptf_rsi": {},
                         "ptf_macd": {},
                         "ptf_e200": {},
-                        "ptf_inptf": {},
                         "ptf_trade": {},
                         "ptf_date": {},
                         "ptf_quantity": {},
@@ -316,7 +317,6 @@
                         "ptf_rsi": {},
                         "ptf_macd": {},
                         "ptf_e200": {},
-                        "ptf_inptf": {},
                         "ptf_trade": {},
                         "ptf_test_date": {},
                         "ptf_test_nbj": {},
@@ -340,7 +340,6 @@
                         "ptf_name": {"hide": true},
                         "ptf_quote": {"hide": true},
                         "ptf_rsi": {"hide": true},
-                        "ptf_inptf": {"hide": true},
                         "ptf_date": {"hide": true},
                         "ptf_macd": {"hide": true}
                     },
@@ -350,10 +349,9 @@
                     "title": "Mise à jour d'une valeur",
                     "elements": {
                         "ptf_id": {},
-                        "ptf_name": {
-                        },
+                        "ptf_name": {},
+                        "ptf_account": {},
                         "ptf_note": {},
-                        "ptf_inptf": {},
                         "ptf_date": {},
                         "ptf_quantity": {},
                         "ptf_cost": {}

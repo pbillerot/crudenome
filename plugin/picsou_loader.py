@@ -366,7 +366,7 @@ class PicsouLoadQuotes():
 
                 btraite = False
 
-                if cours["cours_date"] >= ptf["ptf_date"] and ptf["ptf_inptf"] == "PPP":
+                if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and cours["cours_date"] >= ptf["ptf_date"]:
                     b_en_production = True
 
                 # SUPPORT -> ACHAT

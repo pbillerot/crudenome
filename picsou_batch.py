@@ -90,12 +90,12 @@ class PicsouBatch():
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE PTF
             set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
-            WHERE ptf_inptf = 'PPP'
+            WHERE ptf_account is not null and ptf_account <> ''
             """, {})
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE PTF
             set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
-            WHERE ptf_inptf = 'PPP'
+            WHERE ptf_account is not null and ptf_account <> ''
             """, {})
 
             # mise à jour du résumé
@@ -106,13 +106,13 @@ class PicsouBatch():
             # self.rsi_time = loader.quote["time"]
             self.rsi_time = "00:00"
             gainj = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT sum(ptf_gainj) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+            SELECT sum(ptf_gainj) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
             """, {})
             gain = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+            SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
             """, {})
             investi = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_inptf = 'PPP'
+            SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
             """, {})
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE RESUME
@@ -131,7 +131,7 @@ class PicsouBatch():
         if self.args.mail or self.args.sms:
             # Mon portefeuille
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf WHERE ptf_inptf = 'PPP' ORDER by ptf_name
+            SELECT * FROM ptf WHERE ptf_account is not null and ptf_account <> '' ORDER by ptf_name
             """, {})
             msg = """<tr>
             <th>Action</th>

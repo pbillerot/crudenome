@@ -8,9 +8,11 @@ import shutil
 import datetime
 import sys
 import argparse
+import time
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
+gi.require_version('Notify', '0.7')
+from gi.repository import Gtk, Gdk, GdkPixbuf, Gio, Notify
 
 from crud import Crud
 from crudportail import CrudPortail
@@ -30,7 +32,9 @@ class AppWindow(Gtk.ApplicationWindow):
         # Here we connect the "destroy" event to a signal handler.  
         # This event occurs when we call gtk_widget_destroy() on the window,
         # or if we return FALSE in the "delete_event" callback.
-        self.connect("destroy", Gtk.main_quit)
+        # self.connect("destroy", Gtk.main_quit)
+
+        Notify.init('Crudenome')
 
         self.args = args # paramètre
         self.crud = crud
@@ -70,6 +74,19 @@ class AppWindow(Gtk.ApplicationWindow):
                     if response == Gtk.ResponseType.YES:
                         shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
                         self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                        notif = Notify.Notification.new('Backup OK'\
+                        , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
+                        , 'dialog-information')
+                        # notif.add_action(
+                        #     'id_callback', # identifiant
+                        #     'Fermer', # texte du bouton
+                        #     self.on_notif, # function callback de notre bouton
+                        #     None, # user_datas, ce dont vous avez besoin dans la callback
+                        #     None # fonction qui supprime les user_datas
+                        # )
+                        notif.show()
+                        time.sleep(3)
+                        # return True
                     elif response == Gtk.ResponseType.NO:
                         self.crud.logger.info("Backup abandonné")
 
@@ -77,10 +94,28 @@ class AppWindow(Gtk.ApplicationWindow):
                 else:
                     shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
                     self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                    notif = Notify.Notification.new('Backup OK'\
+                    , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
+                    , 'dialog-information')
+                    # notif.add_action(
+                    #     'id_callback', # identifiant
+                    #     'Fermer', # texte du bouton
+                    #     self.on_notif, # function callback de notre bouton
+                    #     None, # user_datas, ce dont vous avez besoin dans la callback
+                    #     None # fonction qui supprime les user_datas
+                    # )
+                    notif.show()
+                    time.sleep(3)
+                    # return True
 
         # Change FALSE to TRUE and the main window will not be destroyed
         # with a "delete_event".
         return False
+
+    def on_notif(self, notif_object, action_name, users_data):
+        """ action sur boutn de la notification """
+        notif_object.close()
+        Gtk.main_quit()
 
 class Application(Gtk.Application):
     """ La classe principale d'une application Gnome """

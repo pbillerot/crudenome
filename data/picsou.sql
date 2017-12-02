@@ -5,6 +5,7 @@ drop table if exists PTF;
 CREATE TABLE PTF (
     "ptf_id" TEXT PRIMARY KEY NOT NULL,
     "ptf_name" TEXT,
+    "ptf_account" TEXT,
     "ptf_date" TEXT,
     "ptf_quote" REAL DEFAULT(0),
     "ptf_percent" REAL DEFAULT(0),
@@ -18,7 +19,6 @@ CREATE TABLE PTF (
     "ptf_gain_percent" REAL DEFAULT(0),
     "ptf_resistance" TEXT,
     "ptf_support" TEXT,
-    "ptf_inptf" TEXT,
     "ptf_note" TEXT
     "ptf_intest" TEXT,
     "ptf_test_date" TEXT,
@@ -62,6 +62,7 @@ drop table if exists MVT;
 CREATE TABLE MVT (
     mvt_id           INTEGER PRIMARY KEY AUTOINCREMENT,
     mvt_ptf_id       TEXT    NOT NULL,
+    ptf_account      TEXT,
     mvt_date         TEXT    NOT NULL,
     mvt_name         TEXT,
     mvt_trade        TEXT,

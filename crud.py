@@ -116,9 +116,9 @@ class Crud:
 
         # création d'un second handler qui va rediriger chaque écriture de log
         # sur la console
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.DEBUG)
-        self.logger.addHandler(stream_handler)
+        # stream_handler = logging.StreamHandler()
+        # stream_handler.setLevel(logging.DEBUG)
+        # self.logger.addHandler(stream_handler)
 
     def get_json_content(self, path):
         """
@@ -185,6 +185,18 @@ class Crud:
                 conn.close()
 
         return data
+
+    def get_params_display(self, params):
+        """ formattage pour l'affichage des paramètres transmis à une requete sql """
+        fmt = ""
+        for key in params:
+            if params[key] is None:
+                continue
+            if isinstance(params[key], (unicode, str, int)):
+                if fmt != "": 
+                    fmt += ", "
+                fmt += "%s='%s'" % (key, str(params[key]))
+        return "params: [%s]" % fmt
 
     def send_mail(self, dests, subject, body):
         """

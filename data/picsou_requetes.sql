@@ -1,6 +1,5 @@
 select * from PTF
 --where ptf_id = 'ACA.PA'
---where ptf_inptf = 'PPP'
 order by ptf_id
 
 --select * from cours where cours_macd is null order by cours_date desc

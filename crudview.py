@@ -313,7 +313,12 @@ class CrudView(GObject.GObject):
 
         sql += " LIMIT " + str(self.crud.get_view_prop("limit", 500))
         # print "VIEW", sql
+
+        # EXECUTION SQL
+        self.crud.logger.info("SQL VIEW %s.%s [%s]", self.crud.get_table_id(), self.crud.get_view_id(), sql )
+        self.crud.logger.info("SQL VIEW %s", self.crud.get_params_display(self.crud.ctx))
         rows = self.crud.sql_to_dict(self.crud.get_basename(), sql, self.crud.ctx)
+        
         # print len(rows)
         self.liststore.clear()
         # remplissage des colonnes item_sql
