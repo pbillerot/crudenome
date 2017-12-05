@@ -137,7 +137,7 @@ class CrudForm(GObject.GObject):
             crudel = self.crud.get_element_prop(element, "crudel")
             if element == self.crud.get_key_id():
                 key_type = crudel.get_type()
-            if crudel.is_hide():
+            if crudel.is_hide() or crudel.is_read_only():
                 continue
             crudel.set_value_widget()
             crudel.set_value_default()
@@ -145,6 +145,8 @@ class CrudForm(GObject.GObject):
         # CONTROLE DE LA SAISIE
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
+            if crudel.is_hide() or crudel.is_read_only():
+                continue
             crudel.check()
 
         if self.crud.get_errors():

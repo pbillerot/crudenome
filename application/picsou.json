@@ -55,8 +55,8 @@
                     "sortable": true
                 },
                 "ptf_gainj": {
-                    "label_long": "Gain du jour",
-                    "label_short": "Gain J",
+                    "label_long": "Hausse du jour",
+                    "label_short": "Hausse",
                     "type": "float",
                     "col_align": "right",
                     "sql_color": "case when ptf_gainj > 0 then '#006600' else '#FF0000' end",
@@ -497,42 +497,71 @@
             }
         },
         "mvt": {
-            "key": "mvt_ptf_id",
+            "key": "mvt_id",
             "elements": {
+                "mvt_id": {
+                    "label_long": "Id",
+                    "label_short": "Id",
+                    "type": "counter",
+                    "hide": true
+                },
+                "mvt_account": {
+                    "label_long": "Portefeuille",
+                    "label_short": "Portefeuille",
+                    "type": "combo",
+                    "items": {
+                        "PEE": "PEE",
+                        "PEA": "PEA",
+                        "FICTIF": "FICTIF"
+                    },
+                    "searchable": true
+                },
                 "mvt_ptf_id": {
                     "label_long": "Valeur",
                     "label_short": "Valeur",
-                    "type": "text",
-                    "searchable": true
-                },
-                "mvt_name": {
-                    "label_long": "Nom",
-                    "label_short": "Nom",
-                    "type": "text",
+                    "type": "combo",
                     "searchable": true,
-                    "expandable": false,
-                    "col_width": 150
+                    "sortable": true,
+                    "sql_items": "select ptf_id, ptf_name from ptf order by ptf_id",
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN ptf ON ptf.ptf_id = mvt.mvt_ptf_id",
+                        "display": "ptf.ptf_name"
+                    }
                 },
                 "mvt_date": {
                     "label_long": "Date",
                     "label_short": "Date",
-                    "type": "text",
+                    "type": "calendar",
                     "sortable": true
                 },
                 "mvt_quote": {
-                    "label_long": "Cours",
-                    "label_short": "Cours",
+                    "label_long": "Cours actuel",
+                    "label_short": "Cours J",
                     "type": "float",
-                    "display": "%3.2f €"
+                    "display": "%3.2f €",
+                    "jointure": {
+                        "display": "ptf.ptf_quote"
+                    }
                 },
                 "mvt_trade": {
                     "label_long": "Trade",
                     "label_short": "Trade",
-                    "type": "text"
+                    "type": "combo",
+                    "items": {
+                        "Achat": "Achat",
+                        "Vente": "Vente"
+                    },
+                    "searchable": true
                 },
-                "mvt_cost": {
-                    "label_long": "Revient",
-                    "label_short": "Revient",
+                "mvt_exec": {
+                    "label_long": "Cours d'exécution",
+                    "label_short": "Exec. à",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "mvt_fee": {
+                    "label_long": "Frais",
+                    "label_short": "Frais",
                     "type": "float",
                     "display": "%3.2f €"
                 },
@@ -541,18 +570,26 @@
                     "label_short": "Qté",
                     "type": "int"
                 },
-                "mvt_charges": {
-                    "label_long": "Frais",
-                    "label_short": "Frais",
+                "mvt_gainj": {
+                    "label_long": "Hausse du jour",
+                    "label_short": "Hausse",
                     "type": "float",
-                    "display": "%3.2f €"
+                    "display": "%3.2f €",
+                    "sql_color": "case when mvt_gainj < 0 then '#FF0000' else '#006600' end"
+                },
+                "mvt_gainj_percent": {
+                    "label_long": "%",
+                    "label_short": "%",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when mvt_gainj_percent < 0 then '#FF0000' else '#006600' end"
                 },
                 "mvt_gain": {
                     "label_long": "Gain",
                     "label_short": "Gain",
                     "type": "float",
                     "display": "%3.2f €",
-                    "sql_color": "case when cours_gain < 0 then '#FF0000' else '#006600' end"
+                    "sql_color": "case when mvt_gain < 0 then '#FF0000' else '#006600' end"
                 },
                 "mvt_gain_percent": {
                     "label_long": "%",
@@ -570,26 +607,59 @@
             "views": {
                 "vall": {
                     "title": "Historique",
-                    "searchable_sql": true,
-                    "icon_name": "folder-saved-search",
+                    "searchable": true,
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "deletable": true,
+                    "icon_name": "emblem-shared",
                     "limit": 400,
                     "elements": {
-                        "mvt_ptf_id": {},
-                        "mvt_name": {},
-                        "mvt_date": {},
-                        "mvt_quote": {},
+                        "mvt_id": {"hide": true},
+                        "mvt_account": {},
                         "mvt_trade": {},
-                        "mvt_cost": {},
+                        "mvt_ptf_id": {},
+                        "mvt_date": {},
+                        "mvt_exec": {},
                         "mvt_quantity": {},
-                        "mvt_charges": {},
+                        "mvt_fee": {},
+                        "mvt_quote": {},
+                        "mvt_gainj": {},
+                        "mvt_gainj_percent": {},
                         "mvt_gain": {},
                         "mvt_gain_percent": {},
                         "mvt_note": {}
                     },
-                    "order_by": "cours.cours_ptf_id, cours.cours_date desc"
+                    "order_by": "mvt.mvt_account, mvt.mvt_date desc, mvt.mvt_ptf_id"
                 }
             },
             "forms": {
+                "fadd": {
+                    "title": "Nouvelle opération...",
+                    "elements": {
+                        "mvt_id": {"hide": true},
+                        "mvt_trade": {},
+                        "mvt_date": {},
+                        "mvt_account": {},
+                        "mvt_ptf_id": {},
+                        "mvt_exec": {},
+                        "mvt_fee": {},
+                        "mvt_quantity": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Mise à jour d'une opération",
+                    "elements": {
+                        "mvt_id": {"hide": true, "read_only": true},
+                        "mvt_trade": {},
+                        "mvt_date": {},
+                        "mvt_account": {},
+                        "mvt_ptf_id": {},
+                        "mvt_exec": {},
+                        "mvt_fee": {},
+                        "mvt_quantity": {},
+                        "mvt_note": {}
+                    }
+                }
             }
         }
     }

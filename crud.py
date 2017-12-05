@@ -74,9 +74,6 @@ class Crud:
             for key in self.config:
                 if isinstance(self.config[key], str):
                     self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
-            
-            self.init_logger()
-
         else:
             if duplicate:
                 self.application = dict(crud.application)
@@ -86,6 +83,8 @@ class Crud:
                 self.application = crud.application
                 self.ctx = crud.ctx
                 self.config = crud.config
+        self.init_logger()
+
     #
     # FONCTIONS GENERALES
     #
@@ -145,12 +144,13 @@ class Crud:
                     # pp[param] = params[param].decode("utf-8")
                     pp[param] = params[param]
             # print sql, pp
+            self.logger.info("SQL EXEC [%s]", sql )
+            self.logger.info("SQL EXEC %s", self.get_params_display(pp))
             cursor.execute(sql, pp)
             conn.commit()
         except sqlite3.Error, exc:
             if conn:
                 conn.rollback()
-
             self.logger.error("Error %s %s %s", exc.args[0], sql, params)
             self.add_error("%s %s %s" % (exc.args[0], sql, params))
             # sys.exit(1)
@@ -169,6 +169,8 @@ class Crud:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             # print sql, params
+            self.logger.info("SQL DICT [%s]", sql )
+            self.logger.info("SQL DICT %s", self.get_params_display(params))
             cursor.execute(sql, params)
             desc = cursor.description
             column_names = [col[0] for col in desc]
@@ -192,10 +194,13 @@ class Crud:
         for key in params:
             if params[key] is None:
                 continue
-            if isinstance(params[key], (unicode, str, int)):
+            if isinstance(params[key], (unicode, str, int, float)):
                 if fmt != "": 
                     fmt += ", "
-                fmt += "%s='%s'" % (key, str(params[key]))
+                if isinstance(params[key], (unicode,)):
+                    fmt += "%s='%s'" % (key, str(params[key].encode("utf-8")))
+                else:
+                    fmt += "%s='%s'" % (key, str(params[key]))
         return "params: [%s]" % fmt
 
     def send_mail(self, dests, subject, body):
@@ -515,6 +520,9 @@ class Crud:
         for element in self.get_form_elements():
             if element == self.get_key_id():
                 continue
+            crudel = self.get_element_prop(element, "crudel")
+            if crudel.is_read_only():
+                continue
             if b_first:
                 b_first = False
             else:
@@ -543,6 +551,9 @@ class Crud:
         for element in self.get_form_elements():
             if self.get_field_prop(element, "type") == "counter":
                 continue
+            crudel = self.get_element_prop(element, "crudel")
+            if crudel.is_read_only():
+                continue
             if b_first:
                 b_first = False
             else:
@@ -553,6 +564,9 @@ class Crud:
         b_first = True
         for element in self.get_form_elements():
             if self.get_field_prop(element, "type") == "counter":
+                continue
+            crudel = self.get_element_prop(element, "crudel")
+            if crudel.is_read_only():
                 continue
             if b_first:
                 b_first = False

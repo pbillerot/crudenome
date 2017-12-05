@@ -4,9 +4,9 @@
 """
 # import re
 import importlib
+import datetime
 from collections import OrderedDict
 import uuid
-from datetime import datetime
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -24,14 +24,14 @@ class Crudel(GObject.GObject):
             crudel = CrudelBatch(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "button":
             crudel = CrudelButton(crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "calendar":
+            crudel = CrudelCalendar(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "check":
             crudel = CrudelCheck(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "combo":
             crudel = CrudelCombo(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "counter":
             crudel = CrudelCounter(crud, element, type_parent)
-        elif crud.get_element_prop(element, "type", "text") == "date":
-            crudel = CrudelDate(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "float":
             crudel = CrudelFloat(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "form":
@@ -85,7 +85,13 @@ class Crudel(GObject.GObject):
     def init_items_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
         if not self.is_read_only() and self.get_sql_items():
-            self.items = self.crud.sql_to_dict(self.crud.get_basename(), self.get_sql_items() , {})
+            items = self.crud.sql_to_dict(self.crud.get_basename(), self.get_sql_items(), {})
+            for item in items:
+                keys = item.keys()
+                if len(keys) == 1:
+                    self.items[str(item.get(keys[0]))] = item.get(keys[0])
+                else:
+                    self.items[str(item.get(keys[0]))] = item.get(keys[1])
 
     def init_text_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
@@ -121,7 +127,6 @@ class Crudel(GObject.GObject):
         if self.get_value() == ""\
             and self.crud.get_field_prop(self.element, "default", "") != "":
             self.value = self.crud.get_field_prop(self.element, "default")
-
 
     def get_value(self):
         """ valeur interne de l'élément """
@@ -474,6 +479,46 @@ class CrudelButton(Crudel):
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
 
+class CrudelCalendar(Crudel):
+    """ Calendrier """
+
+    def __init__(self, crud, element, type_parent):
+        Crudel.__init__(self, crud, element, type_parent)
+
+    def get_type_gdk(self):
+        return GObject.TYPE_STRING
+
+    def init_value(self):
+        self.set_value(datetime.date.today().strftime('%Y-%02m-%02d'))
+
+    def get_widget_box(self):
+        # todo
+        hbox = Gtk.HBox()
+        label = self._get_widget_label()
+        self.widget = self._get_widget_entry()
+
+	    # Calendar widget
+        (year, month, day) = self.get_value().split('-')
+        self.widget = Gtk.Calendar()
+        self.widget.select_month(int(month)-1, int(year))
+        self.widget.select_day(int(day))
+        self.widget.mark_day(int(day))
+        self.widget.connect("day_selected",
+                            self.calendar_day_selected)
+
+        # arrangement
+        hbox.pack_start(label, False, False, 5)
+        hbox.pack_start(self.widget, False, False, 5)
+        return hbox
+
+    def calendar_day_selected(self, widget):
+        """ Double clic sur le jour """
+        year, month, day = widget.get_date()
+        self.set_value("%4d-%02d-%02d" % (year, month+1, day))
+
+    def set_value_widget(self):
+        pass
+
 class CrudelCheck(Crudel):
     """ Gestion des colonnes et champs de type boîte à cocher """
 
@@ -583,7 +628,7 @@ class CrudelCombo(Crudel):
         return GObject.TYPE_STRING
 
     def init_value(self):
-        self.set_value(False)
+        self.set_value("")
 
     def get_widget_box(self):
         hbox = Gtk.HBox()
@@ -601,13 +646,12 @@ class CrudelCombo(Crudel):
             self.widget.set_entry_text_column(0)
             index = 0
             index_selected = None
-            for item in self.items:
-                keys = item.keys()
-                if len(keys) == 1:
-                    self.widget.append_text("%s" % (item.get(keys[0])))
+            for key in sorted(self.items):
+                if key == self.items[key]:
+                    self.widget.append_text("%s" % (key))
                 else:
-                    self.widget.append_text("%s (%s)" % (item.get(keys[1]), item.get(keys[0])))
-                if item.get(keys[0]) == self.get_value():
+                    self.widget.append_text("%s (%s)" % (self.items.get(key), key))
+                if key == self.get_value():
                     index_selected = index
                 index += 1
 
@@ -665,28 +709,6 @@ class CrudelCounter(Crudel):
         renderer = Gtk.CellRendererText()
         renderer.set_property('xalign', 1.0)
         return renderer
-
-class CrudelDate(Crudel):
-    """ Gestion des colonnes et champs de type date """
-
-    def __init__(self, crud, element, type_parent):
-        Crudel.__init__(self, crud, element, type_parent)
-
-    def get_type_gdk(self):
-        return GObject.TYPE_STRING
-
-    def init_value(self):
-        self.set_value("")
-
-    def get_widget_box(self):
-        # todo
-        hbox = Gtk.HBox()
-        label = self._get_widget_label()
-        self.widget = self._get_widget_entry()
-        # arrangement
-        hbox.pack_start(label, False, False, 5)
-        hbox.pack_start(self.widget, False, False, 5)
-        return hbox
 
 class CrudelFloat(Crudel):
     """ Gestion des colonnes et champs de type décimal """
@@ -843,6 +865,13 @@ class CrudelInt(Crudel):
         if value == '':
             value = 0
         self.value = int(value)
+
+    def set_value_sql(self, value_sql):
+        """ Valorisation de l'élément avec le contenu de la colonne de la table """
+        if value_sql is None:
+            self.set_value(0)
+        else:
+            self.set_value(int(value_sql))
 
 class CrudelRadio(Crudel):
     """ Gestion des colonnes et champs de type Radio """

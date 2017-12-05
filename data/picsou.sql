@@ -60,20 +60,20 @@ CREATE TABLE COURS (
 
 drop table if exists MVT;
 CREATE TABLE MVT (
-    mvt_id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    mvt_ptf_id       TEXT    NOT NULL,
-    ptf_account      TEXT,
-    mvt_date         TEXT    NOT NULL,
-    mvt_name         TEXT,
-    mvt_trade        TEXT,
-    mvt_quote        REAL,
-    mvt_cost         REAL,
-    mvt_quantity     REAL,
-    mvt_charges      REAL,
-    mvt_gain         REAL,
-    mvt_gain_percent REAL,
-    mvt_note         TEXT
-)
+    mvt_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    mvt_ptf_id        TEXT    NOT NULL,
+    mvt_account       TEXT,
+    mvt_date          TEXT    NOT NULL,
+    mvt_trade         TEXT, -- (A)chat (V)ente
+    mvt_quote         REAL,
+    mvt_quantity      INTEGER,
+    mvt_fee           REAL,
+    mvt_gainj         REAL,
+    mvt_gainj_percent REAL,
+    mvt_gain          REAL,
+    mvt_gain_percent  REAL,
+    mvt_note          TEXT
+);
 
 drop table if exists RESUME;
 CREATE TABLE RESUME (
