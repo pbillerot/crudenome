@@ -7,6 +7,8 @@
 """
 from datetime import datetime
 
+from crudel import Crudel
+
 from gi.repository import Gtk, GObject
 
 # import matplotlib as mpl
@@ -17,7 +19,7 @@ from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as Navigatio
 class PicsouGraph(Gtk.Window):
     """ Affichage d'un graphique dans une Gtk.Window """
     __gsignals__ = {
-        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str, str,))
     }
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
@@ -27,7 +29,18 @@ class PicsouGraph(Gtk.Window):
         Gtk.Window.__init__(self, title="Graphique")
 
         self.crud = crud
-        ptf_id = crud.get_key_value()
+        self.crudel = crud.get_crudel()
+        # relecture de l'enregistrement de la vue
+        rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_VIEW)
+        for row in rows:
+            for element in self.crud.get_view_elements():
+                crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_VIEW)
+                crudel.init_value()
+                self.crud.set_element_prop(element, "crudel", crudel)
+                if row.get(element, False):
+                    crudel.set_value_sql(row[element])
+        values = self.crud.get_table_values()
+        ptf_id = self.crudel.get_param_replace("ptf_id")
         ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM PTF WHERE ptf_id = :id
         """, {"id": ptf_id})

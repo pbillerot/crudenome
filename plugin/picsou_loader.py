@@ -206,7 +206,8 @@ class PicsouLoadQuotes():
         emas26 = [0] * n
         emas50 = [0] * n
         macd = [0] * n
-        trend = [0] * n
+        q26 = [0] * n
+        q12 = [0] * n
         # ordre = {}
         for cours in courss:
             # rotation des valeurs
@@ -216,7 +217,8 @@ class PicsouLoadQuotes():
                 emas26[i] = emas26[i-1]
                 emas50[i] = emas50[i-1]
                 macd[i] = macd[i-1]
-                trend[i] = trend[i-1]
+                q12[i] = q12[i-1]
+                q26[i] = q26[i-1]
 
             # valeur à traiter
             quote[0] = cours["cours_close"]
@@ -236,21 +238,42 @@ class PicsouLoadQuotes():
             if emas26[1] != 0:
                 # trend[0] = ((emas50[0] - emas50[1]) / emas50[1]) * 100 * 50 # 50 jours en %
                 # trend = nbre de jour de hausse à la suite du ema26
-                trend[0] = trend[0] + 1 if emas26[0] > emas26[1] else 0
+                if emas26[0] > emas26[1]:
+                    if q26[0] < 0:
+                        q26[0] = 1
+                    else:
+                        q26[0] = q26[0] + 1
+                else:
+                    if q26[0] > 0:
+                        q26[0] = -1
+                    else:
+                        q26[0] = q26[0] - 1
+                if emas12[0] > emas12[1]:
+                    if q12[0] < 0:
+                        q12[0] = 1
+                    else:
+                        q12[0] = q12[0] + 1
+                else:
+                    if q12[0] > 0:
+                        q12[0] = -1
+                    else:
+                        q12[0] = q12[0] - 1
 
             cours["cours_rsi"] = rsi
             cours["cours_ema12"] = emas12[0]
             cours["cours_ema26"] = emas26[0]
             cours["cours_ema50"] = emas50[0]
             cours["cours_macd"] = macd[0]
-            cours["cours_trend"] = trend[0]
+            cours["cours_q26"] = q26[0]
+            cours["cours_q12"] = q12[0]
 
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE COURS
             set cours_rsi = :cours_rsi
             , cours_ema12 = :cours_ema12, cours_ema26 = :cours_ema26, cours_ema50 = :cours_ema50
             , cours_macd = :cours_macd
-            , cours_trend = :cours_trend
+            , cours_q26 = :cours_q26
+            , cours_q12 = :cours_q12
             , cours_trade = '', cours_quantity = 0, cours_cost = 0, cours_gainj = 0, cours_gain = 0, cours_gain_percent = 0
             , cours_nbj = -1
             WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
@@ -280,6 +303,10 @@ class PicsouLoadQuotes():
         UPDATE COURS
         set cours_trade = '', cours_quantity = 0, cours_nbj = 0
         ,cours_cost = 0, cours_gain = 0, cours_gain_percent = 0
+        """, {})
+        self.crud.exec_sql(self.crud.get_basename(), """
+        DELETE FROM MVT
+        WHERE mvt_account = 'SIMUL'
         """, {})
 
         # Boucle sur les PTF
@@ -316,7 +343,8 @@ class PicsouLoadQuotes():
             emas50 = [0] * n
             macd = [0] * n
             rsis = [0] * n
-            trend = [0] * n
+            q12 = [0] * n
+            q26 = [0] * n
 
             quote = 0.0
             percent = 0
@@ -345,7 +373,8 @@ class PicsouLoadQuotes():
                     emas50[i] = emas50[i-1]
                     rsis[i] = rsis[i-1]
                     macd[i] = macd[i-1]
-                    trend[i] = trend[i-1]
+                    q26[i] = q26[i-1]
+                    q12[i] = q12[i-1]
 
                 quote = cours["cours_close"]
                 e200.append(quote)
@@ -355,7 +384,8 @@ class PicsouLoadQuotes():
                 emas50[0] = cours["cours_ema50"]
                 rsis[0] = cours["cours_rsi"]
                 macd[0] = cours["cours_macd"]
-                trend[0] = cours["cours_trend"]
+                q26[0] = cours["cours_q26"]
+                q12[0] = cours["cours_q12"]
 
                 # saut des n premiers jours
                 if quotes[n-1] == 0:
@@ -376,7 +406,7 @@ class PicsouLoadQuotes():
                 #     motif = " <37"
                 #     b_achat = True
 
-                if intest == "" and not b_achat and trend[0] > 7 and rsis[0] < 50:
+                if intest == "" and not b_achat and q26[0] > 7 and rsis[0] < 50:
                     motif = " >7J"
                     b_achat = True
 
@@ -413,6 +443,7 @@ class PicsouLoadQuotes():
                     gain_percent = (gain / amount) * 100
                     nbj = 0
                     test_date = cours["cours_date"]
+                    fee = quote * quantity * 0.0052
 
                     # maj du cours
                     intest = "TTT"
@@ -431,6 +462,15 @@ class PicsouLoadQuotes():
                     , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
                     WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
                     """, cours)
+
+                    if motif.find("PPP") == -1:
+                        # Ajout d'un mouvement
+                        self.crud.exec_sql(self.crud.get_basename(), """
+                        INSERT INTO MVT
+                        (mvt_account, mvt_date, mvt_ptf_id, mvt_trade, mvt_exec, mvt_quantity, mvt_fee)
+                        VALUES
+                        ('SIMUL', :cours_date, :cours_ptf_id, 'Achat', :cours_close, :cours_quantity, 6.15)
+                        """, cours)
 
                     ptf["ptf_resistance"] = ""
                     ptf["ptf_support"] = "SSS"
@@ -550,6 +590,14 @@ class PicsouLoadQuotes():
                             ptf["ptf_resistance"] = "RRR"
                             ptf["ptf_support"] = ""
 
+                            # Ajout d'un mouvement
+                            self.crud.exec_sql(self.crud.get_basename(), """
+                            INSERT INTO MVT
+                            (mvt_account, mvt_date, mvt_ptf_id, mvt_trade, mvt_exec, mvt_quantity, mvt_fee)
+                            VALUES
+                            ('SIMUL', :cours_date, :cours_ptf_id, 'Vente', :cours_close, :cours_quantity, 6.15)
+                            """, cours)
+
                             b_macd = False
                             motif = ""
                             rsi_achat = 0
@@ -591,7 +639,8 @@ class PicsouLoadQuotes():
                 ptf["ptf_gainj"] = cours["cours_gainj"]
                 ptf["ptf_percent"] = cours["cours_percent"]
                 ptf["ptf_rsi"] = cours["cours_rsi"]
-                ptf["ptf_macd"] = cours["cours_trend"]
+                ptf["ptf_q26"] = cours["cours_q26"]
+                ptf["ptf_q12"] = cours["cours_q12"]
 
             # mise à jour du portefeuille à la fin
             v200 = e200[-200] if len(e200) >= 200 else e200[0]
@@ -614,8 +663,9 @@ class PicsouLoadQuotes():
             ,ptf_quantity = :ptf_quantity
             ,ptf_resistance = :ptf_resistance
             ,ptf_support = :ptf_support
-            ,ptf_rsi = :ptf_rsi 
-            ,ptf_macd = :ptf_macd 
+            ,ptf_rsi = :ptf_rsi
+            ,ptf_q26 = :ptf_q26
+            ,ptf_q12 = :ptf_q12
             ,ptf_e200 = :ptf_e200
             ,ptf_intest = :ptf_intest
             ,ptf_test_date = :ptf_test_date
@@ -708,3 +758,226 @@ class PicsouLoadQuotes():
         if len(data) < window:
             return 0
         return sum(data[-window:]) / float(window)        
+
+    def account(self):
+        """
+        Parcours de l'historique des mouvements
+        pour calculer :
+        - le solde des différents opérations
+        - le solde par portefeuille
+        - le solde global
+        """
+        # Raz de la dernière simulation
+        self.crud.exec_sql(self.crud.get_basename(), """
+        UPDATE MVT
+        set mvt_quote = 0, mvt_percent = 0
+        , mvt_input = 0, mvt_output = 0
+        , mvt_gain = 0, mvt_gain_percent = 0
+        , mvt_select = ''
+        """, {})
+        # Récupération de la dernière cotation
+        self.crud.exec_sql(self.crud.get_basename(), """
+        UPDATE MVT
+        set mvt_quote = (select ptf_quote from ptf where ptf_id = mvt_ptf_id)
+        ,mvt_percent = (select ptf_percent from ptf where ptf_id = mvt_ptf_id)
+        """, {})
+
+        # Init PTF
+        self.crud.exec_sql(self.crud.get_basename(), """
+        UPDATE PTF
+        set ptf_account = '', ptf_date = '', ptf_quantity = 0
+        """, {})
+
+        # Boucle sur les MVT /account valeur date
+        mvts = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT * FROM mvt
+        ORDER BY mvt_account, mvt_ptf_id, mvt_date asc, mvt_trade asc
+        """, {})
+        account = ""
+        ptf_id = ""
+        quantity_left = 0
+        money = 0 # /account
+        latent = 0 # /account
+        gain_day = 0 # /account
+        fee = 0 # /account
+        ptf_latent = 0  # /ptf
+        ptf_input = 0   # /ptf
+        ptf_output = 0  # /ptf
+        ptf_gain_day = 0  # /ptf
+        mvt_id = 0
+        quantity_lefts = {}
+        for mvt in mvts:
+            if mvt["mvt_account"] != account:
+                # changement de compte
+                if account != "":
+                    # update money latent
+                    latent += ptf_latent
+                    gain_day += ptf_gain_day
+                    money += ptf_input + ptf_output
+                    # MAJ ACCOUNT
+                    self.crud.exec_sql(self.crud.get_basename(), """
+                    UPDATE ACCOUNT
+                    set acc_money = acc_initial + :money, acc_latent = :latent
+                    ,acc_gain_day = :gain_day
+                    WHERE acc_id = :account
+                    """, {"account": account, "money": money, "latent": latent, "gain_day": gain_day})
+                    # Sélection des MVTs non soldés
+                    if quantity_left > 0:
+                        for key in quantity_lefts:
+                            self.crud.exec_sql(self.crud.get_basename(), """
+                            UPDATE MVT
+                            set mvt_select = '1'
+                            WHERE mvt_id = :mvt_id
+                            """, {"mvt_id": key})
+
+                # ...
+                # initialisation nouveau account
+                account = mvt["mvt_account"]
+                rows = self.crud.sql_to_dict(self.crud.get_basename(), """
+                SELECT acc_fee FROM ACCOUNT WHERE acc_id = :account
+                """, {"account": account})
+                for row in rows:
+                    fee = row["acc_fee"]
+                money = 0
+                latent = 0
+                gain_day = 0
+                ptf_output = 0
+                ptf_input = 0
+                ptf_latent = 0
+                ptf_gain_day = 0
+                ptf_id = ""
+                quantity_left = 0
+
+            if mvt["mvt_ptf_id"] != ptf_id:
+                # changement de ptf
+                # Sélection des MVTs non soldés
+                if quantity_left > 0:
+                    for key in quantity_lefts:
+                        self.crud.exec_sql(self.crud.get_basename(), """
+                        UPDATE MVT
+                        set mvt_select = '1'
+                        WHERE mvt_id = :mvt_id
+                        """, {"mvt_id": key})
+
+                # initialisation nouveau ptf
+                money += ptf_input + ptf_output
+                latent += ptf_latent
+                gain_day += ptf_gain_day
+                ptf_output = 0
+                ptf_input = 0
+                ptf_latent = 0
+                ptf_gain_day = 0
+                quantity_left = 0
+                ptf_id = mvt["mvt_ptf_id"]
+                quantity_lefts.clear()
+
+            mvt_id = mvt["mvt_id"]
+
+            if mvt["mvt_trade"] == "Achat":
+                quantity_left += mvt["mvt_quantity"]
+                ptf_output = ptf_output - mvt["mvt_exec"] * mvt["mvt_quantity"] - mvt["mvt_fee"]
+                mvt["mvt_output"] = - mvt["mvt_exec"] * mvt["mvt_quantity"] - mvt["mvt_fee"]
+                mvt["mvt_gain"] = (mvt["mvt_quote"] - mvt["mvt_exec"]) * mvt["mvt_quantity"] * (1 - fee/100)
+                mvt["mvt_gain_percent"] = (mvt["mvt_gain"] / (mvt["mvt_exec"] * mvt["mvt_quantity"])) * 100
+                quantity_lefts[mvt_id] = quantity_left
+            else:
+                quantity_left -= mvt["mvt_quantity"]
+                ptf_input = ptf_input + mvt["mvt_exec"] * mvt["mvt_quantity"] - mvt["mvt_fee"]
+                mvt["mvt_input"] = mvt["mvt_exec"] * mvt["mvt_quantity"] - mvt["mvt_fee"]
+
+            if quantity_left == 0:
+                quantity_lefts.clear()
+
+            # Mise à jour du mvt
+            ptf_latent = quantity_left * mvt["mvt_quote"] * (1 - fee/100)
+            if mvt["mvt_percent"] != 0:
+                ptf_gain_day = (mvt["mvt_quote"] - mvt["mvt_quote"] / ( 1 + mvt["mvt_percent"] / 100)) * quantity_left
+            mvt["mvt_gain_day"] = ptf_gain_day
+            mvt["mvt_left"] = quantity_left
+            self.crud.exec_sql(self.crud.get_basename(), """
+            UPDATE MVT
+            set mvt_input = :mvt_input, mvt_output = :mvt_output
+            , mvt_left = :mvt_left, mvt_gain = :mvt_gain
+            , mvt_gain_percent = :mvt_gain_percent, mvt_gain_day = :mvt_gain_day
+            WHERE mvt_id = :mvt_id
+            """, mvt)
+        # traitement dernière rupture
+        if account != "":
+            # update money latent
+            latent += ptf_latent
+            gain_day += ptf_gain_day
+            money += ptf_input + ptf_output
+            self.crud.exec_sql(self.crud.get_basename(), """
+            UPDATE ACCOUNT
+            set acc_money = acc_initial + :money, acc_latent = :latent
+            ,acc_gain_day = :gain_day
+            WHERE acc_id = :account
+            """, {"account": account, "money": money, "latent": latent, "gain_day": gain_day})
+            # Sélection des MVTs non soldés
+            if quantity_left > 0:
+                for key in quantity_lefts:
+                    self.crud.exec_sql(self.crud.get_basename(), """
+                    UPDATE MVT
+                    set mvt_select = '1'
+                    WHERE mvt_id = :mvt_id
+                    """, {"mvt_id": key})
+
+        # calcul du gain
+        self.crud.exec_sql(self.crud.get_basename(), """
+        UPDATE ACCOUNT
+        set acc_gain = acc_money + acc_latent - acc_initial
+        """, {})
+        # SELECTION DES MVTS EN COURS
+        mvts = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT * FROM mvt
+        WHERE mvt_select = '1'
+        ORDER BY mvt_ptf_id, mvt_date asc
+        """, {})
+        ptf_id = ""
+        accounts = {}
+        ptf_date = ""
+        ptf_quantity = 0
+        ptf_gainj = 0
+        ptf_gain = 0
+        ptf_output = 0
+        for mvt in mvts:
+            if mvt["mvt_ptf_id"] != ptf_id:
+                # changement de ptf
+                if ptf_quantity > 0:
+                    params = {
+                        "accounts": ' '.join(accounts.keys()),
+                        "ptf_id": ptf_id,
+                        "ptf_date": ptf_date,
+                        "ptf_quantity": ptf_quantity,
+                        "ptf_gainj": ptf_gainj,
+                        "ptf_gain": ptf_gain,
+                        "ptf_cost": ptf_output,
+                        "ptf_gain_percent": ptf_gain / ptf_output * 100
+                    }
+                    self.crud.exec_sql(self.crud.get_basename(), """
+                    UPDATE PTF
+                    set ptf_account = :accounts
+                    ,ptf_date = :ptf_date
+                    ,ptf_quantity = :ptf_quantity
+                    ,ptf_gainj = :ptf_gainj
+                    ,ptf_gain = :ptf_gain
+                    ,ptf_cost = :ptf_cost
+                    ,ptf_gain_percent = :ptf_gain_percent
+                    where ptf_id = :ptf_id
+                    """, params)
+
+                # initialisation nouveau ptf
+                accounts.clear()
+                ptf_date = ""
+                ptf_quantity = 0
+                ptf_gainj = 0
+                ptf_gain = 0
+                ptf_output = 0
+                ptf_id = mvt["mvt_ptf_id"]
+
+            accounts[mvt["mvt_account"]] = mvt["mvt_quantity"]
+            ptf_quantity += mvt["mvt_quantity"]
+            ptf_gainj += mvt["mvt_gain_day"]
+            ptf_gain += mvt["mvt_gain"]
+            ptf_output += mvt["mvt_output"]
+            ptf_date = mvt["mvt_date"]

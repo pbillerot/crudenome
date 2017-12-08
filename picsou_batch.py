@@ -137,6 +137,9 @@ class PicsouBatch():
             set resume_percent = (resume_gain / resume_investi) * 100
             """, {})
 
+        if self.args.account:
+            loader.account()
+
         # Mail de compte-rendu
         if self.args.mail or self.args.sms:
             # Mon portefeuille
@@ -187,7 +190,7 @@ class PicsouBatch():
                 , ptf["ptf_gain_percent"]\
                 , ptf["ptf_resistance"]\
                 , ptf["ptf_rsi"]\
-                , ptf["ptf_macd"]\
+                , ptf["ptf_q26"]\
                 , ptf["ptf_e200"]\
                 , url)
                 self.myptf.append(msg)
@@ -240,6 +243,7 @@ if __name__ == '__main__':
     parser.add_argument('-histo', '--histo', action='store_true', default=False, help="Rechargement de l'historique des cours sur 400 jours")
     parser.add_argument('-simul', '--simul', action='store_true', default=False, help="Avec recalcul du simulateur")
     parser.add_argument('-quote', '--quote', action='store_true', default=False, help="Requête pour actualiser le cours du jour")
+    parser.add_argument('-account', '--account', action='store_true', default=False, help="Requête pour actualiser les comptes")
     # print parser.parse_args()
 
     PicsouBatch(parser.parse_args())

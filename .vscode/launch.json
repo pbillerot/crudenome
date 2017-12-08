@@ -30,7 +30,8 @@
             "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
             "args": [
-                "-simul"
+                "-simul",
+                "-account"
             ],
             "env": {},
             "envFile": "${workspaceRoot}/.env",

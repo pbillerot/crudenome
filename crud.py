@@ -501,6 +501,8 @@ class Crud:
         """ Remplace par leur valeur les mots entre accolades {mot} trouvés dans le dictionnaire """
         for key in word_dict:
             # print key, word_dict[key], type(word_dict[key])
+            if word_dict.get(key, None) is None:
+                continue
             if isinstance(word_dict[key], int):
                 text = text.replace("{" + key + "}", str(word_dict[key]))
             elif isinstance(word_dict[key], float):
@@ -508,8 +510,8 @@ class Crud:
             elif isinstance(word_dict[key], bool):
                 text = text.replace("{" + key + "}", str(word_dict[key]))
             else:
-                text = text.replace("{" + key + "}", (word_dict[key]))
-                # text = text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
+                # text = text.replace("{" + key + "}", (word_dict[key]))
+                text = text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
         return text
 
     def sql_update_record(self):
@@ -636,7 +638,8 @@ class Crud:
             self.set_element_prop(element, "crudel", crudel)
             if crudel.is_virtual():
                 continue
-            if crudel.is_read_only() and crudel.with_jointure():
+            if crudel.with_jointure()\
+            and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
                 continue
             if b_first:
                 b_first = False
@@ -655,7 +658,8 @@ class Crud:
         # ajout des colonnes de jointure
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
-            if crudel.is_read_only() and crudel.with_jointure():
+            if crudel.with_jointure()\
+            and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
                 sql += ", " + crudel.get_jointure("display") + " as " + element
 
         sql += " FROM " + self.get_table_id()
@@ -664,7 +668,8 @@ class Crud:
         join = ""
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
-            if crudel.is_read_only() and crudel.with_jointure():
+            if crudel.with_jointure()\
+            and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
                 if crudel.get_jointure("join"):
                     join += " " + crudel.get_jointure("join")
         if join:

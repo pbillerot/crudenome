@@ -202,7 +202,7 @@ class PicsouBatchUi(Gtk.Window):
         if self.with_mail.get_active():
             # TOP 14
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            select * from ptf order by ptf_macd desc limit 14
+            select * from ptf order by ptf_q26 desc limit 14
             """, {})
             for ptf in ptfs:
                 url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])
@@ -213,7 +213,7 @@ class PicsouBatchUi(Gtk.Window):
                 <td style="text-align: right">{4:.2f}%</td>
                 <td>{5}</td>
                 </tr>
-                """.format(ptf["ptf_macd"], ptf["ptf_account"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], url)
+                """.format(ptf["ptf_q26"], ptf["ptf_account"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], url)
                 self.top14.append(msg)
 
             # Mon portefeuille
@@ -245,7 +245,7 @@ class PicsouBatchUi(Gtk.Window):
                     <td style="text-align: right">{6:.2f}%</td>
                     <td style="text-align: right">{7:.2f}%</td>
                     <td>{8}</td>
-                    </tr>""".format(ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_cost"], ptf["ptf_quantity"], ptf["ptf_gain"], ptf["ptf_gain_percent"], ptf["ptf_macd"], url)                     
+                    </tr>""".format(ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_cost"], ptf["ptf_quantity"], ptf["ptf_gain"], ptf["ptf_gain_percent"], ptf["ptf_q26"], url)                     
                     self.myptf.append(msg)
 
                 if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and ptf["ptf_resistance"] == "RRR":

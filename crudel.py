@@ -262,7 +262,7 @@ class Crudel(GObject.GObject):
         return self.crud.get_element_param(self.element, param, default)
 
     def get_param_replace(self, param, default=None):
-        """ Retourne la valeur du paramètre 
+        """ Retourne la valeur du paramètre
             en remplaçant les rubriques {}
         """
         return self.crud.replace_from_dict(\
@@ -317,6 +317,10 @@ class Crudel(GObject.GObject):
     def is_sortable(self):
         """ La colonne pourra être triée en cliquant sur le titre de la colonne """
         return self.crud.get_column_prop(self.element, "sortable", False)
+
+    def is_col_editable(self):
+        """ La case à cocher sera active """
+        return self.crud.get_column_prop(self.element, "editable", False)
 
     def set_required(self, bool):
         """ required """
@@ -553,7 +557,11 @@ class CrudelCheck(Crudel):
         return renderer
 
     def _get_tvc(self, renderer, col_id):
-        renderer.connect("toggled", self.on_cell_toggle)
+        if self.is_col_editable():
+            renderer.connect("toggled", self.on_cell_toggle)
+            renderer.set_active(False)
+        else:
+            renderer.set_active(True)
         tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, active=col_id)
         return tvc
 
@@ -804,8 +812,10 @@ class CrudelForm(Crudel):
         self.crud.add_selection(key_id)
         self.crud.set_key_value(key_id)
         if self.get_param("plugin"):
+            # relecture de la ligne
             plugin = self.get_param("plugin")
             plugin_class = self.crud.load_class("plugin." + plugin)
+            self.crud.set_crudel(self)
             form = plugin_class(self.crud)
         else:
             self.crud.set_action("update")
