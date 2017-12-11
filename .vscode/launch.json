@@ -22,7 +22,7 @@
             ]
         },
         {
-            "name": "Batch",
+            "name": "Batch S A",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,

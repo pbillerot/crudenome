@@ -290,9 +290,7 @@ class PicsouLoadQuotes():
         # Raz de la dernière simulation
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
-        set ptf_account = '', ptf_intest = "", ptf_test_cost = 0, ptf_test_quantity = 0
-        ,ptf_test_gain = 0, ptf_test_gain_percent = 0
-        ,ptf_test_nbj = 0, ptf_test_cumul = 0
+        set ptf_account = ''
         """, {})
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE COURS
@@ -303,6 +301,14 @@ class PicsouLoadQuotes():
         DELETE FROM MVT
         WHERE mvt_account = 'SIMUL'
         """, {})
+
+        # recup mise minimum dans simul
+        rows = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT * FROM account
+        WHERE acc_id = 'SIMUL'
+        """, {})
+        acc_bet = rows[0]["acc_bet"]
+        acc_fee = rows[0]["acc_fee"]
 
         # MAJ account de PTF
         mvts = self.crud.sql_to_dict(self.crud.get_basename(), """
@@ -373,7 +379,6 @@ class PicsouLoadQuotes():
             quantity = 0
             cost = 0.0
             nbj = 0
-            test_date = ""
             gain = 0.0
             gain_percent = 0.0
             motif = ""
@@ -404,7 +409,7 @@ class PicsouLoadQuotes():
                 if quotes[n-1] == 0:
                     continue
 
-                if int(self.crudel.get_param("amount") / quote) < 1:
+                if int(acc_bet / quote) < 1:
                     continue
 
                 btraite = False
@@ -434,24 +439,21 @@ class PicsouLoadQuotes():
                     # SUPPORT -> ACHAT
                     btraite = True
                     rsi_achat = rsis[0]
-                    quantity = int(self.crudel.get_param("amount") / quote)
+                    quantity = int(acc_bet / quote)
                     amount = quantity * quote
                     cost = quote + quote * self.crudel.get_param("cost") * 2 # frais
                     gain = amount - quantity * cost
                     gainj = (cours["cours_close"] - cours["cours_open"]) * quantity
                     gain_percent = (gain / amount) * 100
                     nbj = 0
-                    test_date = cours["cours_date"]
-                    fee = quote * quantity * 0.0052
+                    fee = quote * quantity * acc_fee / 100
 
                     # maj du cours
                     intest = "TTT"
                     cours["cours_trade"] = "SSS"
                     cours["cours_quantity"] = quantity
-                    cours["cours_cost"] = cost
-                    cours["cours_gainj"] = gainj
-                    cours["cours_gain"] = gain
-                    cours["cours_gain_percent"] = gain_percent
+                    cours["cours_quantity"] = quantity
+                    cours["cours_fee"] = fee
 
                     if b_en_test:
                         # Ajout d'un mouvement
@@ -459,11 +461,11 @@ class PicsouLoadQuotes():
                         INSERT INTO MVT
                         (mvt_account, mvt_date, mvt_ptf_id, mvt_trade, mvt_exec, mvt_quantity, mvt_fee)
                         VALUES
-                        ('SIMUL', :cours_date, :cours_ptf_id, 'Achat', :cours_close, :cours_quantity, 6.15)
+                        ('SIMUL', :cours_date, :cours_ptf_id, 'Achat', :cours_close, :cours_quantity, :cours_fee)
                         """, cours)
 
                     ptf["ptf_trade"] = "SSS"
-                    ptf["ptf_test_date"] = cours["cours_date"]
+                    ptf["ptf_date"] = cours["cours_date"]
 
                 if not btraite and (b_en_test or b_en_production):
                     btraite = True
@@ -527,7 +529,6 @@ class PicsouLoadQuotes():
                         nbj += 1
 
                         cours["cours_trade"] = "RRR"
-
                         ptf["ptf_trade"] = "RRR"
                     else:
                         # RESISTANCE -> VENTE
@@ -547,11 +548,14 @@ class PicsouLoadQuotes():
                             ptf["ptf_trade"] = "RRR"
 
                             # Ajout d'un mouvement
+                            fee = quote * quantity * acc_fee / 100
+                            cours["cours_fee"] = fee
+
                             self.crud.exec_sql(self.crud.get_basename(), """
                             INSERT INTO MVT
                             (mvt_account, mvt_date, mvt_ptf_id, mvt_trade, mvt_exec, mvt_quantity, mvt_fee)
                             VALUES
-                            ('SIMUL', :cours_date, :cours_ptf_id, 'Vente', :cours_close, :cours_quantity, 6.15)
+                            ('SIMUL', :cours_date, :cours_ptf_id, 'Vente', :cours_close, :cours_quantity, :cours_fee)
                             """, cours)
 
                             motif = ""
@@ -562,10 +566,9 @@ class PicsouLoadQuotes():
                             cost = 0
                             gain = 0
                             gain_percent = 0
-                            test_date = ""
                             rsi_67 = False
                         else:
-                            # Maj du cours
+                            # Maj du cours 
                             nbj += 1
 
                             cours["cours_trade"] = "TTT"
@@ -576,12 +579,13 @@ class PicsouLoadQuotes():
                             ptf["ptf_trade"] = ""
 
                 # maj du cours
+                cours["cours_quantity"] = quantity
                 cours["cours_nbj"] = nbj
                 cours["cours_gainj"] = gainj
+                cours["cours_gain"] = gain
+                cours["cours_gain_percent"] = gain_percent
                 cours["cours_intest"] = 1 if b_en_test else ""
                 cours["cours_inptf"] = 1 if b_en_production else ""
-                if b_en_production:
-                    pass
                 self.crud.exec_sql(self.crud.get_basename(), """
                 UPDATE COURS
                 set cours_trade = :cours_trade, cours_nbj = :cours_nbj
@@ -604,15 +608,9 @@ class PicsouLoadQuotes():
                 ptf["ptf_rsi"] = cours["cours_rsi"]
                 ptf["ptf_q26"] = cours["cours_q26"]
                 ptf["ptf_q12"] = cours["cours_q12"]
+                ptf["ptf_nbj"] = cours["cours_nbj"]
 
             # mise à jour du portefeuille à la fin
-            ptf["ptf_test_cost"] = cost
-            ptf["ptf_test_quantity"] = quantity
-            ptf["ptf_test_gain"] = gain
-            ptf["ptf_test_gain_percent"] = gain_percent
-            ptf["ptf_test_nbj"] = nbj
-            ptf["ptf_intest"] = intest
-            ptf["ptf_test_date"] = test_date
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE PTF
             set ptf_quote = :ptf_quote 
@@ -623,16 +621,9 @@ class PicsouLoadQuotes():
             ,ptf_rsi = :ptf_rsi
             ,ptf_q26 = :ptf_q26
             ,ptf_q12 = :ptf_q12
-            ,ptf_intest = :ptf_intest
-            ,ptf_test_date = :ptf_test_date
-            ,ptf_test_cost = :ptf_test_cost
-            ,ptf_test_quantity = :ptf_test_quantity
-            ,ptf_test_gain = :ptf_test_gain
-            ,ptf_test_gain_percent = :ptf_test_gain_percent
-            ,ptf_test_cumul = :ptf_test_cumul
-            ,ptf_test_nbj = :ptf_test_nbj
             WHERE ptf_id = :ptf_id
             """, ptf)
+
             # self.parent.display("{} Gain:{:.2f}\tCumul:{:.2f}".format(ptf["ptf_id"]\
             # , cumulptf, cumul))
 

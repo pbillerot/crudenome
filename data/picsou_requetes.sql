@@ -51,8 +51,7 @@ select * from cac40
 where code || '.PA' not in ( select ptf_id from ptf)
 
 CREATE UNIQUE INDEX PTF_INDEX ON ptf (ptf_id)
-update PTF set ptf_intest = '', ptf_percent = 0.0, ptf_test_cost = 0.0, ptf_test_quantity = 0, ptf_test_gain = 0.0, ptf_test_gain_percent = 0.0
-update ptf set ptf_rsi = 0, ptf_q12 = 0, ptf_q26 = 0, ptf_test_nbj = 0
+update ptf set ptf_rsi = 0, ptf_q12 = 0, ptf_q26 = 0
 
 select max(nb) from (
 select cours_date, count(*) as nb

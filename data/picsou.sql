@@ -9,17 +9,15 @@ CREATE TABLE ptf (
     ptf_quantity          INTEGER DEFAULT (0),
     ptf_quote             REAL    DEFAULT (0),
     ptf_cost              REAL    DEFAULT (0),
-    ptf_gain              REAL    DEFAULT (0),
     ptf_percent           REAL,
     ptf_rsi               REAL    DEFAULT (0),
-    ptf_gain_percent      REAL    DEFAULT (0),
-    ptf_trade             TEXT,
-    ptf_inptf             TEXT,
-    ptf_note              TEXT,
-    ptf_date              TEXT,
     ptf_q26               INTEGER,
     ptf_q12               INTEGER,
-    ptf_intest            TEXT,
+    ptf_trade             TEXT,
+    ptf_date              TEXT,
+    ptf_gain              REAL    DEFAULT (0),
+    ptf_gain_percent      REAL    DEFAULT (0),
+    ptf_note              TEXT,
     ptf_cac40             INTEGER
 );
 
@@ -79,15 +77,15 @@ CREATE TABLE MVT (
 
 drop table if exists ACCOUNT;
 CREATE TABLE ACCOUNT (
-    acc_id       TEXT PRIMARY KEY
-                      NOT NULL,
+    acc_id       TEXT PRIMARY KEY,
     acc_date     TEXT,
     acc_money    REAL DEFAULT (0),
     acc_latent   REAL DEFAULT (0),
     acc_initial  REAL DEFAULT (0),
     acc_fee      REAL DEFAULT (0),
     acc_gain     REAL DEFAULT (0),
-    acc_gain_day REAL DEFAULT (0) 
+    acc_gain_day REAL DEFAULT (0),
+    acc_bet      REAL DEFAULT (0) 
 );
 
 drop table if exists RESUME;

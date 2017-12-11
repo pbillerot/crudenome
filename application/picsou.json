@@ -775,6 +775,12 @@
                     "type": "float",
                     "display": "%3.2f €"
                 },
+                "acc_bet": {
+                    "label_long": "Mise",
+                    "label_short": "Mise",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
                 "acc_money": {
                     "label_long": "Espèce",
                     "label_short": "Espèce",
@@ -820,6 +826,7 @@
                         "acc_id": {},
                         "acc_date": {},
                         "acc_initial": {},
+                        "acc_bet": {},
                         "acc_fee": {},
                         "acc_money": {},
                         "acc_gain_day": {},
@@ -834,8 +841,8 @@
                     "title": "Nouveau compte...",
                     "elements": {
                         "acc_id": {},
-                        "acc_date": {},
                         "acc_initial": {},
+                        "acc_bet": {},
                         "acc_fee": {}
                     }
                 },
@@ -843,11 +850,9 @@
                     "title": "Mise à jour",
                     "elements": {
                         "acc_id": {},
-                        "acc_date": {},
                         "acc_initial": {},
-                        "acc_fee": {},
-                        "acc_money": {"read_only": true},
-                        "acc_latent": {"read_only": true}
+                        "acc_bet": {},
+                        "acc_fee": {}
                     }
                 }
             }
