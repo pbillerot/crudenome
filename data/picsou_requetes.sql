@@ -2,8 +2,7 @@ select * from PTF
 --where ptf_id = 'ACA.PA'
 order by ptf_id
 
---select * from cours where cours_macd is null order by cours_date desc
-select cours_ptf_id, cours_name, cours_date, cours_close, cours_rsi, cours_ema12, cours_ema26, cours_ema50, cours_trend, cours_trade, cours_nbj, cours_gain from cours 
+select cours_ptf_id, cours_name, cours_date, cours_close, cours_rsi, cours_ema12, cours_ema26, cours_ema50, cours_trade, cours_nbj, cours_gain from cours 
 where cours_ptf_id = 'AC.PA'
 --and cours_trade in ('SSS','RRR','TTT')
 --where cours_trade in ('RRR')

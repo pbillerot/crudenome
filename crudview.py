@@ -241,6 +241,10 @@ class CrudView(GObject.GObject):
         b_first = True
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
+            # colonnes techniques
+            if crudel.get_sql_color() != "":
+                sql += ", "
+                sql += crudel.get_sql_color() + " as " + element + "_color"
             if crudel.is_virtual():
                 continue
             if crudel.with_jointure():
@@ -254,10 +258,6 @@ class CrudView(GObject.GObject):
                 sql += self.crud.get_table_id() + "." + element
             else:
                 sql += crudel.get_sql_get() + " as " + element
-            # colonnes techniques
-            if crudel.get_sql_color() != "":
-                sql += ", "
-                sql += crudel.get_sql_color() + " as " + element + "_color"
         
         # ajout des colonnes de jointure
         for element in self.crud.get_view_elements():

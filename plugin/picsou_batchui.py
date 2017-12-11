@@ -248,12 +248,12 @@ class PicsouBatchUi(Gtk.Window):
                     </tr>""".format(ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_cost"], ptf["ptf_quantity"], ptf["ptf_gain"], ptf["ptf_gain_percent"], ptf["ptf_q26"], url)                     
                     self.myptf.append(msg)
 
-                if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and ptf["ptf_resistance"] == "RRR":
+                if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and ptf["ptf_trade"] == "RRR":
                     msg = '<tr><td>{0}</td><td>{1}</td><td style="text-align: right">{2:.2f}</td><td>{3}</td></tr>'\
                     .format(ptf["ptf_date"], ptf["ptf_name"], ptf["ptf_quote"], url)
                     self.resistances.append(msg)
 
-                if ptf["ptf_support"] == "SSS":
+                if ptf["ptf_trade"] == "SSS":
                     msg = '<tr><td>{0}</td><td>{1}</td><td style="text-align: right">{2:.2f}</td><td style="text-align: right">{3}</td><td>{4}</td></tr>'\
                     .format(ptf["ptf_date"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_quantity"], url)
                     self.supports.append(msg)

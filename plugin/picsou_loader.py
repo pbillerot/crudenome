@@ -58,8 +58,8 @@ class PicsouLoadQuotes():
         set cours_percent = ( (cours_close - cours_open) / cours_open) * 100 
         """, {})
 
-        # calcul du rsi ema12 ema26 macd
-        self.calcul_rsi_ema_macd(self.ptf)
+        # calcul du rsi ema12 ema26
+        self.calcul_rsi_ema(self.ptf)
 
     def split_crumb_store(self, v):
         return v.split(':')[2].strip('"')
@@ -192,7 +192,7 @@ class PicsouLoadQuotes():
                 pass
         return bret
 
-    def calcul_rsi_ema_macd(self, ptf, n=101):
+    def calcul_rsi_ema(self, ptf, n=101):
         """
             Calcul des indicateurs RSI EMA12 EMA26 TREND
         """
@@ -205,7 +205,6 @@ class PicsouLoadQuotes():
         emas12 = [0] * n
         emas26 = [0] * n
         emas50 = [0] * n
-        macd = [0] * n
         q26 = [0] * n
         q12 = [0] * n
         # ordre = {}
@@ -216,7 +215,6 @@ class PicsouLoadQuotes():
                 emas12[i] = emas12[i-1]
                 emas26[i] = emas26[i-1]
                 emas50[i] = emas50[i-1]
-                macd[i] = macd[i-1]
                 q12[i] = q12[i-1]
                 q26[i] = q26[i-1]
 
@@ -234,7 +232,6 @@ class PicsouLoadQuotes():
             emas12[0] = self.ema(quote_r, 12)
             emas26[0] = self.ema(quote_r, 26)
             emas50[0] = self.ema(quote_r, 50)
-            macd[0] = emas12[0] - emas26[0]
             if emas26[1] != 0:
                 # trend[0] = ((emas50[0] - emas50[1]) / emas50[1]) * 100 * 50 # 50 jours en %
                 # trend = nbre de jour de hausse à la suite du ema26
@@ -263,7 +260,6 @@ class PicsouLoadQuotes():
             cours["cours_ema12"] = emas12[0]
             cours["cours_ema26"] = emas26[0]
             cours["cours_ema50"] = emas50[0]
-            cours["cours_macd"] = macd[0]
             cours["cours_q26"] = q26[0]
             cours["cours_q12"] = q12[0]
 
@@ -271,7 +267,6 @@ class PicsouLoadQuotes():
             UPDATE COURS
             set cours_rsi = :cours_rsi
             , cours_ema12 = :cours_ema12, cours_ema26 = :cours_ema26, cours_ema50 = :cours_ema50
-            , cours_macd = :cours_macd
             , cours_q26 = :cours_q26
             , cours_q12 = :cours_q12
             , cours_trade = '', cours_quantity = 0, cours_cost = 0, cours_gainj = 0, cours_gain = 0, cours_gain_percent = 0
@@ -295,19 +290,46 @@ class PicsouLoadQuotes():
         # Raz de la dernière simulation
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
-        set ptf_intest = "", ptf_test_cost = 0, ptf_test_quantity = 0
+        set ptf_account = '', ptf_intest = "", ptf_test_cost = 0, ptf_test_quantity = 0
         ,ptf_test_gain = 0, ptf_test_gain_percent = 0
         ,ptf_test_nbj = 0, ptf_test_cumul = 0
         """, {})
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE COURS
         set cours_trade = '', cours_quantity = 0, cours_nbj = 0
-        ,cours_cost = 0, cours_gain = 0, cours_gain_percent = 0
+        ,cours_cost = 0, cours_gainj = 0, cours_gain = 0, cours_gain_percent = 0
         """, {})
         self.crud.exec_sql(self.crud.get_basename(), """
         DELETE FROM MVT
         WHERE mvt_account = 'SIMUL'
         """, {})
+
+        # MAJ account de PTF
+        mvts = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT * FROM mvt
+        WHERE mvt_select = '1'
+        ORDER BY mvt_ptf_id, mvt_date asc
+        """, {})
+        ptf_id = ""
+        accounts = {}
+        for mvt in mvts:
+            if mvt["mvt_ptf_id"] != ptf_id:
+                # changement de ptf
+                params = {
+                    "accounts": ' '.join(accounts.keys()),
+                    "ptf_id": ptf_id,
+                }
+                self.crud.exec_sql(self.crud.get_basename(), """
+                UPDATE PTF
+                set ptf_account = :accounts
+                where ptf_id = :ptf_id
+                """, params)
+
+                # initialisation nouveau ptf
+                accounts.clear()
+                ptf_id = mvt["mvt_ptf_id"]
+
+            accounts[mvt["mvt_account"]] = mvt["mvt_quantity"]
 
         # Boucle sur les PTF
         # On vend les actions en baisse pour libérer du cash
@@ -341,13 +363,11 @@ class PicsouLoadQuotes():
             emas12 = [0] * n
             emas26 = [0] * n
             emas50 = [0] * n
-            macd = [0] * n
             rsis = [0] * n
             q12 = [0] * n
             q26 = [0] * n
 
             quote = 0.0
-            percent = 0
             gainj = 0
             intest = ""
             quantity = 0
@@ -356,14 +376,10 @@ class PicsouLoadQuotes():
             test_date = ""
             gain = 0.0
             gain_percent = 0.0
-            b_macd = True # True quand croisement 12/  26\
             motif = ""
-            rsi = 0
             rsi_achat = 0
             b_en_production = False
-            e200 = []
             rsi_67 = False
-            max_quote = 0
             for cours in courss:
                 # boucle pour récupérer le cours de j-1
                 for i in range(n-1, 0, -1):
@@ -372,18 +388,15 @@ class PicsouLoadQuotes():
                     emas26[i] = emas26[i-1]
                     emas50[i] = emas50[i-1]
                     rsis[i] = rsis[i-1]
-                    macd[i] = macd[i-1]
                     q26[i] = q26[i-1]
                     q12[i] = q12[i-1]
 
                 quote = cours["cours_close"]
-                e200.append(quote)
                 quotes[0] = cours["cours_close"]
                 emas12[0] = cours["cours_ema12"]
                 emas26[0] = cours["cours_ema26"]
                 emas50[0] = cours["cours_ema50"]
                 rsis[0] = cours["cours_rsi"]
-                macd[0] = cours["cours_macd"]
                 q26[0] = cours["cours_q26"]
                 q12[0] = cours["cours_q12"]
 
@@ -398,42 +411,28 @@ class PicsouLoadQuotes():
 
                 if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and cours["cours_date"] >= ptf["ptf_date"]:
                     b_en_production = True
-
+                    
                 # SUPPORT -> ACHAT
                 b_achat = False
+
+                if intest == "":
+                    b_en_test = False
+                else:
+                    b_en_test = True
 
                 # if intest == "" and rsis[1] < 37 and rsis[0] > rsis[1]:
                 #     motif = " <37"
                 #     b_achat = True
 
-                if intest == "" and not b_achat and q26[0] > 7 and rsis[0] < 50:
-                    motif = " >7J"
-                    b_achat = True
-
-                # on évite les tendances plates
-                # emas50 > emas26 qui remonte
-                # if intest == "" and macd[0] < 0\
-                #     and abs(emas50[0]-emas26[0])/emas26[0] > 0.003\
-                #     and emas26[0] > emas26[1]:# and emas50[0] > emas26[0]
-                #     motif += " 26+"
-                #     b_achat = True
-
-                # croisement 12x26
-                # if intest == "" and macd[1] < 0 and macd[0] > 0 and emas50[0] > emas50[1] and rsis[0] < 50:
-                #     # and abs(emas50[0]-emas26[0])/emas26[0] > 0.003\
-                #     # and emas26[0] > emas26[1]:# and emas50[0] > emas26[0]
-                #     motif += " 12x26"
-                #     b_achat = True
-
-                if intest == "" and b_en_production:
-                    motif = " PPP"
+                if not b_en_test and not b_achat and q26[0] > 4 and rsis[0] < 50:
+                # if intest == "" and not b_achat and q12[0] > 2 and q26[0] > 5:
+                    motif = " >4J"
+                    b_en_test = True
                     b_achat = True
 
                 if b_achat:
                     # SUPPORT -> ACHAT
-                    b_macd = False
                     btraite = True
-                    rsi = rsis[0]
                     rsi_achat = rsis[0]
                     quantity = int(self.crudel.get_param("amount") / quote)
                     amount = quantity * quote
@@ -448,22 +447,13 @@ class PicsouLoadQuotes():
                     # maj du cours
                     intest = "TTT"
                     cours["cours_trade"] = "SSS"
-                    cours["cours_nbj"] = nbj
                     cours["cours_quantity"] = quantity
                     cours["cours_cost"] = cost
                     cours["cours_gainj"] = gainj
                     cours["cours_gain"] = gain
                     cours["cours_gain_percent"] = gain_percent
 
-                    self.crud.exec_sql(self.crud.get_basename(), """
-                    UPDATE COURS
-                    set cours_trade = :cours_trade, cours_nbj = :cours_nbj, cours_quantity = :cours_quantity
-                    , cours_cost = :cours_cost, cours_gainj = :cours_gainj
-                    , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
-                    WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
-                    """, cours)
-
-                    if motif.find("PPP") == -1:
+                    if b_en_test:
                         # Ajout d'un mouvement
                         self.crud.exec_sql(self.crud.get_basename(), """
                         INSERT INTO MVT
@@ -472,11 +462,10 @@ class PicsouLoadQuotes():
                         ('SIMUL', :cours_date, :cours_ptf_id, 'Achat', :cours_close, :cours_quantity, 6.15)
                         """, cours)
 
-                    ptf["ptf_resistance"] = ""
-                    ptf["ptf_support"] = "SSS"
+                    ptf["ptf_trade"] = "SSS"
                     ptf["ptf_test_date"] = cours["cours_date"]
 
-                if not btraite and (intest == "TTT" or b_en_production):
+                if not btraite and (b_en_test or b_en_production):
                     btraite = True
 
                     # cas des pertes sans palier dans les 26 jours
@@ -493,12 +482,6 @@ class PicsouLoadQuotes():
                     cours["cours_gain"] = gain
                     cours["cours_gain_percent"] = gain_percent
 
-                    # croisement macd qui permet de valider l'achat récent
-                    # if emas26[1] > emas12[1] and emas12[0] > emas26[0]:
-                    # if macd[0] > 0:
-                    #     motif += " 12x26"
-                    #     b_macd = True
-
                     # Faut-il vendre ?
                     b_vendre = False
 
@@ -512,12 +495,6 @@ class PicsouLoadQuotes():
                     #     motif += " -50"
                     #     b_vendre = True
 
-                    # on vend si emas26 < emas50
-                    # if not b_vendre and b_macd and emas26[0] < emas50[0]:
-                    # if not b_vendre and emas26[0] < emas50[0] and nbj > 4:
-                    #     motif += " 26<50"
-                    #     b_vendre = True
-
                     # if not b_vendre and emas26[0] < emas26[1] and nbj > 2:
                     #     motif += " 26-"
                     #     b_vendre = True
@@ -527,7 +504,7 @@ class PicsouLoadQuotes():
                     # avec >65 Nbre de mises: -10 Cash: 6102.30 € Gain acquis: 12.51 € Gain : 26.51 €
                     # avec >70 Nbre de mises: -3 Cash: -2114.33 € Gain acquis: 155.79 € Gain : 503.30 €
                     if rsis[0] > 67:
-                        rsi_67 = True 
+                        rsi_67 = True
                         # b_vendre = True
 
                     if rsi_67 and emas12[0] < emas12[1]:
@@ -539,8 +516,9 @@ class PicsouLoadQuotes():
                     #     b_vendre = True
 
                     # garde-fou : 
-                    if not b_vendre and emas50[0] < emas50[1] and gain < 0 and nbj > 26:
-                        motif += " 26J"
+                    # if not b_vendre and emas50[0] < emas50[1] and gain < 0 and nbj > 26:
+                    if not b_vendre and q26[0] < 0 and gain < 0 and nbj > 20:
+                        motif += " 20J"
                         b_vendre = True
 
                     if b_vendre and b_en_production:
@@ -548,20 +526,9 @@ class PicsouLoadQuotes():
                         # Maj du cours
                         nbj += 1
 
-                        cours["cours_trade"] = intest
-                        cours["cours_nbj"] = nbj
+                        cours["cours_trade"] = "RRR"
 
-                        self.crud.exec_sql(self.crud.get_basename(), """
-                        UPDATE COURS
-                        set cours_trade = :cours_trade, cours_nbj = :cours_nbj
-                        , cours_quantity = :cours_quantity, cours_cost = :cours_cost
-                        , cours_gainj = :cours_gainj
-                        , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
-                        WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
-                        """, cours)
-
-                        ptf["ptf_resistance"] = "RRR"
-                        ptf["ptf_support"] = ""
+                        ptf["ptf_trade"] = "RRR"
                     else:
                         # RESISTANCE -> VENTE
                         if b_vendre:
@@ -572,23 +539,12 @@ class PicsouLoadQuotes():
 
                             # maj du cours
                             cours["cours_trade"] = "RRR"
-                            cours["cours_nbj"] = nbj
 
-                            self.parent.display("  {} / {} {} {:.0f}/{:.0f} {:.2f} {}j\t{:.2f}€"\
-                            .format(test_date, cours["cours_date"], motif, rsi_achat, rsis[0]\
-                            , macd[0], nbj, gain))
+                            # self.parent.display("  {} / {} {} {:.0f}/{:.0f} {:.2f} {}j\t{:.2f}€"\
+                            # .format(test_date, cours["cours_date"], motif, rsi_achat, rsis[0]\
+                            # , q26[0], nbj, gain))
         
-                            self.crud.exec_sql(self.crud.get_basename(), """
-                            UPDATE COURS
-                            set cours_trade = :cours_trade, cours_nbj = :cours_nbj
-                            , cours_quantity = :cours_quantity, cours_cost = :cours_cost
-                            , cours_gainj = :cours_gainj
-                            , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
-                            WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
-                            """, cours)
-
-                            ptf["ptf_resistance"] = "RRR"
-                            ptf["ptf_support"] = ""
+                            ptf["ptf_trade"] = "RRR"
 
                             # Ajout d'un mouvement
                             self.crud.exec_sql(self.crud.get_basename(), """
@@ -598,7 +554,6 @@ class PicsouLoadQuotes():
                             ('SIMUL', :cours_date, :cours_ptf_id, 'Vente', :cours_close, :cours_quantity, 6.15)
                             """, cours)
 
-                            b_macd = False
                             motif = ""
                             rsi_achat = 0
                             intest = ""
@@ -609,30 +564,38 @@ class PicsouLoadQuotes():
                             gain_percent = 0
                             test_date = ""
                             rsi_67 = False
-                            max_quote = 0
                         else:
                             # Maj du cours
                             nbj += 1
 
                             cours["cours_trade"] = "TTT"
                             cours["cours_nbj"] = nbj
+                            cours["cours_intest"] = "1" if b_en_test else ""
+                            cours["cours_inptf"] = "1" if b_en_production else ""
 
-                            self.crud.exec_sql(self.crud.get_basename(), """UPDATE COURS
-                            set cours_trade = :cours_trade, cours_nbj = :cours_nbj
-                            , cours_quantity = :cours_quantity, cours_cost = :cours_cost
-                            , cours_gainj = :cours_gainj
-                            , cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
-                            WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
-                            """, cours)
+                            ptf["ptf_trade"] = ""
 
-                            ptf["ptf_resistance"] = ""
-                            ptf["ptf_support"] = ""
+                # maj du cours
+                cours["cours_nbj"] = nbj
+                cours["cours_gainj"] = gainj
+                cours["cours_intest"] = 1 if b_en_test else ""
+                cours["cours_inptf"] = 1 if b_en_production else ""
+                if b_en_production:
+                    pass
+                self.crud.exec_sql(self.crud.get_basename(), """
+                UPDATE COURS
+                set cours_trade = :cours_trade, cours_nbj = :cours_nbj
+                ,cours_inptf = :cours_inptf, cours_intest = :cours_intest
+                ,cours_quantity = :cours_quantity
+                ,cours_cost = :cours_cost, cours_gainj = :cours_gainj
+                ,cours_gain = :cours_gain, cours_gain_percent = :cours_gain_percent
+                WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
+                """, cours)
 
                 # MAJ du COURS qui n'est pas en TEST
                 if not btraite:
                     btraite = True
-                    ptf["ptf_resistance"] = ""
-                    ptf["ptf_support"] = ""
+                    ptf["ptf_trade"] = ""
 
                 # maj du PTF avec les données du cours
                 ptf["ptf_quote"] = cours["cours_close"]
@@ -643,11 +606,6 @@ class PicsouLoadQuotes():
                 ptf["ptf_q12"] = cours["cours_q12"]
 
             # mise à jour du portefeuille à la fin
-            v200 = e200[-200] if len(e200) >= 200 else e200[0]
-            if v200 > 0:
-                ptf["ptf_e200"] = ((quote - v200) / v200) * 100
-            else:
-                ptf["ptf_e200"] = 0
             ptf["ptf_test_cost"] = cost
             ptf["ptf_test_quantity"] = quantity
             ptf["ptf_test_gain"] = gain
@@ -661,12 +619,10 @@ class PicsouLoadQuotes():
             ,ptf_gainj = :ptf_gainj 
             ,ptf_percent = :ptf_percent 
             ,ptf_quantity = :ptf_quantity
-            ,ptf_resistance = :ptf_resistance
-            ,ptf_support = :ptf_support
+            ,ptf_trade = :ptf_trade
             ,ptf_rsi = :ptf_rsi
             ,ptf_q26 = :ptf_q26
             ,ptf_q12 = :ptf_q12
-            ,ptf_e200 = :ptf_e200
             ,ptf_intest = :ptf_intest
             ,ptf_test_date = :ptf_test_date
             ,ptf_test_cost = :ptf_test_cost
@@ -677,43 +633,43 @@ class PicsouLoadQuotes():
             ,ptf_test_nbj = :ptf_test_nbj
             WHERE ptf_id = :ptf_id
             """, ptf)
-            self.parent.display("{} Gain:{:.2f}\tCumul:{:.2f}".format(ptf["ptf_id"]\
-            , cumulptf, cumul))
+            # self.parent.display("{} Gain:{:.2f}\tCumul:{:.2f}".format(ptf["ptf_id"]\
+            # , cumulptf, cumul))
 
         # Résumé de la simulation - boucle sur les cours par date pour connaître le cash nécessaire
-        courss = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM COURS
-        WHERE cours_trade in ('SSS','TTT','RRR')
-        ORDER BY cours_date, cours_ptf_id
-        """, {})
-        cash = 0
-        qamount = 0
-        cumul = 0
-        for cours in courss:
-            if cours["cours_trade"] == "SSS":
-                cash = cash - cours["cours_cost"] * cours["cours_quantity"]
-                qamount += 1
-            if cours["cours_trade"] == "RRR":
-                cash = cash + cours["cours_close"] * cours["cours_quantity"]
-                cumul += cours["cours_gain"]
-                qamount -= 1
+        # courss = self.crud.sql_to_dict(self.crud.get_basename(), """
+        # SELECT * FROM COURS
+        # WHERE cours_trade in ('SSS','TTT','RRR')
+        # ORDER BY cours_date, cours_ptf_id
+        # """, {})
+        # cash = 0
+        # qamount = 0
+        # cumul = 0
+        # for cours in courss:
+        #     if cours["cours_trade"] == "SSS":
+        #         cash = cash - cours["cours_cost"] * cours["cours_quantity"]
+        #         qamount += 1
+        #     if cours["cours_trade"] == "RRR":
+        #         cash = cash + cours["cours_close"] * cours["cours_quantity"]
+        #         cumul += cours["cours_gain"]
+        #         qamount -= 1
         # prise en compte des actions en test
-        gain_acquis = cumul
-        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM PTF
-        WHERE ptf_intest = 'TTT'
-        """, ptf)
-        for ptf in ptfs:
-            cumul += ptf["ptf_test_gain"]
-        resume = "Nbre de mises: {} Cash: {:.2f} € Gain acquis: {:.2f} € Gain : {:.2f} € {:.2f}%"\
-        .format(qamount, -cash, gain_acquis, cumul, (cumul/-cash)*100)
-        resume_sql = u"Nbre de mises: <b>{}</b> Cash: <b>{:.2f} €</b> Gain acquis: <b>{:.2f} €</b> Gain : <b>{:.2f} €</b> <b>{:.2f}%</b>"\
-        .format(qamount, -cash, gain_acquis, cumul, (cumul/-cash)*100)
-        self.parent.display(resume)
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE RESUME
-        SET resume_simul = :resume
-        """, {"resume": resume_sql})
+        # gain_acquis = cumul
+        # ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+        # SELECT * FROM PTF
+        # WHERE ptf_intest = 'TTT'
+        # """, ptf)
+        # for ptf in ptfs:
+        #     cumul += ptf["ptf_test_gain"]
+        # resume = "Nbre de mises: {} Cash: {:.2f} € Gain acquis: {:.2f} € Gain : {:.2f} € {:.2f}%"\
+        # .format(qamount, -cash, gain_acquis, cumul, (cumul/-cash)*100)
+        # resume_sql = u"Nbre de mises: <b>{}</b> Cash: <b>{:.2f} €</b> Gain acquis: <b>{:.2f} €</b> Gain : <b>{:.2f} €</b> <b>{:.2f}%</b>"\
+        # .format(qamount, -cash, gain_acquis, cumul, (cumul/-cash)*100)
+        # # self.parent.display(resume)
+        # self.crud.exec_sql(self.crud.get_basename(), """
+        # UPDATE RESUME
+        # SET resume_simul = :resume
+        # """, {"resume": resume_sql})
 
     def get_rsi(self, prices, n=14):
         deltas = np.diff(prices)

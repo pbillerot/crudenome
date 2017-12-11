@@ -13,24 +13,14 @@ CREATE TABLE ptf (
     ptf_percent           REAL,
     ptf_rsi               REAL    DEFAULT (0),
     ptf_gain_percent      REAL    DEFAULT (0),
-    ptf_resistance        TEXT,
-    ptf_support           TEXT,
+    ptf_trade             TEXT,
     ptf_inptf             TEXT,
     ptf_note              TEXT,
     ptf_date              TEXT,
     ptf_q26               INTEGER,
     ptf_q12               INTEGER,
     ptf_intest            TEXT,
-    ptf_test_cost         REAL,
-    ptf_test_quantity     INTEGER,
-    ptf_gainj             REAL,
-    ptf_test_gain         REAL,
-    ptf_test_gain_percent REAL,
-    ptf_test_nbj          INTEGER,
-    ptf_test_cumul        REAL,
-    ptf_cac40             INTEGER,
-    ptf_test_date         TEXT,
-    ptf_e200              REAL
+    ptf_cac40             INTEGER
 );
 
 CREATE UNIQUE INDEX PTF_INDEX ON PTF (ptf_id)
@@ -51,10 +41,8 @@ CREATE TABLE COURS (
     cours_ema12        REAL,
     cours_ema26        REAL,
     cours_ema50        REAL,
-    cours_macd         REAL,
     cours_q12          INTEGER,
     cours_q26          INTEGER,
-    cours_trend        REAL,
     cours_trade        TEXT,
     cours_quantity     REAL,
     cours_cost         REAL,
@@ -62,7 +50,8 @@ CREATE TABLE COURS (
     cours_gainj        REAL,
     cours_gain         REAL,
     cours_gain_percent REAL,
-    cours_inptf        INTEGER
+    cours_inptf        INTEGER,
+    cours_intest       INTEGER
 );
 
 drop table if exists MVT;
@@ -77,6 +66,7 @@ CREATE TABLE MVT (
     mvt_fee          REAL    DEFAULT (0),
     mvt_output       REAL    DEFAULT (0),
     mvt_input        REAL    DEFAULT (0),
+    mvt_money        REAL    DEFAULT (0),
     mvt_quote        REAL    DEFAULT (0),
     mvt_percent      REAL    DEFAULT (0),
     mvt_left         INTEGER DEFAULT (0),

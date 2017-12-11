@@ -155,8 +155,8 @@ class PicsouBatch():
             <th>en %</th>
             <th>Trade</th>
             <th>RSI</th>
-            <th>E50</th>
-            <th>E200</th>
+            <th>Q12</th>
+            <th>Q26</th>
             <th>Note</th>
             <th>&nbsp;</th>
             </tr>"""
@@ -188,13 +188,12 @@ class PicsouBatch():
                 , ptf["ptf_gainj"]\
                 , ptf["ptf_gain"]\
                 , ptf["ptf_gain_percent"]\
-                , ptf["ptf_resistance"]\
                 , ptf["ptf_rsi"]\
+                , ptf["ptf_q12"]\
                 , ptf["ptf_q26"]\
-                , ptf["ptf_e200"]\
                 , url)
                 self.myptf.append(msg)
-                sms += u" :: %s %s %3.2f %2.2f%% %3.2f€" % ( ptf["ptf_id"], ptf["ptf_resistance"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_gainj"])
+                sms += u" :: %s %s %3.2f %2.2f%% %3.2f€" % ( ptf["ptf_id"], ptf["ptf_trade"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_gainj"])
 
             msg = """<tr>
             <td>{0}</td>
