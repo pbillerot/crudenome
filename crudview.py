@@ -311,7 +311,7 @@ class CrudView(GObject.GObject):
         if self.crud.get_view_prop("order_by", None):
             sql += " ORDER BY " + self.crud.get_view_prop("order_by")
 
-        sql += " LIMIT " + str(self.crud.get_view_prop("limit", 500))
+        sql += " LIMIT " + str(self.crud.get_view_prop("limit", 400))
         # print "VIEW", sql
 
         # EXECUTION SQL

@@ -22,6 +22,25 @@
             ]
         },
         {
+            "name": "Batch A",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
+            "cwd": "${workspaceRoot}",
+            "args": [
+                "-account"
+            ],
+            "env": {},
+            "envFile": "${workspaceRoot}/.env",
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ]
+        },
+        {
             "name": "Batch S A",
             "type": "python",
             "request": "launch",

@@ -5,6 +5,10 @@
     Utilisation de la librairie matplotlib
 
 """
+import shutil
+import os
+import datetime
+
 from picsou_loader import PicsouLoadQuotes
 from gi.repository import Gtk, GObject
 
@@ -111,6 +115,13 @@ class PicsouBatchUi(Gtk.Window):
         self.run_calcul()
         self.crud.get_view().emit("refresh_data_view", "batch", "close")
 
+        # Put de la base de données sur la box
+        ticket_user = os.path.getmtime(self.crud.get_basename())
+        ticket_host = os.path.getmtime(self.crud.get_basehost())
+        if ticket_user > ticket_host:
+            shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+            self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
+
         # self.cancel_button.hide()
         self.run_button.set_sensitive(True)
         self.with_mail.set_sensitive(True)
@@ -140,12 +151,13 @@ class PicsouBatchUi(Gtk.Window):
                 while Gtk.events_pending():
                     Gtk.main_iteration()
                 # Chargement de l'historique
-                loader.run(ptf["ptf_id"], self.crudel.get_param("history"))
+                loader.run(ptf["ptf_id"], 500)
             return
 
         if self.with_simulation.get_active():
             loader = PicsouLoadQuotes(self, self.crud)
             loader.simulateur()
+            loader.account()
             return
 
         # Chargement des 10 derniers cours
@@ -160,43 +172,20 @@ class PicsouBatchUi(Gtk.Window):
             loader.run(ptf["ptf_id"], 10)
 
         loader.simulateur()
+        loader.account()
 
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE PTF
-        set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
-        WHERE ptf_account is not null and ptf_account <> ''
+        rows = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT printf('SIMUL
+        Gain du jour: %.2f €
+                Cash: %.2f €
+              Espèce: %.2f €
+                Gain: %.2f €
+              Latent: %.2f €
+                 soit %.2f %%
+        ',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
+        FROM ACCOUNT where acc_id = 'SIMUL'
         """, {})
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE PTF
-        set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
-        WHERE ptf_account is not null and ptf_account <> ''
-        """, {})
-
-        # mise à jour du résumé
-        self.rsi_date = loader.quote["date"]
-        # self.rsi_time = loader.quote["time"]
-        self.rsi_time = "00:00"
-        gainj = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT sum(ptf_gainj) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
-        """, {})
-        gain = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
-        """, {})
-        investi = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
-        """, {})
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE RESUME
-        set resume_date = :date 
-        ,resume_time = :time 
-        ,resume_investi = :investi
-        ,resume_gainj = :gainj
-        ,resume_gain = :gain
-        """, {"date": self.rsi_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"], "gainj": gainj[0]["result"]})
-        self.crud.exec_sql(self.crud.get_basename(), """
-        UPDATE RESUME
-        set resume_percent = (resume_gain / resume_investi) * 100
-        """, {})
+        self.display(rows[0]["sql_footer"])
 
         # Mail de compte-rendu
         if self.with_mail.get_active():

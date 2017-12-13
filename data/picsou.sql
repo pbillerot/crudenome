@@ -3,24 +3,24 @@
 */
 drop table if exists PTF;
 CREATE TABLE ptf (
-    ptf_id                TEXT    NOT NULL,
-    ptf_name              TEXT,
-    ptf_account           TEXT,
-    ptf_quantity          INTEGER DEFAULT (0),
-    ptf_quote             REAL    DEFAULT (0),
-    ptf_cost              REAL    DEFAULT (0),
-    ptf_percent           REAL,
-    ptf_rsi               REAL    DEFAULT (0),
-    ptf_q26               INTEGER,
-    ptf_q12               INTEGER,
-    ptf_trade             TEXT,
-    ptf_date              TEXT,
-    ptf_gain              REAL    DEFAULT (0),
-    ptf_gain_percent      REAL    DEFAULT (0),
-    ptf_note              TEXT,
-    ptf_cac40             INTEGER
+    ptf_id           TEXT    NOT NULL,
+    ptf_name         TEXT,
+    ptf_account      TEXT,
+    ptf_quantity     INTEGER DEFAULT (0),
+    ptf_quote        REAL    DEFAULT (0),
+    ptf_cost         REAL    DEFAULT (0),
+    ptf_percent      REAL,
+    ptf_gainj        REAL,
+    ptf_rsi          REAL    DEFAULT (0),
+    ptf_q12          INTEGER,
+    ptf_q26          INTEGER,
+    ptf_trade        TEXT,
+    ptf_date         TEXT,
+    ptf_gain         REAL    DEFAULT (0),
+    ptf_gain_percent REAL    DEFAULT (0),
+    ptf_note         TEXT,
+    ptf_cac40        INTEGER
 );
-
 CREATE UNIQUE INDEX PTF_INDEX ON PTF (ptf_id)
 
 drop table if exists COURS;
@@ -85,16 +85,6 @@ CREATE TABLE ACCOUNT (
     acc_fee      REAL DEFAULT (0),
     acc_gain     REAL DEFAULT (0),
     acc_gain_day REAL DEFAULT (0),
-    acc_bet      REAL DEFAULT (0) 
+    acc_bet      REAL DEFAULT (0),
+    acc_percent  REAL DEFAULT (0) 
 );
-
-drop table if exists RESUME;
-CREATE TABLE RESUME (
-    resume_date TEXT,
-    resume_time TEXT,
-    resume_investi REAL,
-    resume_gain REAL,
-    resume_percent REAL
-)
-DELETE FROM RESUME
-INSERT INTO RESUME (resume_date, resume_time, resume_investi, resume_gain, resume_percent, resume_test) VALUES ('', '', 0, 0, 0)

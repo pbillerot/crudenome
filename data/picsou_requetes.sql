@@ -65,4 +65,4 @@ select count(*) as nb, sum(cours_gain) as gain from cours where cours_trade = 'R
 SELECT cours.cours_id, cours.cours_ptf_id, cours.cours_name, cours.cours_date, cours.cours_close, cours.cours_rsi 
 FROM cours
 WHERE (cours.cours_name like '%bol%')
-ORDER BY cours.cours_ptf_id, cours.cours_date desc LIMIT 500
+ORDER BY cours.cours_ptf_id, cours.cours_date desc LIMIT 400

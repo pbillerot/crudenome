@@ -5,7 +5,6 @@
 """
 import shutil
 import os
-import sys
 import datetime
 import argparse
 
@@ -68,6 +67,15 @@ class PicsouBatch():
     def run_calcul(self):
         """ docstring """
         loader = PicsouLoadQuotes(self, self.crud)
+
+        if self.args.histo:
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM ptf ORDER BY ptf_id
+            """, {})
+            self.display("Chargement de l'historique...")
+            for ptf in ptfs:
+                loader.run(ptf["ptf_id"], 500)
+
         if self.args.quote:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf ORDER BY ptf_id
@@ -76,69 +84,24 @@ class PicsouBatch():
             for ptf in ptfs:
                 loader.run(ptf["ptf_id"], 10)
 
-        if self.args.histo:
-            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf ORDER BY ptf_id
-            """, {})
-            self.display("Chargement de l'historique...")
-            for ptf in ptfs:
-                loader.run(ptf["ptf_id"], 400)
-
         if self.args.simul:
             loader.simulateur()
 
-            # Maj PTF gain des valeurs en production
-            self.crud.exec_sql(self.crud.get_basename(), """
-            UPDATE PTF
-            set ptf_gain = (ptf_quote - ptf_cost) * ptf_quantity
-            WHERE ptf_account is not null and ptf_account <> ''
-            """, {})
-            self.crud.exec_sql(self.crud.get_basename(), """
-            UPDATE PTF
-            set ptf_gain_percent = (ptf_gain / (ptf_cost * ptf_quantity)) * 100
-            WHERE ptf_account is not null and ptf_account <> ''
-            """, {})
-
-            # Maj PTF quantité cout des valeurs non sélectionnées (en ptf ou test)
-            self.crud.exec_sql(self.crud.get_basename(), """
-            UPDATE PTF
-            set ptf_quantity = round(1200 / ptf_quote)
-            ,ptf_cost = ptf_quote + ptf_quote * 0.01
-            , ptf_gain = 0, ptf_gain_percent = 0
-            WHERE ptf_account is null or ptf_account = ''
-            """, {})
-
-            # mise à jour du résumé
-            last_dates = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT max(cours_date) as last_date FROM cours
-            """, {})
-            self.last_date = last_dates[0]["last_date"]
-            # self.rsi_time = loader.quote["time"]
-            self.rsi_time = "00:00"
-            gainj = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT sum(ptf_gainj) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
-            """, {})
-            gain = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT sum(ptf_gain) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
-            """, {})
-            investi = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT sum(ptf_cost * ptf_quantity) AS result FROM PTF WHERE ptf_account is not null and ptf_account <> ''
-            """, {})
-            self.crud.exec_sql(self.crud.get_basename(), """
-            UPDATE RESUME
-            set resume_date = :date 
-            ,resume_time = :time 
-            ,resume_investi = :investi
-            ,resume_gainj = :gainj
-            ,resume_gain = :gain
-            """, {"date": self.last_date, "time": self.rsi_time, "investi": investi[0]["result"], "gain": gain[0]["result"], "gainj": gainj[0]["result"]})
-            self.crud.exec_sql(self.crud.get_basename(), """
-            UPDATE RESUME
-            set resume_percent = (resume_gain / resume_investi) * 100
-            """, {})
-
         if self.args.account:
             loader.account()
+
+        rows = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT printf('SIMUL
+        Gain du jour: %.2f €
+                Cash: %.2f €
+              Espèce: %.2f €
+                Gain: %.2f €
+              Latent: %.2f €
+                 soit %.2f %%
+        ',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
+        FROM ACCOUNT where acc_id = 'SIMUL'
+        """, {})
+        self.display(rows[0]["sql_footer"])
 
         # Mail de compte-rendu
         if self.args.mail or self.args.sms:
@@ -239,7 +202,7 @@ if __name__ == '__main__':
     # add a -c/--color option
     parser.add_argument('-mail', '--mail', action='store_true', default=False, help="Envoi mail à la fin")
     parser.add_argument('-sms', '--sms', action='store_true', default=False, help="Envoi SMS à la fin")
-    parser.add_argument('-histo', '--histo', action='store_true', default=False, help="Rechargement de l'historique des cours sur 400 jours")
+    parser.add_argument('-histo', '--histo', action='store_true', default=False, help="Rechargement de l'historique des cours sur 500 jours")
     parser.add_argument('-simul', '--simul', action='store_true', default=False, help="Avec recalcul du simulateur")
     parser.add_argument('-quote', '--quote', action='store_true', default=False, help="Requête pour actualiser le cours du jour")
     parser.add_argument('-account', '--account', action='store_true', default=False, help="Requête pour actualiser les comptes")

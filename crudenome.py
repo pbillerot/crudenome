@@ -62,51 +62,48 @@ class AppWindow(Gtk.ApplicationWindow):
         if self.crud.get_basehost():
             ticket_user = os.path.getmtime(self.crud.get_basename())
             ticket_host = os.path.getmtime(self.crud.get_basehost())
-            ticket = self.crud.get_ticket()
-            if ticket_user != ticket:
-                # la base locale a évoluée
-                if ticket != ticket_host:
-                    # la base du host a changée depuis la dernière prise
-                    dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
-                                        Gtk.ButtonsType.YES_NO, "La base sur le serveur a changée")
-                    dialog.format_secondary_text("Veux-tu écraser la base du serveur ?")
-                    response = dialog.run()
-                    if response == Gtk.ResponseType.YES:
-                        shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-                        self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
-                        notif = Notify.Notification.new('Backup OK'\
-                        , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
-                        , 'dialog-information')
-                        # notif.add_action(
-                        #     'id_callback', # identifiant
-                        #     'Fermer', # texte du bouton
-                        #     self.on_notif, # function callback de notre bouton
-                        #     None, # user_datas, ce dont vous avez besoin dans la callback
-                        #     None # fonction qui supprime les user_datas
-                        # )
-                        notif.show()
-                        time.sleep(3)
-                        # return True
-                    elif response == Gtk.ResponseType.NO:
-                        self.crud.logger.info("Backup abandonné")
+            if ticket_user > ticket_host:
+            #     # la base du host a changée depuis la dernière prise
+            #     dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
+            #                         Gtk.ButtonsType.YES_NO, "La base sur le serveur a changée")
+            #     dialog.format_secondary_text("Veux-tu écraser la base du serveur ?")
+            #     response = dialog.run()
+            #     if response == Gtk.ResponseType.YES:
+            #         shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+            #         self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+            #         notif = Notify.Notification.new('Backup OK'\
+            #         , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
+            #         , 'dialog-information')
+            #         # notif.add_action(
+            #         #     'id_callback', # identifiant
+            #         #     'Fermer', # texte du bouton
+            #         #     self.on_notif, # function callback de notre bouton
+            #         #     None, # user_datas, ce dont vous avez besoin dans la callback
+            #         #     None # fonction qui supprime les user_datas
+            #         # )
+            #         notif.show()
+            #         time.sleep(3)
+            #         # return True
+            #     elif response == Gtk.ResponseType.NO:
+            #         self.crud.logger.info("Backup abandonné")
 
-                    dialog.destroy()
-                else:
-                    shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-                    self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
-                    notif = Notify.Notification.new('Backup OK'\
-                    , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
-                    , 'dialog-information')
-                    # notif.add_action(
-                    #     'id_callback', # identifiant
-                    #     'Fermer', # texte du bouton
-                    #     self.on_notif, # function callback de notre bouton
-                    #     None, # user_datas, ce dont vous avez besoin dans la callback
-                    #     None # fonction qui supprime les user_datas
-                    # )
-                    notif.show()
-                    time.sleep(3)
-                    # return True
+            #     dialog.destroy()
+            # else:
+                shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+                self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                notif = Notify.Notification.new('Backup OK'\
+                , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
+                , 'dialog-information')
+                # notif.add_action(
+                #     'id_callback', # identifiant
+                #     'Fermer', # texte du bouton
+                #     self.on_notif, # function callback de notre bouton
+                #     None, # user_datas, ce dont vous avez besoin dans la callback
+                #     None # fonction qui supprime les user_datas
+                # )
+                notif.show()
+                time.sleep(3)
+                # return True
 
         # Change FALSE to TRUE and the main window will not be destroyed
         # with a "delete_event".

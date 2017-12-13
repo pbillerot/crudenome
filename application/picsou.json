@@ -155,7 +155,7 @@
                         "plugin": "picsou_batchui.PicsouBatchUi",
                         "icon_name": "view-refresh",
                         "day": 14,
-                        "history": 400,
+                        "history": 500,
                         "cash": 10000,
                         "amount": 1200,
                         "cost": 0.005,
@@ -198,8 +198,7 @@
                     },
                     "sql_where": "ptf_account is not null and ptf_account <> ''",
                     "order_by": "ptf_account, ptf_id",
-                    "limitX": 1,
-                    "sql_footer": "SELECT printf('Le <b>%s</b> Gain du jour: <b>%.2f</b> € Gain: <b>%.2f</b> €', resume_date, resume_gainj, resume_gain) as sql_footer FROM RESUME"
+                    "sql_footer": "SELECT printf('<b>PEA</b> Gain du jour: <b>%.2f</b> € Cash: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'PEA'"
                 },
                 "vall": {
                     "title": "Les Titres",
@@ -346,12 +345,14 @@
                 "cours_q12": {
                     "label_long": "Q12",
                     "label_short": "Q12",
-                    "type": "int"
+                    "type": "int",
+                    "sql_color": "case when cours_q12 < 0 then '#FF0000' else '#006600' end"
                 },
                 "cours_q26": {
                     "label_long": "Q26",
                     "label_short": "Q26",
-                    "type": "int"
+                    "type": "int",
+                    "sql_color": "case when cours_q26 < 0 then '#FF0000' else '#006600' end"
                 },
                 "cours_trade": {
                     "label_long": "Trade",
@@ -485,7 +486,8 @@
                         "Achat": "Achat",
                         "Vente": "Vente"
                     },
-                    "searchable": true
+                    "searchable": true,
+                    "sql_color": "case when mvt_trade = 'Achat' then '#0000FF' else '#000000' end"
                 },
                 "mvt_exec": {
                     "label_long": "Cours d'exécution",
@@ -642,7 +644,6 @@
                         "mvt_ptf_id": {},
                         "ptf_name": {},
                         "mvt_trade": {},
-                        "mvt_select": {},
                         "mvt_date": {},
                         "mvt_exec": {},
                         "mvt_quantity": {},
@@ -659,7 +660,8 @@
                         "_fgraph": {}
                     },
                     "order_by": "mvt_account, mvt_date desc, mvt_ptf_id",
-                    "sql_where": "mvt_select = '1' and mvt_account in ('PEA','PEE')"
+                    "sql_where": "mvt_select = '1' and mvt_account in ('PEA','PEE')",
+                    "sql_footer": "SELECT printf('<b>PEA</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'PEA'"
                 },
                 "vsimul": {
                     "title": "Simul",
@@ -674,7 +676,6 @@
                         "mvt_ptf_id": {},
                         "ptf_name": {},
                         "mvt_trade": {},
-                        "mvt_select": {},
                         "mvt_date": {},
                         "mvt_exec": {},
                         "mvt_quantity": {},
@@ -691,7 +692,8 @@
                         "_fgraph": {}
                     },
                     "order_by": "mvt_account, mvt_date desc, mvt_ptf_id",
-                    "sql_where": "mvt_select = '1' and mvt_account = 'SIMUL'"
+                    "sql_where": "mvt_select = '1' and mvt_account = 'SIMUL'",
+                    "sql_footer": "SELECT printf('<b>PEA</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'SIMUL'"
                 },
                 "vfictif": {
                     "title": "Fictif",
@@ -706,7 +708,6 @@
                         "mvt_ptf_id": {},
                         "ptf_name": {},
                         "mvt_trade": {},
-                        "mvt_select": {},
                         "mvt_date": {},
                         "mvt_exec": {},
                         "mvt_quantity": {},
@@ -723,7 +724,8 @@
                         "_fgraph": {}
                     },
                     "order_by": "mvt_account, mvt_date desc, mvt_ptf_id",
-                    "sql_where": "mvt_select = '1' and mvt_account = 'FICTIF'"
+                    "sql_where": "mvt_select = '1' and mvt_account = 'FICTIF'",
+                    "sql_footer": "SELECT printf('<b>PEA</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'FICTIF'"
                 }
             },
             "forms": {
@@ -770,8 +772,8 @@
                     "type": "calendar"
                 },
                 "acc_initial": {
-                    "label_long": "Espèce initiale",
-                    "label_short": "Espèce initiale",
+                    "label_long": "Cash initial",
+                    "label_short": "Cash initial",
                     "type": "float",
                     "display": "%3.2f €"
                 },
@@ -782,15 +784,15 @@
                     "display": "%3.2f €"
                 },
                 "acc_money": {
-                    "label_long": "Espèce",
-                    "label_short": "Espèce",
+                    "label_long": "Cash",
+                    "label_short": "Cash",
                     "type": "float",
                     "display": "%3.2f €",
                     "sql_color": "case when acc_money < 0 then '#FF0000' else '#006600' end"
                 },
                 "acc_latent": {
-                    "label_long": "Valorisation titres",
-                    "label_short": "Valorisation titres",
+                    "label_long": "En bourse",
+                    "label_short": "En bourse",
                     "type": "float",
                     "display": "%3.2f €"
                 },
@@ -807,6 +809,13 @@
                     "type": "float",
                     "display": "%3.2f €",
                     "sql_color": "case when acc_gain < 0 then '#FF0000' else '#006600' end"
+                },
+                "acc_percent": {
+                    "label_long": "en %",
+                    "label_short": "en %",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when acc_percent < 0 then '#FF0000' else '#006600' end"
                 },
                 "acc_fee": {
                     "label_long": "Frais de la transaction en %",
@@ -829,9 +838,10 @@
                         "acc_bet": {},
                         "acc_fee": {},
                         "acc_money": {},
+                        "acc_latent": {},
                         "acc_gain_day": {},
                         "acc_gain": {},
-                        "acc_latent": {}
+                        "acc_percent": {}
                     },
                     "order_by": "acc_id"
                 }
