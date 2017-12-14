@@ -97,8 +97,7 @@ class PicsouBatch():
               Espèce: %.2f €
                 Gain: %.2f €
               Latent: %.2f €
-                 soit %.2f %%
-        ',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
+                 soit %.2f prc',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
         FROM ACCOUNT where acc_id = 'SIMUL'
         """, {})
         self.display(rows[0]["sql_footer"])
