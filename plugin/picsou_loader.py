@@ -205,8 +205,12 @@ class PicsouLoadQuotes():
         emas12 = [0] * n
         emas26 = [0] * n
         emas50 = [0] * n
+        emv = [0] * n
+        emvp = [0] * n
         q26 = [0] * n
         q12 = [0] * n
+        qv = [0] * n
+        volume = [0] * n
         # ordre = {}
         for cours in courss:
             # rotation des valeurs
@@ -215,15 +219,25 @@ class PicsouLoadQuotes():
                 emas12[i] = emas12[i-1]
                 emas26[i] = emas26[i-1]
                 emas50[i] = emas50[i-1]
+                emv[i] = emv[i-1]
+                emvp[i] = emvp[i-1]
                 q12[i] = q12[i-1]
                 q26[i] = q26[i-1]
+                qv[i] = qv[i-1]
+                volume[i] = volume[i-1]
 
             # valeur à traiter
             quote[0] = cours["cours_close"]
+            volume[0] = cours["cours_volume"]
 
             # saut des n premiers cours pour remplir le tableau v[]
             if quote[n-1] == 0:
                 continue
+
+            volume_r = volume[:]
+            volume_r.reverse()
+            emv[0] = self.ema(volume_r, 26)
+            emvp[0] = (volume[0] - emv[0]) * 100 / emv[0]
 
             quote_r = quote[:]
             quote_r.reverse()
@@ -245,6 +259,7 @@ class PicsouLoadQuotes():
                         q26[0] = -1
                     else:
                         q26[0] = q26[0] - 1
+
                 if emas12[0] > emas12[1]:
                     if q12[0] < 0:
                         q12[0] = 1
@@ -256,19 +271,36 @@ class PicsouLoadQuotes():
                     else:
                         q12[0] = q12[0] - 1
 
+                if emv[0] > emv[1]:
+                    if qv[0] < 0:
+                        qv[0] = 1
+                    else:
+                        qv[0] = qv[0] + 1
+                else:
+                    if qv[0] > 0:
+                        qv[0] = -1
+                    else:
+                        qv[0] = qv[0] - 1
+
             cours["cours_rsi"] = rsi
             cours["cours_ema12"] = emas12[0]
             cours["cours_ema26"] = emas26[0]
             cours["cours_ema50"] = emas50[0]
+            cours["cours_emv"] = emv[0]
+            cours["cours_emv_percent"] = emvp[0]
             cours["cours_q26"] = q26[0]
             cours["cours_q12"] = q12[0]
+            cours["cours_qv"] = qv[0]
 
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE COURS
             set cours_rsi = :cours_rsi
             , cours_ema12 = :cours_ema12, cours_ema26 = :cours_ema26, cours_ema50 = :cours_ema50
+            , cours_emv = :cours_emv
+            , cours_emv_percent = :cours_emv_percent
             , cours_q26 = :cours_q26
             , cours_q12 = :cours_q12
+            , cours_qv = :cours_qv
             , cours_trade = '', cours_quantity = 0, cours_cost = 0, cours_gainj = 0, cours_gain = 0, cours_gain_percent = 0
             , cours_nbj = -1
             WHERE cours_ptf_id = :cours_ptf_id and cours_date = :cours_date
@@ -369,9 +401,12 @@ class PicsouLoadQuotes():
             emas12 = [0] * n
             emas26 = [0] * n
             emas50 = [0] * n
+            emv = [0] * n
+            emvp = [0] * n
             rsis = [0] * n
             q12 = [0] * n
             q26 = [0] * n
+            qvol = [0] * n
 
             quote = 0.0
             gainj = 0
@@ -395,18 +430,24 @@ class PicsouLoadQuotes():
                     emas12[i] = emas12[i-1]
                     emas26[i] = emas26[i-1]
                     emas50[i] = emas50[i-1]
+                    emv[i] = emv[i-1]
+                    emvp[i] = emvp[i-1]
                     rsis[i] = rsis[i-1]
                     q26[i] = q26[i-1]
                     q12[i] = q12[i-1]
+                    qvol[i] = qvol[i-1]
 
                 quote = cours["cours_close"]
                 quotes[0] = cours["cours_close"]
                 emas12[0] = cours["cours_ema12"]
                 emas26[0] = cours["cours_ema26"]
                 emas50[0] = cours["cours_ema50"]
+                emv[0] = cours["cours_emv"]
+                emvp[0] = cours["cours_emv_percent"]
                 rsis[0] = cours["cours_rsi"]
                 q26[0] = cours["cours_q26"]
                 q12[0] = cours["cours_q12"]
+                qvol[0] = cours["cours_qv"]
 
                 # saut des n premiers jours
                 if quotes[n-1] == 0:
@@ -432,25 +473,14 @@ class PicsouLoadQuotes():
                 #     motif = " <37"
                 #     b_achat = True
 
-                # if (not b_en_test or (b_en_test and gain > 0 and (nbj % 7) == 0) ) and q26[0] > 4 and rsis[0] < 50:
                 if not b_en_test and q26[0] > 4 and rsis[0] < 50:
-                    motif = " >4J"
+                    motif = " rsi50"
                     b_en_test = True
                     b_achat = True
 
-                # if not b_en_test and q26[0] > 7 and rsis[0] < 60:
-                #     motif = " >7J"
-                #     b_en_test = True
-                #     b_achat = True
-
-                # if b_en_test and q26[0] > 4 and gain > 0 and (nbj % 7) == 0:
-                #     motif += "+"
-                #     b_achat = True
-
-                # if rsis[0] < 37:
-                #     rsi_37 = True
-                # if not b_en_test and q26[0] > 4 and rsi_37:
-                #     motif = " <37"
+                # Volume d'achat important
+                # if not b_en_test and q26[0] > 4 and emvp[0] > 100:
+                #     motif = " vl100"
                 #     b_en_test = True
                 #     b_achat = True
 
@@ -463,12 +493,12 @@ class PicsouLoadQuotes():
                     quantity_achat = int(acc_bet / quote)
                     quantity += int(acc_bet / quote)
                     amount = quantity * quote
-                    cost = quote + quote * self.crudel.get_param("cost") * 2 # frais
+                    fee = quote * quantity * acc_fee / 100
+                    cost = quote + quote * acc_fee * 2 / 100 # frais
                     gain = amount - quantity * cost
                     gainj = (cours["cours_close"] - cours["cours_open"]) * quantity
                     gain_percent = (gain / amount) * 100
                     nbj = 0
-                    fee = quote * quantity * acc_fee / 100
 
                     # maj du cours
                     intest = "TTT"
@@ -476,20 +506,21 @@ class PicsouLoadQuotes():
                     cours["cours_quantity"] = quantity
                     cours["cours_quantity_achat"] = quantity_achat
                     cours["cours_fee"] = fee
+                    cours["cours_nbj"] = nbj
+                    cours["cours_cost"] = cost
+                    cours["cours_gainj"] = gainj
+                    cours["cours_gain"] = gain
+                    cours["cours_gain_percent"] = gain_percent
 
-                    if b_en_test:
-                        # Ajout d'un mouvement
-                        self.crud.exec_sql(self.crud.get_basename(), """
-                        INSERT INTO MVT
-                        (mvt_account, mvt_date, mvt_ptf_id, mvt_trade, mvt_exec, mvt_quantity, mvt_fee)
-                        VALUES
-                        ('SIMUL', :cours_date, :cours_ptf_id, 'Achat', :cours_close, :cours_quantity_achat, :cours_fee)
-                        """, cours)
+                    # Ajout d'un mouvement
+                    self.crud.exec_sql(self.crud.get_basename(), """
+                    INSERT INTO MVT
+                    (mvt_account, mvt_date, mvt_ptf_id, mvt_trade, mvt_exec, mvt_quantity, mvt_fee)
+                    VALUES
+                    ('SIMUL', :cours_date, :cours_ptf_id, 'Achat', :cours_close, :cours_quantity_achat, :cours_fee)
+                    """, cours)
 
-                    ptf["ptf_trade"] = "SSS"
-                    ptf["ptf_date"] = cours["cours_date"]
-
-                if not btraite and (b_en_test):
+                if not btraite and b_en_test:
                     btraite = True
 
                     # cas des pertes sans palier dans les 26 jours
@@ -511,40 +542,21 @@ class PicsouLoadQuotes():
                     # Faut-il vendre ?
                     b_vendre = False
 
-                    # on vend si emas50 baisse
-                    # if not b_vendre and emas50[0] < emas50[1] and nbj > 10:
-                    #     motif += " 50-"
-                    #     b_vendre = True
-
-                    # on vend si perte > 50 € et si nbj > 4
-                    # if not b_vendre and emas50[0] < emas50[1] and nbj > 4 and gain < -50:
-                    #     motif += " -50"
-                    #     b_vendre = True
-
-                    # if not b_vendre and emas26[0] < emas26[1] and nbj > 2:
-                    #     motif += " 26-"
-                    #     b_vendre = True
-
-                    # on vend quand le cours est le plus haut
-                    # sans     Nbre de mises: 23 Cash: -31749.09 € Gain acquis: -20.96 € Gain : 1854.28 €
-                    # avec >65 Nbre de mises: -10 Cash: 6102.30 € Gain acquis: 12.51 € Gain : 26.51 €
-                    # avec >70 Nbre de mises: -3 Cash: -2114.33 € Gain acquis: 155.79 € Gain : 503.30 €
                     if rsis[0] > 67:
                         rsi_67 = True
-                        # b_vendre = True
 
                     if rsi_67 and emas12[0] < emas12[1]:
-                        motif += " >67"
+                        motif += " rsi67"
                         b_vendre = True
 
                     # if rsi_67 and rsis[0] < rsis[1]:
                     #     motif += " >67"
                     #     b_vendre = True
 
-                    # garde-fou : 
+                    # garde-fou :
                     # if not b_vendre and emas50[0] < emas50[1] and gain < 0 and nbj > 26:
                     if not b_vendre and q26[0] < 0 and gain < 0 and nbj > 20:
-                        motif += " 20J"
+                        motif += " sec12"
                         b_vendre = True
 
                     if b_vendre:
@@ -556,11 +568,13 @@ class PicsouLoadQuotes():
                         # maj du cours
                         cours["cours_trade"] = "RRR"
 
-                        self.parent.display("  {} / {} {} {:.0f}/{:.0f} {:.2f} {}j\t{:.2f}€"\
-                        .format(date_achat, cours["cours_date"], motif, rsi_achat, rsis[0], q26[0], nbj, gain))
+                        if gain > 0:
+                            self.parent.display("  {:8.2f}€\t{:7.2f}€\t\t{} / {} {:.0f}/{:.0f} {:4.0f}\t{:3.0f}j {}"\
+                            .format(cumul, gain, date_achat, cours["cours_date"], rsi_achat, rsis[0], q26[0], nbj, motif))
+                        else:
+                            self.parent.display("  {:8.2f}€\t\t{:7.2f}€\t{} / {} {:.0f}/{:.0f} {:4.0f}\t{:3.0f}j {}"\
+                            .format(cumul, gain, date_achat, cours["cours_date"], rsi_achat, rsis[0], q26[0], nbj, motif))
     
-                        ptf["ptf_trade"] = "RRR"
-
                         # Ajout d'un mouvement
                         fee = quote * quantity * acc_fee / 100
                         cours["cours_fee"] = fee
@@ -593,8 +607,6 @@ class PicsouLoadQuotes():
                 cours["cours_quantity"] = quantity
                 cours["cours_nbj"] = nbj
                 cours["cours_gainj"] = gainj
-                cours["cours_gain"] = gain
-                cours["cours_gain_percent"] = gain_percent
                 cours["cours_intest"] = 1 if b_en_test else ""
                 cours["cours_inptf"] = 1 if b_en_production else ""
                 self.crud.exec_sql(self.crud.get_basename(), """
@@ -613,7 +625,7 @@ class PicsouLoadQuotes():
                     ptf["ptf_trade"] = ""
 
                 if  b_en_production and \
-                (rsis[0] > 67 and emas12[0] < emas12[1]) or \
+                (rsi_67 and emas12[0] < emas12[1]) or \
                 (q26[0] < 0 and gain < 0 and nbj > 20):
                     # on signale que la valeur en production doit être vendue
                     ptf["ptf_trade"] = "RRR"
@@ -945,10 +957,10 @@ class PicsouLoadQuotes():
                     cash = 0
                 else:
                     cash = cash + mvt["mvt_output"]
-                print "%s %s %s %s d:%.2f c:%.2f m:%.2f" % (mvt["mvt_account"], mvt["mvt_date"], mvt["mvt_ptf_id"], mvt["mvt_trade"], debit, cash, mvt["mvt_output"])
+                # print "%s %s %s %s d:%.2f c:%.2f m:%.2f" % (mvt["mvt_account"], mvt["mvt_date"], mvt["mvt_ptf_id"], mvt["mvt_trade"], debit, cash, mvt["mvt_output"])
             else:
                 cash = cash + mvt["mvt_input"]
-                print "%s %s %s %s d:%.2f c:%.2f m:%.2f" % (mvt["mvt_account"], mvt["mvt_date"], mvt["mvt_ptf_id"], mvt["mvt_trade"], debit, cash, mvt["mvt_input"])
+                # print "%s %s %s %s d:%.2f c:%.2f m:%.2f" % (mvt["mvt_account"], mvt["mvt_date"], mvt["mvt_ptf_id"], mvt["mvt_trade"], debit, cash, mvt["mvt_input"])
         # dernier mvt
         if acc_id != "":
             self.crud.exec_sql(self.crud.get_basename(), """

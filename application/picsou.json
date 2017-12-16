@@ -354,6 +354,24 @@
                     "type": "int",
                     "sql_color": "case when cours_q26 < 0 then '#FF0000' else '#006600' end"
                 },
+                "cours_emv": {
+                    "label_long": "EMV",
+                    "label_short": "EMV",
+                    "type": "float"
+                },
+                "cours_emv_percent": {
+                    "label_long": "Volume",
+                    "label_short": "Volume",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when cours_emv_percent < -100 then '#FF0000' when cours_emv_percent > 100 then '#006600' else '#FFFFFF' end"
+                },
+                "cours_qv": {
+                    "label_long": "QV",
+                    "label_short": "QV",
+                    "type": "int",
+                    "sql_color": "case when cours_qv < 0 then '#FF0000' else '#006600' end"
+                },
                 "cours_trade": {
                     "label_long": "Trade",
                     "label_short": "Trade",
@@ -382,7 +400,7 @@
                     "label_long": "en %",
                     "label_short": "en %",
                     "type": "float",
-                    "display": "%3.2f €",
+                    "display": "%3.2f %%",
                     "sql_color": "case when cours_gain_percent < 0 then '#FF0000' else '#006600' end"
                 },
                 "cours_inptf": {
@@ -394,6 +412,16 @@
                     "label_long": "Sim",
                     "label_short": "Sim",
                     "type": "check"
+                },
+                "_fgraph": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "form",
+                    "params": {
+                        "plugin": "picsou_graph.PicsouGraph",
+                        "icon_name": "applications-office",
+                        "ptf_id": "{cours_ptf_id}"
+                    }
                 }
             },
             "views": {
@@ -409,14 +437,15 @@
                         "cours_date": {},
                         "cours_close": {},
                         "cours_percent": {},
-                        "cours_gainj": {},
                         "cours_rsi": {},
                         "cours_q12": {},
                         "cours_q26": {},
+                        "cours_emv_percent": {},
                         "cours_trade": {},
                         "cours_nbj": {},
                         "cours_gain": {},
                         "cours_gain_percent": {},
+                        "_fgraph": {},
                         "cours_intest": {},
                         "cours_inptf": {}
                     },

@@ -92,12 +92,12 @@ class PicsouBatch():
 
         rows = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT printf('SIMUL
-        Gain du jour: %.2f €
-                Cash: %.2f €
-              Espèce: %.2f €
-                Gain: %.2f €
-              Latent: %.2f €
-                 soit %.2f prc',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
+        Gain du jour: %8.2f €
+                Cash: %8.2f €
+              Espèce: %8.2f €
+                Gain: %8.2f €
+              Latent: %8.2f €
+                 soit %8.2f prc',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
         FROM ACCOUNT where acc_id = 'SIMUL'
         """, {})
         self.display(rows[0]["sql_footer"])
