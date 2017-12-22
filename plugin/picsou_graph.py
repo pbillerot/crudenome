@@ -80,7 +80,7 @@ class PicsouGraph(Gtk.Window):
                 cours_ppp.append(float(cour["cours_close"]))
             else:
                 cours_ppp.append(None)
-            cours_volume.append(float(cour["cours_volume"]))
+            cours_volume.append(float(cour["cours_volp"]) * 0.6)
             cours_rsi.append(float(cour["cours_rsi"]))
 
         # plt.style.use('seaborn-paper')
@@ -110,10 +110,9 @@ class PicsouGraph(Gtk.Window):
         # ax1.xaxis.set_minor_formatter(daysFmt)
 
         ax2 = ax1.twinx()
-        # ax2.plot(cours_dates, cours_rsi, '--', label='RSI')
-        # ax2.set_ylabel('RSI')
-        ax2.plot(cours_dates, cours_volume, '--', label='Volume')
-        ax2.set_ylabel('Volume')
+        ax2.plot(cours_dates, cours_rsi, 'm--', label='RSI')
+        ax2.plot(cours_dates, cours_volume, 'c:', label='Volume')
+        ax2.set_ylabel('RSI ou Volume')
         ax2.legend(loc=4)
 
         fig.autofmt_xdate()

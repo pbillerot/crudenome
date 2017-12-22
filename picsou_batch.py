@@ -149,7 +149,7 @@ class PicsouBatch():
                 , ptf["ptf_percent"]\
                 , ptf["ptf_gainj"]\
                 , ptf["ptf_gain"]\
-                , ptf["ptf_gain_percent"]\
+                , ptf["ptf_gainp"]\
                 , ptf["ptf_rsi"]\
                 , ptf["ptf_q12"]\
                 , ptf["ptf_q26"]\

@@ -90,6 +90,31 @@
                     "sortable": true,
                     "sql_color": "case when ptf_q26 > 2 then '#006600' else '#FF0000' end"
                 },
+                "ptf_vol_moy": {
+                    "label_long": "Vol. moy",
+                    "label_short": "Vol. moy",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%.0f",
+                    "sortable": true
+                },
+                "ptf_vol_max": {
+                    "label_long": "Vol. max",
+                    "label_short": "Vol. max",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%.0f",
+                    "sortable": true
+                },
+                "ptf_volp": {
+                    "label_long": "Vol. en %",
+                    "label_short": "Vol. %",
+                    "type": "float",
+                    "col_align": "right",
+                    "display": "%.1f %%",
+                    "sql_color": "case when ptf_volp > 80 then '#006600' when ptf_volp < 20 then '#FF0000' else '#000000' end",
+                    "sortable": true
+                },
                 "ptf_trade": {
                     "label_long": "Trade",
                     "label_short": "Trade",
@@ -123,7 +148,7 @@
                     "display": "%3.2f €",
                     "sql_color": "case when ptf_gain > 0 then '#006600' else '#FF0000' end"
                 },
-                "ptf_gain_percent": {
+                "ptf_gainp": {
                     "label_long": "En %",
                     "label_short": "En %",
                     "type": "float",
@@ -136,6 +161,12 @@
                     "label_short": "Note",
                     "type": "text",
                     "col_editable": true
+                },
+                "ptf_cac40": {
+                    "label_long": "CAC40",
+                    "label_short": "CAC40",
+                    "type": "check",
+                    "col_editable": false
                 },
                 "_fgraph": {
                     "label_long": "Graph",
@@ -180,18 +211,19 @@
                         "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
+                        "ptf_cac40": {},
                         "ptf_quote": {},
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
+                        "ptf_volp": {},
                         "ptf_trade": {},
                         "ptf_date": {},
                         "ptf_quantity": {},
-                        "ptf_cost": {},
                         "ptf_gainj": {},
                         "ptf_gain": {},
-                        "ptf_gain_percent": {},
+                        "ptf_gainp": {},
                         "_fgraph": {},
                         "ptf_note": {},
                         "_batch": {}
@@ -211,11 +243,15 @@
                         "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
+                        "ptf_cac40": {},
                         "ptf_quote": {},
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
+                        "ptf_volp": {},
+                        "ptf_vol_moy": {},
+                        "ptf_vol_max": {},
                         "ptf_trade": {},
                         "_fgraph": {},
                         "ptf_note": {}
@@ -241,7 +277,7 @@
                         "ptf_quantity": {},
                         "ptf_cost": {},
                         "ptf_gain": {},
-                        "ptf_gain_percent": {},
+                        "ptf_gainp": {},
                         "_fgraph": {},
                         "ptf_note": {}
                     },
@@ -263,7 +299,8 @@
                     "title": "Ajout d'un titre",
                     "elements": {
                         "ptf_id": {},
-                        "ptf_name": {}
+                        "ptf_name": {},
+                        "ptf_cac40": {}
                     }
                 },
                 "fedit": {
@@ -271,6 +308,7 @@
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
+                        "ptf_cac40": {},
                         "ptf_note": {}
                     }
                 }
@@ -354,23 +392,86 @@
                     "type": "int",
                     "sql_color": "case when cours_q26 < 0 then '#FF0000' else '#006600' end"
                 },
-                "cours_emv": {
-                    "label_long": "EMV",
-                    "label_short": "EMV",
-                    "type": "float"
+                "cours_q50": {
+                    "label_long": "Q50",
+                    "label_short": "Q50",
+                    "type": "int",
+                    "sql_color": "case when cours_q50 < 0 then '#FF0000' else '#006600' end"
                 },
-                "cours_emv_percent": {
-                    "label_long": "Volume",
-                    "label_short": "Volume",
+                "cours_volp": {
+                    "label_long": "Volume en %",
+                    "label_short": "Vol/max",
                     "type": "float",
                     "display": "%3.2f %%",
-                    "sql_color": "case when cours_emv_percent < -100 then '#FF0000' when cours_emv_percent > 100 then '#006600' else '#FFFFFF' end"
+                    "sql_color": "case when cours_volp < 20 then '#FF0000' when cours_volp > 60 then '#006600' else '#000000' end"
                 },
-                "cours_qv": {
-                    "label_long": "QV",
-                    "label_short": "QV",
-                    "type": "int",
-                    "sql_color": "case when cours_qv < 0 then '#FF0000' else '#006600' end"
+                "cours_ema12": {
+                    "label_long": "Ema12",
+                    "label_short": "Ema12",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_ema26": {
+                    "label_long": "Ema26",
+                    "label_short": "Ema26",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_ema50": {
+                    "label_long": "Ema50",
+                    "label_short": "Ema50",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_trend26": {
+                    "label_long": "T26",
+                    "label_short": "T26",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when cours_trend26 < 0 then '#FF0000' else '#006600' end"
+                },
+                "cours_trend50": {
+                    "label_long": "T50",
+                    "label_short": "T50",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when cours_trend50 < 0 then '#FF0000' else '#006600' end"
+                },
+                "cours_max12": {
+                    "label_long": "Max12",
+                    "label_short": "Max12",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_max26": {
+                    "label_long": "Max26",
+                    "label_short": "Max26",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_max50": {
+                    "label_long": "Max50",
+                    "label_short": "Max50",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_min12": {
+                    "label_long": "Min12",
+                    "label_short": "Min12",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_min26": {
+                    "label_long": "Min26",
+                    "label_short": "Min26",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cours_min50": {
+                    "label_long": "Min50",
+                    "label_short": "Min50",
+                    "type": "float",
+                    "display": "%3.2f €"
                 },
                 "cours_trade": {
                     "label_long": "Trade",
@@ -396,12 +497,12 @@
                     "display": "%3.2f €",
                     "sql_color": "case when cours_gain < 0 then '#FF0000' else '#006600' end"
                 },
-                "cours_gain_percent": {
+                "cours_gainp": {
                     "label_long": "en %",
                     "label_short": "en %",
                     "type": "float",
                     "display": "%3.2f %%",
-                    "sql_color": "case when cours_gain_percent < 0 then '#FF0000' else '#006600' end"
+                    "sql_color": "case when cours_gainp < 0 then '#FF0000' else '#006600' end"
                 },
                 "cours_inptf": {
                     "label_long": "Ptf",
@@ -440,11 +541,14 @@
                         "cours_rsi": {},
                         "cours_q12": {},
                         "cours_q26": {},
-                        "cours_emv_percent": {},
+                        "cours_q50": {},
+                        "cours_trend26": {},
+                        "cours_trend50": {},
+                        "cours_volp": {},
                         "cours_trade": {},
                         "cours_nbj": {},
                         "cours_gain": {},
-                        "cours_gain_percent": {},
+                        "cours_gainp": {},
                         "_fgraph": {},
                         "cours_intest": {},
                         "cours_inptf": {}

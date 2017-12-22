@@ -176,12 +176,12 @@ class PicsouBatchUi(Gtk.Window):
 
         rows = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT printf('SIMUL
-        Gain du jour: %.2f €
-                Cash: %.2f €
-              Espèce: %.2f €
-                Gain: %.2f €
-              Latent: %.2f €
-                 soit %.2f prc',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
+        Gain du jour: %8.2f €
+                Cash: %8.2f €
+              Espèce: %8.2f €
+                Gain: %8.2f €
+              Latent: %8.2f €
+                 soit %8.2f prc', acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
         FROM ACCOUNT where acc_id = 'SIMUL'
         """, {})
         self.display(rows[0]["sql_footer"])
@@ -206,7 +206,7 @@ class PicsouBatchUi(Gtk.Window):
 
             # Mon portefeuille
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            select * from ptf order by ptf_gain_percent desc
+            select * from ptf order by ptf_gainp desc
             """, {})
             msg = """<tr>
             <th>Action</th>
@@ -233,7 +233,7 @@ class PicsouBatchUi(Gtk.Window):
                     <td style="text-align: right">{6:.2f}%</td>
                     <td style="text-align: right">{7:.2f}%</td>
                     <td>{8}</td>
-                    </tr>""".format(ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_cost"], ptf["ptf_quantity"], ptf["ptf_gain"], ptf["ptf_gain_percent"], ptf["ptf_q26"], url)                     
+                    </tr>""".format(ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_cost"], ptf["ptf_quantity"], ptf["ptf_gain"], ptf["ptf_gainp"], ptf["ptf_q26"], url)                     
                     self.myptf.append(msg)
 
                 if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and ptf["ptf_trade"] == "RRR":

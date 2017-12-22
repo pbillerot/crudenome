@@ -198,7 +198,8 @@ class Crud:
                 if fmt != "": 
                     fmt += ", "
                 if isinstance(params[key], (unicode,)):
-                    fmt += "%s='%s'" % (key, str(params[key].encode("utf-8")))
+                    # fmt += "%s='%s'" % (key, str(params[key].encode("utf-8")))
+                    fmt += "%s='%s'" % (key, (params[key]))
                 else:
                     fmt += "%s='%s'" % (key, str(params[key]))
         return "params: [%s]" % fmt
@@ -510,8 +511,8 @@ class Crud:
             elif isinstance(word_dict[key], bool):
                 text = text.replace("{" + key + "}", str(word_dict[key]))
             else:
-                # text = text.replace("{" + key + "}", (word_dict[key]))
-                text = text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
+                text = text.replace("{" + key + "}", (word_dict[key]))
+                # text = text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
         return text
 
     def sql_update_record(self):

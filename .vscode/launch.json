@@ -16,13 +16,11 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
         {
-            "name": "Batch A",
+            "name": "Batch Quote",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
@@ -30,18 +28,33 @@
             "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
             "args": [
-                "-account"
+                "-quote"
             ],
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
         {
-            "name": "Batch S A",
+            "name": "Batch Histo",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
+            "cwd": "${workspaceRoot}",
+            "args": [
+                "-histo"
+            ],
+            "env": {},
+            "envFile": "${workspaceRoot}/.env",
+            "debugOptions": [
+                "RedirectOutput"
+            ]
+        },
+        {
+            "name": "Batch Simul Account",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
@@ -55,8 +68,6 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
@@ -71,8 +82,6 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
@@ -95,8 +104,6 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
@@ -111,8 +118,6 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
@@ -128,8 +133,7 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit"
+                "RedirectOutput"
             ]
         },
         {
@@ -144,8 +148,7 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit"
+                "RedirectOutput"
             ]
         },
         {
@@ -164,8 +167,6 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput",
                 "DjangoDebugging"
             ]
@@ -188,8 +189,6 @@
             ],
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
@@ -205,8 +204,6 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
@@ -223,8 +220,6 @@
                 "${workspaceRoot}/development.ini"
             ],
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput",
                 "Pyramid"
             ]
@@ -245,8 +240,6 @@
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
                 "RedirectOutput"
             ]
         },
