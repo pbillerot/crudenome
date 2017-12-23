@@ -15,6 +15,7 @@ CREATE TABLE ptf (
     ptf_q12      INTEGER,
     ptf_q26      INTEGER,
     ptf_q50      INTEGER,
+    ptf_trend50  REAL,
     ptf_volp     REAL,
     ptf_vol_moy  REAL,
     ptf_vol_max  INTEGER,

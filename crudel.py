@@ -114,7 +114,8 @@ class Crudel(GObject.GObject):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
         if value_sql is None:
             return
-        self.value = value_sql if isinstance(value_sql, int) or isinstance(value_sql, float) else value_sql.encode("utf-8")
+        # self.value = value_sql if isinstance(value_sql, int) or isinstance(value_sql, float) else value_sql.encode("utf-8")
+        self.value = value_sql if isinstance(value_sql, int) or isinstance(value_sql, float) else value_sql
 
     def set_value_widget(self):
         """ valorisation à partir de la saisie dans le widget """
@@ -196,7 +197,8 @@ class Crudel(GObject.GObject):
                     display = str(display)
                 value = display.encode("utf-8") % (value)
         if self.get_type_gdk() == GObject.TYPE_STRING:
-            value = str(value)
+            # value = str(value)
+            value = value
         return value
 
     def get_cell(self):
@@ -337,7 +339,8 @@ class Crudel(GObject.GObject):
     def _get_widget_entry(self):
         """ champ de saisie """
         widget = Gtk.Entry()
-        widget.set_text(str(self.get_display()))
+        # widget.set_text(str(self.get_display()))
+        widget.set_text(self.get_display())
         widget.set_width_chars(40)
         if self.is_read_only():
             widget.set_sensitive(False)

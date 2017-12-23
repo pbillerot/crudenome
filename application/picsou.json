@@ -74,7 +74,7 @@
                 },
                 "ptf_q12": {
                     "label_long": "J12",
-                    "label_short": "J12+",
+                    "label_short": "J12",
                     "type": "int",
                     "display": "%1.0f",
                     "col_align": "center",
@@ -83,12 +83,30 @@
                 },
                 "ptf_q26": {
                     "label_long": "J26",
-                    "label_short": "J26+",
+                    "label_short": "J26",
                     "type": "int",
                     "display": "%1.0f",
                     "col_align": "center",
                     "sortable": true,
                     "sql_color": "case when ptf_q26 > 2 then '#006600' else '#FF0000' end"
+                },
+                "ptf_q50": {
+                    "label_long": "J50",
+                    "label_short": "J50",
+                    "type": "int",
+                    "display": "%1.0f",
+                    "col_align": "center",
+                    "sortable": true,
+                    "sql_color": "case when ptf_q50 > 2 then '#006600' else '#FF0000' end"
+                },
+                "ptf_trend50": {
+                    "label_long": "T50",
+                    "label_short": "T50",
+                    "type": "float",
+                    "display": "%0.1f",
+                    "col_align": "right",
+                    "sortable": true,
+                    "sql_color": "case when ptf_trend50 > 0 then '#006600' else '#FF0000' end"
                 },
                 "ptf_vol_moy": {
                     "label_long": "Vol. moy",
@@ -125,6 +143,12 @@
                     "label_long": "Date achat",
                     "label_short": "Date achat",
                     "type": "text"
+                },
+                "ptf_nbj": {
+                    "label_long": "Nombre de jour",
+                    "label_short": "Nbj",
+                    "type": "int",
+                    "col_align": "center"
                 },
                 "ptf_quantity": {
                     "label_long": "Nombre d'actions",
@@ -211,15 +235,16 @@
                         "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
-                        "ptf_cac40": {},
                         "ptf_quote": {},
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
+                        "ptf_q50": {},
                         "ptf_volp": {},
                         "ptf_trade": {},
                         "ptf_date": {},
+                        "ptf_nbj": {},
                         "ptf_quantity": {},
                         "ptf_gainj": {},
                         "ptf_gain": {},
@@ -249,10 +274,15 @@
                         "ptf_rsi": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
+                        "ptf_q50": {},
                         "ptf_volp": {},
-                        "ptf_vol_moy": {},
-                        "ptf_vol_max": {},
                         "ptf_trade": {},
+                        "ptf_date": {},
+                        "ptf_nbj": {},
+                        "ptf_quantity": {},
+                        "ptf_gainj": {},
+                        "ptf_gain": {},
+                        "ptf_gainp": {},
                         "_fgraph": {},
                         "ptf_note": {}
                     },
@@ -260,28 +290,31 @@
                 },
                 "vnote": {
                     "title": "Note",
-                    "form_add": "fadd",
                     "form_edit": "fedit",
                     "icon_name": "folder-documents",
                     "elements": {
                         "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
+                        "ptf_cac40": {},
                         "ptf_quote": {},
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
+                        "ptf_q50": {},
+                        "ptf_volp": {},
                         "ptf_trade": {},
                         "ptf_date": {},
+                        "ptf_nbj": {},
                         "ptf_quantity": {},
-                        "ptf_cost": {},
+                        "ptf_gainj": {},
                         "ptf_gain": {},
                         "ptf_gainp": {},
                         "_fgraph": {},
                         "ptf_note": {}
                     },
-                    "sql_where": "ptf_note <> ''"
+                    "sql_where": "ptf_note <> '' or ptf_trade <> ''"
                 },
                 "vsimul": {
                     "xx": "Vue particulière lus par les plugins batch",

@@ -110,8 +110,9 @@ class PicsouGraph(Gtk.Window):
         # ax1.xaxis.set_minor_formatter(daysFmt)
 
         ax2 = ax1.twinx()
-        ax2.plot(cours_dates, cours_rsi, 'm--', label='RSI')
-        ax2.plot(cours_dates, cours_volume, 'c:', label='Volume')
+        ax2.plot(cours_dates, cours_rsi, 'm:', label='RSI')
+        ax2.bar(cours_dates, cours_volume, align='center', alpha=0.5, label='Volume')
+        # ax2.plot(cours_dates, cours_volume, 'c:', label='Volume')
         ax2.set_ylabel('RSI ou Volume')
         ax2.legend(loc=4)
 
