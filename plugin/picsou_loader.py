@@ -1070,7 +1070,7 @@ class PicsouLoadQuotes():
                         "ptf_gainj": ptf_gainj,
                         "ptf_gain": ptf_gain,
                         "ptf_cost": ptf_output,
-                        "ptf_gainp": ptf_gain / ptf_output * 100
+                        "ptf_gainp": ptf_gain / -ptf_output * 100
                     }
                     self.crud.exec_sql(self.crud.get_basename(), """
                     UPDATE PTF
@@ -1109,7 +1109,7 @@ class PicsouLoadQuotes():
                 "ptf_gainj": ptf_gainj,
                 "ptf_gain": ptf_gain,
                 "ptf_cost": ptf_output,
-                "ptf_gainp": ptf_gain / ptf_output * 100
+                "ptf_gainp": ptf_gain / -ptf_output * 100
             }
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE PTF

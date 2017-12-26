@@ -193,12 +193,9 @@ class Crudel(GObject.GObject):
             if not self.is_read_only() and self.type_parent == Crudel.TYPE_PARENT_FORM:
                 pass
             else:
-                if isinstance(display, int):
-                    display = str(display)
                 value = display.encode("utf-8") % (value)
-        if self.get_type_gdk() == GObject.TYPE_STRING:
-            # value = str(value)
-            value = value
+        if isinstance(value, int):
+            value = str(value)
         return value
 
     def get_cell(self):
@@ -209,9 +206,9 @@ class Crudel(GObject.GObject):
         """ largeur de la colonne """
         return self.crud.get_column_prop(self.element, "col_width", None)
 
-    def get_col_align(self):
+    def get_col_align(self, default=""):
         """ alignement du texte dans la colonne """
-        return self.crud.get_column_prop(self.element, "col_align", "")
+        return self.crud.get_column_prop(self.element, "col_align", default)
 
     def get_sql_items(self):
         """ Liste des items d'un combo, radio, tag """

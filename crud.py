@@ -682,3 +682,81 @@ class Crud:
 
         rows = self.sql_to_dict(self.get_basename(), sql, self.ctx)
         return rows
+
+    def get_sql_report(self):
+        """ Rapport HTML de la vue courante"""
+        sql = "SELECT "
+        b_first = True
+        elements = self.get_view_elements()
+        html = '<table border="1" cellspacing="0" cellpadding="3">'
+        html += '<tr>'
+        for element in elements:
+            crudel = Crudel.instantiate(self, element, Crudel.TYPE_PARENT_VIEW)
+            crudel.init_value()
+            self.set_element_prop(element, "crudel", crudel)
+
+            html += '<th>%s</th>' % crudel.get_label_short()
+
+            # colonnes techniques
+            if crudel.get_sql_color() != "":
+                sql += ", "
+                sql += crudel.get_sql_color() + " as " + element + "_color"
+            if crudel.is_virtual():
+                continue
+            if crudel.with_jointure():
+                continue
+            if b_first:
+                b_first = False
+            else:
+                sql += ", "
+            # colonnes affichées
+            if crudel.get_sql_get() == "":
+                sql += self.get_table_id() + "." + element
+            else:
+                sql += crudel.get_sql_get() + " as " + element
+        html += '</tr>'
+
+        # ajout des colonnes de jointure
+        for element in elements:
+            crudel = self.get_element_prop(element, "crudel")
+            if crudel.with_jointure():
+                sql += ", " + crudel.get_jointure("display") + " as " + element
+
+        sql += " FROM " + self.get_table_id()
+
+        # ajout des tables de jointure
+        join = ""
+        for element in elements:
+            crudel = self.get_element_prop(element, "crudel")
+            if crudel.with_jointure():
+                if crudel.get_jointure("join"):
+                    join += " " + crudel.get_jointure("join")
+        if join:
+            sql += join
+
+        # prise en compte du sql_where de la vue
+        sql_where = ""
+        if self.get_view_prop("sql_where"):
+            sql_where += self.get_view_prop("sql_where")
+        if sql_where != "":
+            sql += " WHERE " + sql_where
+        if self.get_view_prop("order_by", None):
+            sql += " ORDER BY " + self.get_view_prop("order_by")
+
+        sql += " LIMIT " + str(self.get_view_prop("limit", 400))
+
+        rows = self.sql_to_dict(self.get_basename(), sql, self.ctx)
+        for row in rows:
+            html += '<tr>'
+            for element in self.get_view_elements():
+                crudel = self.get_element_prop(element, "crudel")
+                if row.has_key(element):
+                    crudel.set_value_sql(row[element])
+                if crudel.get_sql_color() != "":
+                    color = ' style="color: %s"' % row[element + "_color"]
+                else:
+                    color = ""
+                html += '<td align="%s"%s>%s</td>' % (crudel.get_col_align("left"), color, crudel.get_display().decode("utf-8"))
+            html += '</tr>'
+        html += '<table>'
+        return html

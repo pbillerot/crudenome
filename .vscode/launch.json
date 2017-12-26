@@ -37,7 +37,7 @@
             ]
         },
         {
-            "name": "Batch Histo",
+            "name": "Batch Mail",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
@@ -45,7 +45,7 @@
             "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
             "args": [
-                "-histo"
+                "-mail"
             ],
             "env": {},
             "envFile": "${workspaceRoot}/.env",

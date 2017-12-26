@@ -178,7 +178,7 @@
                     "type": "float",
                     "col_align": "right",
                     "display": "%3.2f %%",
-                    "sql_color": "case when ptf_gain > 0 then '#006600' else '#FF0000' end"
+                    "sql_color": "case when ptf_gainp > 0 then '#006600' else '#FF0000' end"
                 },
                 "ptf_note": {
                     "label_long": "Note",
@@ -325,6 +325,24 @@
                         "ptf_id": {},
                         "_batch": {}
                     }
+                },
+                "vrapport": {
+                    "hide": true,
+                    "elements": {
+                        "ptf_account": {},
+                        "ptf_name": {},
+                        "ptf_quote": {},
+                        "ptf_percent": {},
+                        "ptf_gainj": {},
+                        "ptf_gain": {},
+                        "ptf_gainp": {},
+                        "ptf_date": {},
+                        "ptf_nbj": {},
+                        "ptf_quantity": {},
+                        "ptf_trade": {}
+                    },
+                    "sql_where": "ptf_account <> ''",
+                    "order_by": "ptf_account, ptf_name"
                 }
             },
             "forms": {
