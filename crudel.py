@@ -194,13 +194,16 @@ class Crudel(GObject.GObject):
                 pass
             else:
                 value = display.encode("utf-8") % (value)
-        if isinstance(value, int):
+        if isinstance(value, (int, float)):
             value = str(value)
         return value
 
     def get_cell(self):
         """ retourne la cellule dans la vue """
-        return self.get_display()
+        if self.is_display():
+            return self.get_display()
+        else:
+            return self.get_value()
 
     def get_col_width(self):
         """ largeur de la colonne """
@@ -336,8 +339,8 @@ class Crudel(GObject.GObject):
     def _get_widget_entry(self):
         """ champ de saisie """
         widget = Gtk.Entry()
-        # widget.set_text(str(self.get_display()))
-        widget.set_text(self.get_display())
+        widget.set_text(str(self.get_display().encode("utf-8")))
+        # widget.set_text(self.get_display())
         widget.set_width_chars(40)
         if self.is_read_only():
             widget.set_sensitive(False)
@@ -718,6 +721,9 @@ class CrudelCounter(Crudel):
         renderer.set_property('xalign', 1.0)
         return renderer
 
+    def get_value(self):
+        return int(self.value)
+
 class CrudelFloat(Crudel):
     """ Gestion des colonnes et champs de type décimal """
 
@@ -754,6 +760,9 @@ class CrudelFloat(Crudel):
         if value == '':
             value = 0
         self.value = float(value)
+
+    def get_value(self):
+        return float(self.value)
 
 class CrudelForm(Crudel):
     """ Appel d'un formulaire dans une vue
@@ -883,6 +892,9 @@ class CrudelInt(Crudel):
         else:
             self.set_value(int(value_sql))
 
+    def get_value(self):
+        return int(self.value)
+
 class CrudelRadio(Crudel):
     """ Gestion des colonnes et champs de type Radio """
     items = {}
@@ -948,6 +960,12 @@ class CrudelText(Crudel):
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
         return hbox
+
+    def get_value(self):
+        if isinstance(self.value, (int, float)):
+            return str(self.value)
+        else:
+            return self.value
 
 class CrudelUid(Crudel):
     """ Gestion des colonnes et champs de type Unique IDentifier """

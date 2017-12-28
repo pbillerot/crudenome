@@ -381,7 +381,7 @@ class PicsouLoadQuotes():
         # Raz de la dernière simulation
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
-        set ptf_account = ''
+        set ptf_account = '', ptf_cost = 0, ptf_quantity = 0, ptf_cost = 0, ptf_gain = 0, ptf_gainj = 0, ptf_gainp = 0
         """, {})
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE COURS
@@ -455,7 +455,7 @@ class PicsouLoadQuotes():
             """, {})
         else:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf
+            SELECT * FROM ptf WHERE ptf_disabled is null or ptf_disabled <> '1'
             ORDER BY ptf_id
             """, {})
         for ptf in ptfs:
@@ -563,7 +563,7 @@ class PicsouLoadQuotes():
                 btraite = False
                 ptf["ptf_trade"] = ""
 
-                # if cours["cours_date"] == "2017-11-09":
+                # if cours["cours_date"] == "2017-12-28":
                 #     pass
                 if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and cours["cours_date"] >= ptf["ptf_date"]:
                     b_en_production = True
@@ -816,7 +816,6 @@ class PicsouLoadQuotes():
 
                 # maj du PTF avec les données du cours
                 ptf["ptf_quote"] = cours["cours_close"]
-                ptf["ptf_gainj"] = cours["cours_gainj"]
                 ptf["ptf_percent"] = cours["cours_percent"]
                 ptf["ptf_rsi"] = cours["cours_rsi"]
                 ptf["ptf_q12"] = cours["cours_q12"]
@@ -825,6 +824,10 @@ class PicsouLoadQuotes():
                 ptf["ptf_trend50"] = cours["cours_trend50"]
                 ptf["ptf_nbj"] = nbj_prod
                 ptf["ptf_volp"] = cours["cours_volp"]
+                if b_en_production:
+                    ptf["ptf_gainj"] = cours["cours_gainj"]
+                else:
+                    ptf["ptf_gainj"] = 0
 
             # mise à jour du portefeuille à la fin
             self.crud.exec_sql(self.crud.get_basename(), """

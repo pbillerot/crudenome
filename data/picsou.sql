@@ -6,6 +6,7 @@ CREATE TABLE ptf (
     ptf_id       TEXT    NOT NULL
                          PRIMARY KEY,
     ptf_name     TEXT,
+    ptf_disabled INTEGER,
     ptf_cac40    INTEGER,
     ptf_account  TEXT,
     ptf_quote    REAL    DEFAULT (0),

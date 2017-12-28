@@ -59,7 +59,7 @@
                     "label_short": "+ du jour",
                     "type": "float",
                     "col_align": "right",
-                    "sql_color": "case when ptf_gainj > 0 then '#006600' else '#FF0000' end",
+                    "sql_color": "case when ptf_gainj = 0 then '#FFFFFF' when ptf_gainj > 0 then '#006600' else '#FF0000' end",
                     "display": "%3.2f €",
                     "sortable": true
                 },
@@ -148,14 +148,16 @@
                     "label_long": "Nombre de jour",
                     "label_short": "Nbj",
                     "type": "int",
-                    "col_align": "center"
+                    "col_align": "center",
+                    "sql_color": "case when ptf_nbj = 0 then '#FFFFFF' else '#303030' end"
                 },
                 "ptf_quantity": {
                     "label_long": "Nombre d'actions",
                     "label_short": "Qté",
                     "type": "int",
                     "default": 0,
-                    "col_align": "center"
+                    "col_align": "center",
+                    "sql_color": "case when ptf_quantity = 0 then '#FFFFFF' else '#303030' end"
                 },
                 "ptf_cost": {
                     "label_long": "Débit",
@@ -170,7 +172,7 @@
                     "type": "float",
                     "col_align": "right",
                     "display": "%3.2f €",
-                    "sql_color": "case when ptf_gain > 0 then '#006600' else '#FF0000' end"
+                    "sql_color": "case when ptf_gain = 0 then '#FFFFFF' when ptf_gain > 0 then '#006600' else '#FF0000' end"
                 },
                 "ptf_gainp": {
                     "label_long": "En %",
@@ -178,7 +180,7 @@
                     "type": "float",
                     "col_align": "right",
                     "display": "%3.2f %%",
-                    "sql_color": "case when ptf_gainp > 0 then '#006600' else '#FF0000' end"
+                    "sql_color": "case when ptf_gainp = 0 then '#FFFFFF' when ptf_gainp > 0 then '#006600' else '#FF0000' end"
                 },
                 "ptf_note": {
                     "label_long": "Note",
@@ -188,13 +190,19 @@
                 },
                 "ptf_cac40": {
                     "label_long": "CAC40",
-                    "label_short": "CAC40",
+                    "label_short": "40",
+                    "type": "check",
+                    "col_editable": false
+                },
+                "ptf_disabled": {
+                    "label_long": "Valeur Non Active",
+                    "label_short": "NA",
                     "type": "check",
                     "col_editable": false
                 },
                 "_fgraph": {
                     "label_long": "Graph",
-                    "label_short": "Graph",
+                    "label_short": "",
                     "type": "form",
                     "params": {
                         "plugin": "picsou_graph.PicsouGraph",
@@ -235,30 +243,88 @@
                         "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
+                        "_fgraph": {},
                         "ptf_quote": {},
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
                         "ptf_q50": {},
-                        "ptf_volp": {},
                         "ptf_trade": {},
+                        "ptf_note": {},
                         "ptf_date": {},
                         "ptf_nbj": {},
                         "ptf_quantity": {},
                         "ptf_gainj": {},
                         "ptf_gain": {},
                         "ptf_gainp": {},
-                        "_fgraph": {},
-                        "ptf_note": {},
                         "_batch": {}
                     },
                     "sql_where": "ptf_account is not null and ptf_account <> ''",
                     "order_by": "ptf_account, ptf_id",
                     "sql_footer": "SELECT printf('<b>PEA</b> Gain du jour: <b>%.2f</b> € Cash: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'PEA'"
                 },
+                "vactif": {
+                    "title": "Actifs",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "icon_name": "folder",
+                    "searchable": true,
+                    "elements": {
+                        "ptf_account": {},
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "_fgraph": {},
+                        "ptf_cac40": {},
+                        "ptf_quote": {},
+                        "ptf_percent": {},
+                        "ptf_rsi": {},
+                        "ptf_q12": {},
+                        "ptf_q26": {},
+                        "ptf_q50": {},
+                        "ptf_trade": {},
+                        "ptf_note": {},
+                        "ptf_date": {},
+                        "ptf_nbj": {},
+                        "ptf_quantity": {},
+                        "ptf_gainj": {},
+                        "ptf_gain": {},
+                        "ptf_gainp": {}
+                    },
+                    "sql_where": "ptf_disabled is null or ptf_disabled <> '1'",
+                    "order_by": "ptf_id"
+                },
+                "vnote": {
+                    "title": "Note",
+                    "form_edit": "fedit",
+                    "icon_name": "folder-documents",
+                    "searchable": true,
+                    "elements": {
+                        "ptf_account": {},
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "_fgraph": {},
+                        "ptf_cac40": {},
+                        "ptf_disabled": {},
+                        "ptf_quote": {},
+                        "ptf_percent": {},
+                        "ptf_rsi": {},
+                        "ptf_q12": {},
+                        "ptf_q26": {},
+                        "ptf_q50": {},
+                        "ptf_trade": {},
+                        "ptf_note": {},
+                        "ptf_date": {},
+                        "ptf_nbj": {},
+                        "ptf_quantity": {},
+                        "ptf_gainj": {},
+                        "ptf_gain": {},
+                        "ptf_gainp": {}
+                    },
+                    "sql_where": "ptf_note <> '' or ptf_trade <> ''"
+                },
                 "vall": {
-                    "title": "Les Titres",
+                    "title": "Tous",
                     "form_add": "fadd",
                     "form_edit": "fedit",
                     "icon_name": "folder",
@@ -268,53 +334,26 @@
                         "ptf_account": {},
                         "ptf_id": {},
                         "ptf_name": {},
+                        "_fgraph": {},
                         "ptf_cac40": {},
+                        "ptf_disabled": {},
                         "ptf_quote": {},
                         "ptf_percent": {},
                         "ptf_rsi": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
                         "ptf_q50": {},
-                        "ptf_volp": {},
+                        "ptf_vol_moy": {},
                         "ptf_trade": {},
+                        "ptf_note": {},
                         "ptf_date": {},
                         "ptf_nbj": {},
                         "ptf_quantity": {},
                         "ptf_gainj": {},
                         "ptf_gain": {},
-                        "ptf_gainp": {},
-                        "_fgraph": {},
-                        "ptf_note": {}
+                        "ptf_gainp": {}
                     },
                     "order_by": "ptf_id"
-                },
-                "vnote": {
-                    "title": "Note",
-                    "form_edit": "fedit",
-                    "icon_name": "folder-documents",
-                    "elements": {
-                        "ptf_account": {},
-                        "ptf_id": {},
-                        "ptf_name": {},
-                        "ptf_cac40": {},
-                        "ptf_quote": {},
-                        "ptf_percent": {},
-                        "ptf_rsi": {},
-                        "ptf_q12": {},
-                        "ptf_q26": {},
-                        "ptf_q50": {},
-                        "ptf_volp": {},
-                        "ptf_trade": {},
-                        "ptf_date": {},
-                        "ptf_nbj": {},
-                        "ptf_quantity": {},
-                        "ptf_gainj": {},
-                        "ptf_gain": {},
-                        "ptf_gainp": {},
-                        "_fgraph": {},
-                        "ptf_note": {}
-                    },
-                    "sql_where": "ptf_note <> '' or ptf_trade <> ''"
                 },
                 "vsimul": {
                     "xx": "Vue particulière lus par les plugins batch",
@@ -360,6 +399,7 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_cac40": {},
+                        "ptf_disabled": {},
                         "ptf_note": {}
                     }
                 }

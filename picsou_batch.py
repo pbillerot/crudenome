@@ -69,7 +69,8 @@ class PicsouBatch():
 
         if self.args.histo:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf ORDER BY ptf_id
+            SELECT * FROM ptf
+            ORDER BY ptf_id
             """, {})
             self.display("Chargement de l'historique...")
             for ptf in ptfs:
@@ -77,7 +78,9 @@ class PicsouBatch():
 
         if self.args.quote:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf ORDER BY ptf_id
+            SELECT * FROM ptf
+            WHERE ptf_disabled is null or ptf_disabled <> '1'
+            ORDER BY ptf_id 
             """, {})
             self.display("Actualisation des cours...")
             for ptf in ptfs:
@@ -96,7 +99,8 @@ class PicsouBatch():
               Espèce: %8.2f €
                 Gain: %8.2f €
               Latent: %8.2f €
-                 soit %8.2f prc',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
+                 soit %8.2f prc
+        ',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
         FROM ACCOUNT where acc_id = 'SIMUL'
         """, {})
         self.display(rows[0]["sql_footer"])

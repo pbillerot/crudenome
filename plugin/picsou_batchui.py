@@ -163,7 +163,9 @@ class PicsouBatchUi(Gtk.Window):
         # Chargement des 10 derniers cours
         loader = PicsouLoadQuotes(self, self.crud)
         ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM ptf ORDER BY ptf_id
+        SELECT * FROM ptf 
+        where ptf_disabled is null or ptf_disabled <> '1'
+        ORDER BY ptf_id
         """, {})
         for ptf in ptfs:
             while Gtk.events_pending():
@@ -181,7 +183,8 @@ class PicsouBatchUi(Gtk.Window):
               Espèce: %8.2f €
                 Gain: %8.2f €
               Latent: %8.2f €
-                 soit %8.2f prc', acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
+                 soit %8.2f prc
+        ', acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
         FROM ACCOUNT where acc_id = 'SIMUL'
         """, {})
         self.display(rows[0]["sql_footer"])
