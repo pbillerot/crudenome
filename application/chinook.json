@@ -6,8 +6,8 @@
     "basename": "./data/chinook.sqlite",
     "tables": {
         "artists": {
-            
             "key": "ArtistId",
+            "key_name": "Name",
             "elements": {
                 "ArtistId": {
                     "label_long": "ID",
@@ -71,6 +71,7 @@
         },
         "albums": {
             "key": "AlbumId",
+            "key_name": "Title",
             "elements": {
                 "AlbumId": {
                     "label_long": "ID",
@@ -182,6 +183,7 @@
         },
         "media_types": {
             "key": "MediaTypeId",
+            "key_name": "Name",
             "elements": {
                 "MediaTypeId": {
                     "label_long": "ID",
@@ -231,6 +233,7 @@
         },
         "genres": {
             "key": "GenreId",
+            "key_name": "Name",
             "elements": {
                 "GenreId": {
                     "label_long": "ID",
@@ -277,6 +280,7 @@
         },
         "tracks": {
             "key": "TrackId",
+            "key_name": "Name",
             "elements": {
                 "TrackId": {
                     "label_long": "ID",

@@ -42,7 +42,7 @@ class Crud:
         "row_id": None,
         "key_value": None,
         "action": None, # create read update delete
-        "selected": [],
+        "selected": {},
         "errors": [],
         "ticket": None
     }
@@ -352,18 +352,30 @@ class Crud:
         self.ctx["errors"][:] = []
 
     # selection
-    def add_selection(self, row_id):
+    def add_selection(self, row_id, row_name):
         """ ajouter un élément dans la sélection """
-        self.ctx["selected"].append(row_id)
+        self.ctx["selected"][row_id] = row_name
     def remove_selection(self, row_id):
         """ supprimer un élément de la sélection """
-        self.ctx["selected"].remove(row_id)
+        del self.ctx["selected"][row_id]
     def remove_all_selection(self):
         """ supprimer un élément de la sélection """
-        self.ctx["selected"][:] = []
+        self.ctx["selected"].clear()
     def get_selection(self):
         """ Fournir les éléments de la sélection """
         return self.ctx["selected"]
+    def get_selection_values(self):
+        """ Fournir les éléments de la sélection séparés par une virgule"""
+        values = ""
+        for key in self.ctx["selected"]:
+            value = self.ctx["selected"][key]
+            if values != "":
+                values += " "
+            if isinstance(value, (float, int)):
+                values += "[" + str(value) + "]"
+            else:
+                values += "[" + value.encode("utf-8") + "]"
+        return values
 
     # DICTIONNAIRE de l'application
     # application

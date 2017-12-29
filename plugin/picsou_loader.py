@@ -706,13 +706,13 @@ class PicsouLoadQuotes():
                         b_vendre = True
 
                     #  on vend si ema26 descend
-                    # if q26[0] < 0:
-                    #     motif += " ema26"
-                    #     b_vendre = True
+                    if rsi_67 and q26[0] < 0:
+                        motif += " v6726-"
+                        b_vendre = True
 
                     # le sommet
-                    # if rsis[1] > 67:
-                    #     rsi_67 = True
+                    if rsis[1] > 67:
+                        rsi_67 = True
                     # if rsi_67 and rsis[0] < rsis[1]:
                     #     motif += " vr67"
                     #     b_vendre = True
@@ -816,6 +816,7 @@ class PicsouLoadQuotes():
 
                 # maj du PTF avec les données du cours
                 ptf["ptf_quote"] = cours["cours_close"]
+                ptf["ptf_quantity"] = int(acc_bet / quote)
                 ptf["ptf_percent"] = cours["cours_percent"]
                 ptf["ptf_rsi"] = cours["cours_rsi"]
                 ptf["ptf_q12"] = cours["cours_q12"]
@@ -917,7 +918,7 @@ class PicsouLoadQuotes():
         # Init PTF
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE PTF
-        set ptf_account = '', ptf_date = '', ptf_quantity = 0
+        set ptf_account = '', ptf_date = ''
         """, {})
 
         # Init ACCOUNT

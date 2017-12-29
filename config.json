@@ -1,7 +1,7 @@
 {
     "title": "CRUD for GNOME",
     "name": "crudenome",
-    "version": "17.22",
+    "version": "29.22",
     "copyright": "(c) pbillerot",
     "comments": "Le framework pour développer des applications Gnome",
     "web_site": "https://github.com/pbillerot/crudenome",
@@ -10,8 +10,7 @@
     "application_directory": "./application",
     "local_config": "~/data/crudenome/local.json",
     "shell": {
-        "Picsou Simul": "picsou_batch.py -simul",
-        "Picsou Quote": "picsou_batch.py -quote",
-        "Picsou Mail Sms": "picsou_batch.py -quote -simul -mail -sms"
+        "Picsou Backup": "./picsou_batch.py -backup",
+        "Picsou Restauration": "./picsou_batch.py -restore"
     }
 }

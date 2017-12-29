@@ -6,14 +6,13 @@
     "basename": "~/data/picsou/picsou.sqlite",
     "basehost": "/mnt/freebox/data/picsou/picsou.sqlite",
     "shell": {
-        "Test": "./batch_test.py",
-        "Picsou Simul": "./picsou_batch.py -simul",
-        "Picsou Quote": "./picsou_batch.py -quote",
-        "Picsou Mail Sms": "./picsou_batch.py -quote -simul -mail -sms"
+        "Picsou Backup": "./picsou_batch.py -backup",
+        "Picsou Restauration": "./picsou_batch.py -restore"
     },
     "tables": {
         "ptf": {
             "key": "ptf_id",
+            "key_name": "ptf_name",
             "elements": {
                 "ptf_id": {
                     "label_long": "Valeur",
@@ -231,6 +230,15 @@
                             "bill.tero@free.fr"
                         ]
                     }
+                },
+                "_backup": {
+                    "label_long": "Backup des données",
+                    "label_short": "Backup...",
+                    "type": "batch",
+                    "params": {
+                        "plugin": "picsou_backup.PicsouBackup",
+                        "icon_name": "view-refresh"
+                    }
                 }
             },
             "views": {
@@ -321,7 +329,7 @@
                         "ptf_gain": {},
                         "ptf_gainp": {}
                     },
-                    "sql_where": "ptf_note <> '' or ptf_trade <> ''"
+                    "sql_where": "(ptf_disabled is null or ptf_disabled <> '1') and (ptf_note <> '' or ptf_trade <> '')"
                 },
                 "vall": {
                     "title": "Tous",

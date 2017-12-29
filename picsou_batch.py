@@ -29,13 +29,47 @@ class PicsouBatch():
 
         self.crud.set_application(application)
 
-        # Récupération éventuelle de la base sur le host
+        if self.args.histo or self.args.quote\
+        or self.args.simul or self.args.account\
+        or self.args.mail or self.args.sms:
+            self.run_calcul()
+
+        if self.args.backup:
+            self.backup()
+
+        if self.args.restore:
+            self.restore()
+
+    def display(self, msg):
+        """ docstring """
+        print msg
+        # self.crud.logger.info(msg)
+
+    def backup(self):
+        """ backup """
+        # Put de la base de données sur la box
+        ticket_user = os.path.getmtime(self.crud.get_basename())
+        ticket_host = os.path.getmtime(self.crud.get_basehost())
+        if ticket_user != ticket_host:
+            shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+            self.display("Backup OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
+        else:
+            self.display("Backup NA %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
+
+    def restore(self):
+        """ restauration """
+        # Restauration de la base de données sur la box
         ticket_user = os.path.getmtime(self.crud.get_basename())
         ticket_host = os.path.getmtime(self.crud.get_basehost())
         if ticket_user != ticket_host:
             shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
             self.display("Restore OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host)))
+        else:
+            self.display("Restore NA %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host)))
 
+    def run_calcul(self):
+        """ Chargement des cours, calcul, simulation et compte-rendus """
+        # Initialisation
         element = "_batch"
         self.crud.set_table_id("ptf")
         self.crud.set_view_id("vsimul")
@@ -49,22 +83,10 @@ class PicsouBatch():
         self.top14 = []
         self.last_date = "1953-06-21"
         self.rsi_time = "12:32"
-        self.run_calcul()
 
-        # Put de la base de données sur la box
-        ticket_user = os.path.getmtime(self.crud.get_basename())
-        ticket_host = os.path.getmtime(self.crud.get_basehost())
-        if ticket_user != ticket_host:
-            shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-            self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
+        # Récupération éventuelle de la base sur le host
+        self.restore()
 
-    def display(self, msg):
-        """ docstring """
-        print msg
-        # self.crud.logger.info(msg)
-
-    def run_calcul(self):
-        """ docstring """
         loader = PicsouLoadQuotes(self, self.crud)
 
         if self.args.histo:
@@ -119,6 +141,9 @@ class PicsouBatch():
         # if self.args.sms:
         #     self.crud.send_sms(subject.encode("utf-8") + sms.encode("utf-8"))
 
+        # Put de la base de données sur la box
+        self.backup()
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog='picsou_batch')
@@ -129,6 +154,8 @@ if __name__ == '__main__':
     parser.add_argument('-simul', '--simul', action='store_true', default=False, help="Avec recalcul du simulateur")
     parser.add_argument('-quote', '--quote', action='store_true', default=False, help="Requête pour actualiser le cours du jour")
     parser.add_argument('-account', '--account', action='store_true', default=False, help="Requête pour actualiser les comptes")
+    parser.add_argument('-backup', '--backup', action='store_true', default=False, help="Sauvegarder la base sur la box")
+    parser.add_argument('-restore', '--restore', action='store_true', default=False, help="Restauration de la base locale à partir de la base sur la box")
     # print parser.parse_args()
 
     PicsouBatch(parser.parse_args())
