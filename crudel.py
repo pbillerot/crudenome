@@ -339,8 +339,8 @@ class Crudel(GObject.GObject):
     def _get_widget_entry(self):
         """ champ de saisie """
         widget = Gtk.Entry()
-        widget.set_text(str(self.get_display().encode("utf-8")))
-        # widget.set_text(self.get_display())
+        # widget.set_text(str(self.get_display().encode("utf-8")))
+        widget.set_text(self.get_display())
         widget.set_width_chars(40)
         if self.is_read_only():
             widget.set_sensitive(False)

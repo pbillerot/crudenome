@@ -7,7 +7,7 @@
     "tables": {
         "Department": {
             "key": "DepartmentID",
-            "key_display": "{Name}",
+            "key_name": "Name",
             "elements": {
                 "DepartmentID": {
                     "label_long": "ID",
@@ -26,10 +26,10 @@
                     "label_long": "Head",
                     "label_short": "Head",
                     "type": "combo",
-                    "params": {
-                        "table": "Physician",
-                        "key": "EmployeeId",
-                        "display": "Name"
+                    "sql_items": "select EmployeeId, Name from Physician order by Name",
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN Physician ON Physician.EmployeeId = Department.Head",
+                        "display": "Physician.Name"
                     }
                 }
             },
@@ -67,6 +67,7 @@
         },
         "Physician": {
             "key": "EmployeeID",
+            "key_name": "Name",
             "elements": {
                 "EmployeeID": {
                     "label_long": "ID",
@@ -129,6 +130,7 @@
         },
         "Room": {
             "key": "Number",
+            "key_name": "Type",
             "elements": {
                 "Number": {
                     "label_long": "Number",
