@@ -7,12 +7,14 @@
     "basehost": "/mnt/freebox/data/picsou/picsou.sqlite",
     "shell": {
         "Picsou Backup": "./picsou_batch.py -backup",
-        "Picsou Restauration": "./picsou_batch.py -restore"
+        "Picsou Restauration": "./picsou_batch.py -restore",
+        "Picsou Simul": "./picsou_batch.py -simul -account",
+        "Picsou Quote": "./picsou_batch.py -simul -account -quote"
     },
     "tables": {
         "ptf": {
             "key": "ptf_id",
-            "key_name": "ptf_name",
+            "key_display": "ptf_name",
             "elements": {
                 "ptf_id": {
                     "label_long": "Valeur",
@@ -415,6 +417,7 @@
         },
         "cours": {
             "key": "cours_id",
+            "key_display": "cours_id",
             "elements": {
                 "cours_id": {
                     "label_long": "id",
@@ -521,6 +524,13 @@
                     "label_short": "Ema50",
                     "type": "float",
                     "display": "%3.2f €"
+                },
+                "cours_trend12": {
+                    "label_long": "T12",
+                    "label_short": "T12",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when cours_trend12 < 0 then '#FF0000' else '#006600' end"
                 },
                 "cours_trend26": {
                     "label_long": "T26",
@@ -641,6 +651,7 @@
                         "cours_q12": {},
                         "cours_q26": {},
                         "cours_q50": {},
+                        "cours_trend12": {},
                         "cours_trend26": {},
                         "cours_trend50": {},
                         "cours_volp": {},
@@ -660,6 +671,7 @@
         },
         "mvt": {
             "key": "mvt_id",
+            "key_display": "mvt_id",
             "elements": {
                 "mvt_id": {
                     "label_long": "Id",
@@ -668,8 +680,8 @@
                     "hide": true
                 },
                 "mvt_account": {
-                    "label_long": "Portefeuille",
-                    "label_short": "Portefeuille",
+                    "label_long": "Compte",
+                    "label_short": "CPT",
                     "type": "combo",
                     "items": {
                         "PEE": "PEE",
@@ -793,7 +805,7 @@
                 },
                 "_fgraph": {
                     "label_long": "Graph",
-                    "label_short": "Graph",
+                    "label_short": "",
                     "type": "form",
                     "params": {
                         "plugin": "picsou_graph.PicsouGraph",
@@ -824,6 +836,15 @@
                     },
                     "sql_color": "case when ptf.ptf_q26 < 0 then '#FF0000' else '#006600' end"
                 },
+                "ptf_q50": {
+                    "label_long": "Q50",
+                    "label_short": "Q50",
+                    "type": "int",
+                    "jointure": {
+                        "display": "ptf.ptf_q50"
+                    },
+                    "sql_color": "case when ptf.ptf_q50 < 0 then '#FF0000' else '#006600' end"
+                },
                 "ptf_rsi": {
                     "label_long": "RSI",
                     "label_short": "RSI",
@@ -848,6 +869,7 @@
                         "mvt_account": {},
                         "mvt_ptf_id": {},
                         "ptf_name": {},
+                        "_fgraph": {},
                         "mvt_trade": {},
                         "mvt_select": {},
                         "mvt_date": {},
@@ -857,8 +879,7 @@
                         "mvt_output": {},
                         "mvt_input": {},
                         "mvt_left": {},
-                        "mvt_note": {},
-                        "_fgraph": {}
+                        "mvt_note": {}
                     },
                     "order_by": "mvt_account, mvt_date desc, mvt_ptf_id, mvt_trade asc"
                 },
@@ -875,6 +896,7 @@
                         "mvt_account": {},
                         "mvt_ptf_id": {},
                         "ptf_name": {},
+                        "_fgraph": {},
                         "mvt_trade": {},
                         "mvt_date": {},
                         "mvt_exec": {},
@@ -884,12 +906,12 @@
                         "mvt_quote": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
+                        "ptf_q50": {},
                         "ptf_rsi": {},
                         "mvt_gain_day": {},
                         "mvt_gain": {},
                         "mvt_gain_percent": {},
-                        "mvt_note": {},
-                        "_fgraph": {}
+                        "mvt_note": {}
                     },
                     "order_by": "mvt_account, mvt_date desc, mvt_ptf_id",
                     "sql_where": "mvt_select = '1' and mvt_account in ('PEA','PEE')",
@@ -907,6 +929,7 @@
                         "mvt_account": {},
                         "mvt_ptf_id": {},
                         "ptf_name": {},
+                        "_fgraph": {},
                         "mvt_trade": {},
                         "mvt_date": {},
                         "mvt_exec": {},
@@ -916,16 +939,16 @@
                         "mvt_quote": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
+                        "ptf_q50": {},
                         "ptf_rsi": {},
                         "mvt_gain_day": {},
                         "mvt_gain": {},
                         "mvt_gain_percent": {},
-                        "mvt_note": {},
-                        "_fgraph": {}
+                        "mvt_note": {}
                     },
                     "order_by": "mvt_account, mvt_date desc, mvt_ptf_id",
                     "sql_where": "mvt_select = '1' and mvt_account = 'SIMUL'",
-                    "sql_footer": "SELECT printf('<b>PEA</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'SIMUL'"
+                    "sql_footer": "SELECT printf('<b>SIMUL</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'SIMUL'"
                 },
                 "vfictif": {
                     "title": "Fictif",
@@ -939,6 +962,7 @@
                         "mvt_account": {},
                         "mvt_ptf_id": {},
                         "ptf_name": {},
+                        "_fgraph": {},
                         "mvt_trade": {},
                         "mvt_date": {},
                         "mvt_exec": {},
@@ -948,16 +972,16 @@
                         "mvt_quote": {},
                         "ptf_q12": {},
                         "ptf_q26": {},
+                        "ptf_q50": {},
                         "ptf_rsi": {},
                         "mvt_gain_day": {},
                         "mvt_gain": {},
                         "mvt_gain_percent": {},
-                        "mvt_note": {},
-                        "_fgraph": {}
+                        "mvt_note": {}
                     },
                     "order_by": "mvt_account, mvt_date desc, mvt_ptf_id",
                     "sql_where": "mvt_select = '1' and mvt_account = 'FICTIF'",
-                    "sql_footer": "SELECT printf('<b>PEA</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'FICTIF'"
+                    "sql_footer": "SELECT printf('<b>FICTIF</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'FICTIF'"
                 }
             },
             "forms": {

@@ -815,11 +815,11 @@ class CrudelForm(Crudel):
     def on_clicked_in_view(self, cell, path):
         """ Clic sur l'élément dans une vue """
         key_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
-        key_name = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_name", key_id)]
+        key_display = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_display", key_id)]
         row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
         self.crud.set_row_id(row_id)
         self.crud.remove_all_selection()
-        self.crud.add_selection(key_id, key_name)
+        self.crud.add_selection(key_id, key_display)
         self.crud.set_key_value(key_id)
         if self.get_param("plugin"):
             # relecture de la ligne

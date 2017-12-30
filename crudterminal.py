@@ -143,7 +143,11 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
         process = subprocess.Popen(str(command).split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
         with process.stdout:
             for line in iter(process.stdout.readline, b''):
+                while Gtk.events_pending():
+                    Gtk.main_iteration()
                 self.display(line)
+            while Gtk.events_pending():
+                Gtk.main_iteration()
         process.wait() # wait for the subprocess to exit
 
     def on_input_cmd_activate(self, widget):
@@ -168,13 +172,13 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
         # print "[STDOUT]", line.strip("\n")
         # while Gtk.events_pending():
         #     Gtk.main_iteration()
-        self.display("[STDOUT] %s" % line.strip("\n"))
+        self.display("%s" % line.strip("\n"))
 
     def on_stderr_data(self, sender, line):
         # print "[STDERR]", line.strip("\n")
         # while Gtk.events_pending():
         #     Gtk.main_iteration()
-        self.display("[STDERR] %s" % line.strip("\n"))
+        self.display("ERR %s" % line.strip("\n"))
 
     # def write_to_textview(self, io, condition):
     #     print condition

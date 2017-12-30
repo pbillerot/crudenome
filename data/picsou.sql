@@ -56,6 +56,7 @@ CREATE TABLE COURS (
     cours_min12    REAL,
     cours_min26    REAL,
     cours_min50    REAL,
+    cours_trend12  REAL,
     cours_trend26  REAL,
     cours_trend50  REAL,
     cours_trade    TEXT,
@@ -68,6 +69,7 @@ CREATE TABLE COURS (
     cours_inptf    INTEGER,
     cours_intest   INTEGER
 );
+
 CREATE TABLE COURS_VOL (
     ptf_id  TEXT,
     vol_moy REAL,

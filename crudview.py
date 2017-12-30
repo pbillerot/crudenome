@@ -174,8 +174,8 @@ class CrudView(GObject.GObject):
             # mémorisation de la clé dans le crud
             if element == self.crud.get_table_prop("key"):
                 self.crud.set_view_prop("key_id", col_id)
-            if element == self.crud.get_table_prop("key_name"):
-                self.crud.set_view_prop("key_name", col_id)
+            if element == self.crud.get_table_prop("key_display"):
+                self.crud.set_view_prop("key_display", col_id)
 
             col_id = crudel.add_tree_view_column(self.treeview, col_id)
             col_id += 1
@@ -480,7 +480,7 @@ class CrudView(GObject.GObject):
         """ Clic sur coche d'action"""
         # print "Action sur", self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
         key_id = self.store_filter_sort[path][self.crud.get_view_prop("key_id")]
-        key_name = self.store_filter_sort[path][self.crud.get_view_prop("key_name", key_id)]
+        key_display = self.store_filter_sort[path][self.crud.get_view_prop("key_display", key_id)]
         row_id = self.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
         self.label_select.hide()
         self.button_edit.hide()
@@ -490,7 +490,7 @@ class CrudView(GObject.GObject):
             if self.liststore[row_id][self.crud.get_view_prop("col_action_id")]:
                 self.crud.remove_selection(key_id)
             else:
-                self.crud.add_selection(key_id, key_name)
+                self.crud.add_selection(key_id, key_display)
             qselect = len(self.crud.get_selection())
             if qselect > 3:
                 self.label_select.set_markup("({}) sélections".format(qselect))
@@ -515,7 +515,7 @@ class CrudView(GObject.GObject):
                 self.crud.remove_all_selection()
             else:
                 self.crud.remove_all_selection()
-                self.crud.add_selection(key_id, key_name)
+                self.crud.add_selection(key_id, key_display)
                 self.label_select.set_markup("{}".format(self.crud.get_selection_values()))
                 self.label_select.show()
                 self.button_edit.show()
@@ -542,11 +542,11 @@ class CrudView(GObject.GObject):
         """ Double clic sur une ligne """
         # print "Activation", widget.get_model()[row][self.crud.get_view_prop("key_id")]
         key_id = widget.get_model()[row][self.crud.get_view_prop("key_id")]
-        key_name = widget.get_model()[row][self.crud.get_view_prop("key_name", key_id)]
+        key_display = widget.get_model()[row][self.crud.get_view_prop("key_display", key_id)]
         row_id = widget.get_model()[row][0]
         self.crud.set_row_id(row_id)
         self.crud.remove_all_selection()
-        self.crud.add_selection(key_id, key_name)
+        self.crud.add_selection(key_id, key_display)
         self.crud.set_key_value(key_id)
         if self.crud.get_view_prop("form_edit", None) is not None:
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))

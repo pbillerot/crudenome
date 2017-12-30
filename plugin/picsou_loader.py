@@ -234,6 +234,7 @@ class PicsouLoadQuotes():
         emas12 = [0] * n
         emas26 = [0] * n
         emas50 = [0] * n
+        trend12 = [0] * n
         trend26 = [0] * n
         trend50 = [0] * n
         min12 = [0] * n
@@ -253,6 +254,7 @@ class PicsouLoadQuotes():
                 emas12[i] = emas12[i-1]
                 emas26[i] = emas26[i-1]
                 emas50[i] = emas50[i-1]
+                trend12[i] = trend12[i-1]
                 trend26[i] = trend26[i-1]
                 trend50[i] = trend50[i-1]
                 min12[i] = min12[i-1]
@@ -281,23 +283,20 @@ class PicsouLoadQuotes():
             emas12[0] = self.ema(quote_r, 12)
             emas26[0] = self.ema(quote_r, 26)
             emas50[0] = self.ema(quote_r, 50)
-            min12[0] = min(emas12[:6])
-            min26[0] = min(emas26[:13])
-            min50[0] = min(emas50[:25])
-            max12[0] = max(emas12[:6])
-            max26[0] = max(emas26[:13])
-            max50[0] = max(emas50[:25])
-            if min26[0] != 0 and min50[0] != 0 and max26[0] != 0 and max50[0] != 0 :
-                if emas26[0] == max26[0]:
-                    trend26[0] = (emas26[0] - min26[0]) / min26[0] * 100
-                else:
-                    trend26[0] = (emas26[0] - max26[0]) / max26[0] * 100
-                if emas50[0] == max50[0]:
-                    trend50[0] = (emas50[0] - min50[0]) / min50[0] * 100
-                else:
-                    trend50[0] = (emas50[0] - max50[0]) / max50[0] * 100
-            if emas26[1] != 0:
-                # trend[0] = ((emas50[0] - emas50[1]) / emas50[1]) * 100 * 50 # 50 jours en %
+            min12[0] = min(emas12[:12])
+            min26[0] = min(emas26[:26])
+            min50[0] = min(emas50[:50])
+            max12[0] = max(emas12[:12])
+            max26[0] = max(emas26[:26])
+            max50[0] = max(emas50[:50])
+            if emas12[11] != 0:
+                trend12[0] = (emas12[0] - emas12[11]) / emas12[11] * 100
+            if emas26[25] != 0:
+                trend26[0] = (emas26[0] - emas26[25]) / emas26[25] * 100
+            if emas50[49] != 0:
+                trend50[0] = (emas50[0] - emas50[49]) / emas50[49] * 100
+
+            if emas50[1] != 0:
                 # trend = nbre de jour de hausse à la suite du ema26
                 if emas50[0] >= emas50[1]:
                     if q50[0] < 0:
@@ -309,7 +308,7 @@ class PicsouLoadQuotes():
                         q50[0] = -1
                     else:
                         q50[0] = q50[0] - 1
-
+            if emas26[1] != 0:
                 if emas26[0] >= emas26[1]:
                     if q26[0] < 0:
                         q26[0] = 1
@@ -321,6 +320,7 @@ class PicsouLoadQuotes():
                     else:
                         q26[0] = q26[0] - 1
 
+            if emas12[1] != 0:
                 if emas12[0] >= emas12[1]:
                     if q12[0] < 0:
                         q12[0] = 1
@@ -342,6 +342,7 @@ class PicsouLoadQuotes():
             cours["cours_max12"] = max12[0]
             cours["cours_max26"] = max26[0]
             cours["cours_max50"] = max50[0]
+            cours["cours_trend12"] = trend12[0]
             cours["cours_trend26"] = trend26[0]
             cours["cours_trend50"] = trend50[0]
             cours["cours_q50"] = q50[0]
@@ -355,7 +356,7 @@ class PicsouLoadQuotes():
             , cours_ema12 = :cours_ema12, cours_ema26 = :cours_ema26, cours_ema50 = :cours_ema50
             , cours_min12 = :cours_min12, cours_min26 = :cours_min26, cours_min50 = :cours_min50
             , cours_max12 = :cours_max12, cours_max26 = :cours_max26, cours_max50 = :cours_max50
-            , cours_trend26 = :cours_trend26, cours_trend50 = :cours_trend50
+            , cours_trend12 = :cours_trend12, cours_trend26 = :cours_trend26, cours_trend50 = :cours_trend50
             , cours_volp = :cours_volp
             , cours_q50 = :cours_q50
             , cours_q26 = :cours_q26
@@ -476,6 +477,7 @@ class PicsouLoadQuotes():
             emas12 = [0] * n
             emas26 = [0] * n
             emas50 = [0] * n
+            trend12 = [0] * n
             trend26 = [0] * n
             trend50 = [0] * n
             min12 = [0] * n
@@ -518,6 +520,7 @@ class PicsouLoadQuotes():
                     emas12[i] = emas12[i-1]
                     emas26[i] = emas26[i-1]
                     emas50[i] = emas50[i-1]
+                    trend12[i] = trend12[i-1]
                     trend26[i] = trend26[i-1]
                     trend50[i] = trend50[i-1]
                     min12[i] = min12[i-1]
@@ -539,6 +542,7 @@ class PicsouLoadQuotes():
                 emas12[0] = cours["cours_ema12"]
                 emas26[0] = cours["cours_ema26"]
                 emas50[0] = cours["cours_ema50"]
+                trend12[0] = cours["cours_trend12"]
                 trend26[0] = cours["cours_trend26"]
                 trend50[0] = cours["cours_trend50"]
                 max12[0] = cours["cours_max12"]
@@ -582,16 +586,31 @@ class PicsouLoadQuotes():
                 delta2 = emas12[2] - emas50[2]
                 nbj_vente += 1
 
-                # basé sur ema50 tout simplement
-                # if intest == "" and trend26[0] > 0 and trend50[0] > 0:
-                #     motif = " ema50"
+                # si q50>0
+                # q5012  = 2.14 %
+                # q5026  = 2.08 %
+                # q5050  = -1.45 %
+                # if intest == "" and q50[0] > 0 and q26[0] > 0 and trend12[0] > 0:
+                #     motif = " q5012"
+                #     b_achat = True
+                if intest == "" and q26[0] > 0 and trend12[0] > 0:
+                    motif = " aq26t12"
+                    b_achat = True
+
+                # if intest == "" and trend12[0] > 0:
+                #     motif = " at12"
+                #     b_achat = True
+
+                # si tendance positive sur 50 jours
+                # if not b_achat and intest == "" and q50[0] > 0 and rsis[0] < 50:
+                #     motif = " ar50q50"
                 #     b_achat = True
 
                 # ça remonte
-                if intest == "" and q12[0] > 0  and q26[0] > 0 and q50[0] > 0:
-                    motif = " aq50"
-                    ptf["ptf_trade"] = "a+50"
-                    b_achat = True
+                # if intest == "" and q12[0] > 0  and q26[0] > 0 and q50[0] > 0:
+                #     motif = " aq50"
+                #     ptf["ptf_trade"] = "a+50"
+                #     b_achat = True
 
                 # if intest == "" and trend26[0] > 0 and nbj_vente > 3:
                 #     motif = " ema26"
@@ -623,7 +642,7 @@ class PicsouLoadQuotes():
                 #     b_en_test = True
                 #     b_achat = True
 
-                # la plus efficace
+                # -7.83 %
                 # if not b_en_test and q26[0] > 4 and rsis[0] < 50:
                 #     motif = " rsi50"
                 #     b_en_test = True
@@ -700,23 +719,31 @@ class PicsouLoadQuotes():
                     b_vendre = False
 
                     #  on vend si ema50 descend
-                    if q50[0] < 0:
-                        motif += " v50-"
-                        ptf["ptf_trade"] = "v50-"
-                        b_vendre = True
+                    # if q50[0] < 0 and nbj > 5:
+                    #     motif += " vq50"
+                    #     ptf["ptf_trade"] = "vq50-"
+                    #     b_vendre = True
 
-                    #  on vend si ema26 descend
-                    if rsi_67 and q26[0] < 0:
-                        motif += " v6726-"
+                    #  ema12 descend
+                    # if trend12[0] < 0 and nbj > 2:
+                    #     motif += " vt12"
+                    #     b_vendre = True
+
+                    # em26 descend
+                    if trend26[0] < 0 and nbj > 2:
+                        motif += " vt26"
                         b_vendre = True
 
                     # le sommet
-                    if rsis[1] > 67:
-                        rsi_67 = True
+                    # if rsis[0] > 67:
+                    #     rsi_67 = True
                     # if rsi_67 and rsis[0] < rsis[1]:
                     #     motif += " vr67"
                     #     b_vendre = True
                     # if rsis[1] > 67 and q12[0] < 0:
+                    #     motif += " rsi6712"
+                    #     b_vendre = True
+                    # if rsi_67 and nbj > 2:
                     #     motif += " rsi67"
                     #     b_vendre = True
 

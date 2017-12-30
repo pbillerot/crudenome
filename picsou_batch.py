@@ -125,7 +125,7 @@ class PicsouBatch():
         ',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
         FROM ACCOUNT where acc_id = 'SIMUL'
         """, {})
-        self.display(rows[0]["sql_footer"])
+        self.display(rows[0]["sql_footer"].encode("utf-8"))
 
         # Mail de compte-rendu
 

@@ -7,7 +7,7 @@
     "tables": {
         "Department": {
             "key": "DepartmentID",
-            "key_name": "Name",
+            "key_display": "Name",
             "elements": {
                 "DepartmentID": {
                     "label_long": "ID",
@@ -67,7 +67,7 @@
         },
         "Physician": {
             "key": "EmployeeID",
-            "key_name": "Name",
+            "key_display": "Name",
             "elements": {
                 "EmployeeID": {
                     "label_long": "ID",
@@ -130,7 +130,7 @@
         },
         "Room": {
             "key": "Number",
-            "key_name": "Type",
+            "key_display": "Type",
             "elements": {
                 "Number": {
                     "label_long": "Number",
