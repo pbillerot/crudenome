@@ -187,7 +187,8 @@
                     "label_long": "Note",
                     "label_short": "Note",
                     "type": "text",
-                    "col_editable": true
+                    "col_editable": true,
+                    "searchable": true
                 },
                 "ptf_cac40": {
                     "label_long": "CAC40",
@@ -798,7 +799,6 @@
                     "label_long": "Suivi",
                     "label_short": "Suivi",
                     "type": "check",
-                    "col_editableX": true,
                     "col_sql_updateX": [
                         "UPDATE mvt set mvt_select = case when mvt_select = '1' then '' else '1' end where mvt_id = '{mvt_id}'"
                     ]
@@ -816,7 +816,9 @@
                 "mvt_note": {
                     "label_long": "Note",
                     "label_short": "Note",
-                    "type": "text"
+                    "type": "text",
+                    "searchable": true,
+                    "col_editable": true
                 },
                 "ptf_q12": {
                     "label_long": "Q12",

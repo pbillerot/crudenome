@@ -322,7 +322,7 @@ class Crudel(GObject.GObject):
 
     def is_col_editable(self):
         """ La case à cocher sera active """
-        return self.crud.get_column_prop(self.element, "editable", False)
+        return self.crud.get_column_prop(self.element, "col_editable", False)
 
     def set_required(self, bool):
         """ required """
@@ -375,6 +375,10 @@ class Crudel(GObject.GObject):
         if self.is_sortable():
             col_id += 1
             tvc.set_sort_column_id(col_id)
+        if self.is_col_editable():
+            tvc.add_attribute(renderer, "background", 2) # 3ème colonne
+        if self.is_searchable() and not self.is_col_editable():
+            tvc.add_attribute(renderer, "background", 1) # 2ème colonne
         if self.get_col_width():
             tvc.set_fixed_width(self.get_col_width())
 

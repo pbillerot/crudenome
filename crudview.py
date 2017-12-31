@@ -166,6 +166,12 @@ class CrudView(GObject.GObject):
         # la 1ére colonne contiendra le n° de ligne row_id
         self.crud.set_view_prop("col_row_id", col_id)
         col_id += 1
+        # la 2éme colonne contiendra la couleur de fond des cellules recherchables
+        self.crud.set_view_prop("col_searchable_id", col_id)
+        col_id += 1
+        # la 3éme colonne contiendra la couleur de fond des cellules editables
+        self.crud.set_view_prop("col_editable_id", col_id)
+        col_id += 1
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
             # colonnes crudel
@@ -210,6 +216,10 @@ class CrudView(GObject.GObject):
         col_store_types = []
         # 1ère colonne row_id
         col_store_types.append(GObject.TYPE_INT)
+        # 2ème colonne row_searchable_id
+        col_store_types.append(GObject.TYPE_STRING)
+        # 3ème colonne row_editable_id
+        col_store_types.append(GObject.TYPE_STRING)
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
             # colonnes crudel
@@ -331,6 +341,10 @@ class CrudView(GObject.GObject):
             # print row
             # 1ère colonne col_row_id
             store.append(row_id)
+            # 2ème colonne col_searchable_id
+            store.append("#F0F8FF") 
+            # 3ème colonne col_editable_id
+            store.append("#F0FFF0") 
             for element in self.crud.get_view_elements():
                 crudel = self.crud.get_element_prop(element, "crudel")
                 # Valorisation du crudel avec la colonne sql
