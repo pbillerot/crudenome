@@ -88,6 +88,7 @@ class CrudView(GObject.GObject):
         """ toolbar pour afficher des infos et le bouton pour ajouter des éléments """
         if self.crud.get_view_prop("searchable", False):
             self.search_entry = Gtk.SearchEntry()
+            self.search_entry.get_style_context().add_class('field_search')
             self.search_entry.connect("search-changed", self.on_search_changed)
             self.box_toolbar.pack_start(self.search_entry, False, True, 3)
             if self.crud.get_view_prop("filter", "") != "":

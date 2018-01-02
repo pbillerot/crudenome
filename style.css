@@ -3,6 +3,9 @@
     /*background: #ffaaaa;*/
     border-color: #ffaaaa;
 }
+.field_search {
+    background: #F0F8FF;
+}
 .error {
     color: red;
 }

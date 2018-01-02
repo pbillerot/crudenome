@@ -188,6 +188,26 @@ class Crud:
 
         return data
 
+    def get_sql(self, db_path, sql):
+        """
+        Requête sql pour lire une donnée dans la table
+        """
+        conn = None
+        data = ""
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            self.logger.info("SQL [%s]", sql)
+            cursor.execute(sql, {})
+            data = cursor[0][0]
+        except sqlite3.Error, exc:
+            print "Error", exc.args[0], sql
+            self.add_error("%s %s" % (exc.args[0], sql))
+        finally:
+            if conn:
+                conn.close()
+        return data
+
     def get_params_display(self, params):
         """ formattage pour l'affichage des paramètres transmis à une requete sql """
         fmt = ""

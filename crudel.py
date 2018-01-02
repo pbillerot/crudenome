@@ -124,10 +124,14 @@ class Crudel(GObject.GObject):
 
     def set_value_default(self):
         """ valorisation avec la valeur par défaut si valeur '' """
-
-        if self.get_value() == ""\
-            and self.crud.get_field_prop(self.element, "default", "") != "":
-            self.value = self.crud.get_field_prop(self.element, "default")
+        if isinstance(self.get_value(), (int, float)):
+            if self.get_value() == 0:
+                if self.crud.get_field_prop(self.element, "default", 0) != 0:
+                    self.value = self.crud.get_field_prop(self.element, "default")
+        else:
+            if self.get_value() == "":
+                if self.crud.get_field_prop(self.element, "default", "") != "":
+                    self.value = self.crud.get_field_prop(self.element, "default")
 
     def get_value(self):
         """ valeur interne de l'élément """

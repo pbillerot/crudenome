@@ -749,7 +749,8 @@
                 "mvt_quantity": {
                     "label_long": "Quantité",
                     "label_short": "Qté",
-                    "type": "int"
+                    "type": "int",
+                    "sql_default": "select ptf_quantity from ptf where ptf_id = '{mvt_ptf_id}'"
                 },
                 "mvt_left": {
                     "label_long": "Quantité restante",
