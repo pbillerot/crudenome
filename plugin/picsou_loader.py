@@ -596,6 +596,8 @@ class PicsouLoadQuotes():
                 if intest == "" and q26[0] > 0 and trend12[0] > 0:
                     motif = " aq26t12"
                     b_achat = True
+                if not b_en_production and q26[0] > 0 and trend12[0] > 0:
+                    ptf["ptf_trade"] = "aq26t12"
 
                 # if intest == "" and trend12[0] > 0:
                 #     motif = " at12"
@@ -832,13 +834,14 @@ class PicsouLoadQuotes():
                 """, cours)
 
                 if b_en_production:
+                    # on signale que la valeur en production doit être vendue
                     if q50[0] < 0:
                         ptf["ptf_trade"] = "vq50-"
+                    elif trend26[0] < 0:
+                        ptf["ptf_trade"] = "vt26-"
                     elif rsi_67 and rsis[0] < rsis[1]:
-                        rsi_67 = False
                         ptf["ptf_trade"] = "vr67"
                     elif volp[0] > 60 and quotes[0] < quotes[1]:
-                        # on signale que la valeur en production doit être vendue
                         ptf["ptf_trade"] = "vv60"
 
                 # maj du PTF avec les données du cours
