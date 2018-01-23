@@ -53,7 +53,7 @@ class PicsouGraph(Gtk.Window):
         self.set_border_width(10)
         self.set_default_size(1200, 800)
 
-        """ Debut matplotlib """
+        # Debut matplotlib
 
         cours_dates = []
         cours_quotes = []

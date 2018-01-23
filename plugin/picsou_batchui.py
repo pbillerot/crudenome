@@ -130,7 +130,7 @@ class PicsouBatchUi(Gtk.Window):
 
     def display(self, msg):
         """ docstring """
-        self.textbuffer.insert_at_cursor(msg + "\n", len(msg + "\n"))
+        self.textbuffer.insert_at_cursor("\n" + msg, len(msg + "\n"))
         self.textview.set_cursor_visible(True)
         while Gtk.events_pending():
             Gtk.main_iteration()
@@ -138,7 +138,7 @@ class PicsouBatchUi(Gtk.Window):
         iter = self.textbuffer.get_iter_at_line(self.textbuffer.get_line_count())
         self.textview.scroll_to_iter(iter, 0, 0, 0, 0)
         self.crud.logger.info(msg)
-    
+
     def run_calcul(self):
         """ docstring """
         if self.with_histo.get_active():

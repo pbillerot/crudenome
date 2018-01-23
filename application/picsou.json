@@ -443,8 +443,9 @@
                 "cours_date": {
                     "label_long": "Date",
                     "label_short": "Date",
-                    "type": "text",
-                    "sortable": true
+                    "type": "calendar",
+                    "sortable": true,
+                    "searchable": true
                 },
                 "cours_close": {
                     "label_long": "Cours",
@@ -638,6 +639,8 @@
             "views": {
                 "vall": {
                     "title": "Les cours",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
                     "searchable_sql": true,
                     "icon_name": "go-jump",
                     "limit": 400,
