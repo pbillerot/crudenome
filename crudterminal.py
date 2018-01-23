@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 # -*- coding:Utf-8 -*-
 """
     Fenêtre secondaire
 """
-from shell import shell
 
 import sys
 import os
@@ -91,7 +89,7 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
         # self.crud.logger.info(msg)
 
     def on_display(self, msg):
-        print msg
+        print(msg)
         self.textbuffer.insert_at_cursor(msg + "\n", len(msg + "\n"))
         self.textview.set_cursor_visible(True)
         # Scoll to end of Buffer
@@ -107,7 +105,7 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
 
         # Methode 1
         pid = self.spawn.run(str(command).split(" "))
-        print "Started as process #", pid
+        print("Started as process #", pid)
 
         # Methode 2
         # self.source_id = None
@@ -156,17 +154,17 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
 
     def on_run_button_clicked(self, widget):
         """ Démarrage du shell """
-        command = self.input_cmd.get_text().encode("utf-8")
+        command = self.input_cmd.get_text()
         self.display(">>> [%s]" % command)
         pid = self.spawn.run(command.split(" "))
-        print "Started as process #", pid
+        print("Started as process #", pid)
 
     def on_raz_button_clicked(self, widget):
         """ Nettoyage de la console """
         self.textbuffer.set_text('')
 
     def on_process_done(self, sender, retval):
-        print "Done. exit code:", retval
+        print("Done. exit code:", retval)
 
     def on_stdout_data(self, sender, line):
         # print "[STDOUT]", line.strip("\n")

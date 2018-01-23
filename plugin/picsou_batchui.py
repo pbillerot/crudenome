@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding:Utf-8 -*-
 """
     Fenêtre d'affichage de graphique
@@ -9,7 +8,7 @@ import shutil
 import os
 import datetime
 
-from picsou_loader import PicsouLoadQuotes
+from .picsou_loader import PicsouLoadQuotes
 from gi.repository import Gtk, GObject
 
 class PicsouBatchUi(Gtk.Window):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/bin/python3
 # -*- coding:Utf-8 -*-
 """
     Module principal, c'est le point d'entrée
@@ -44,9 +44,9 @@ class AppWindow(Gtk.ApplicationWindow):
         self.activate_focus()
         self.set_border_width(10)
         self.set_default_size(1280, 600)
-        if self.crud.config.has_key("icon_file"):
+        if "icon_file" in self.crud.config:
             self.set_icon_from_file(self.crud.config["icon_file"])
-        if self.crud.config.has_key("icon_name"):
+        if "icon_name" in self.crud.config:
             self.set_icon_name(self.crud.config["icon_name"])
 
         self.crud_portail = CrudPortail(self.crud)
@@ -223,13 +223,13 @@ class Application(Gtk.Application):
         """
         Paramétrage de l'application
         """
-        print "on_preference"
+        # print "on_preference"
 
     def on_quit(self, action, param):
         """
         Fin de l'application
         """
-        print "quit"
+        # print "quit"
         self.quit()
 
 # get the style from the css file and apply it

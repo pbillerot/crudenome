@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding:Utf-8 -*-
 """
     Fenêtre d'affichage de graphique
@@ -94,7 +93,7 @@ class PicsouGraph(Gtk.Window):
         ax1.plot(cours_dates, cours_ema26, '-', label='EMA 26')
         ax1.plot(cours_dates, cours_ema50, '-', label='EMA 50')
         ax1.plot(cours_dates, cours_trade, 'o-', label='Simul', linewidth=2)
-        ax1.plot(cours_dates, cours_ppp, 'o-', label='Réel'.decode("utf-8"), linewidth=2)
+        ax1.plot(cours_dates, cours_ppp, 'o-', label='Réel', linewidth=2)
         ax1.set_ylabel('Cours (Euro)')
         ax1.set_xlabel('Date')
         ax1.legend(loc=3)

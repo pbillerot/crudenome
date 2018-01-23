@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/bin/python3
 # -*- coding:Utf-8 -*-
 """
     Batch de mise à jour des données de la base

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#/usr/bin/python3
 # -*- coding:Utf-8 -*-
 
 import smtplib, MimeWriter, mimetools, StringIO

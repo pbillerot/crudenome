@@ -114,13 +114,12 @@ class Crudel(GObject.GObject):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
         if value_sql is None:
             return
-        # self.value = value_sql if isinstance(value_sql, int) or isinstance(value_sql, float) else value_sql.encode("utf-8")
         self.value = value_sql if isinstance(value_sql, int) or isinstance(value_sql, float) else value_sql
 
     def set_value_widget(self):
         """ valorisation à partir de la saisie dans le widget """
         text = self.get_widget().get_text()
-        self.value = text if isinstance(text, (int, float, bool)) else text.decode("utf-8")
+        self.value = text if isinstance(text, (int, float, bool)) else text
 
     def set_value_default(self):
         """ valorisation avec la valeur par défaut si valeur '' """
@@ -197,7 +196,7 @@ class Crudel(GObject.GObject):
             if not self.is_read_only() and self.type_parent == Crudel.TYPE_PARENT_FORM:
                 pass
             else:
-                value = display.encode("utf-8") % (value)
+                value = display % (value)
         if isinstance(value, (int, float)):
             value = str(value)
         return value
@@ -343,7 +342,6 @@ class Crudel(GObject.GObject):
     def _get_widget_entry(self):
         """ champ de saisie """
         widget = Gtk.Entry()
-        # widget.set_text(str(self.get_display().encode("utf-8")))
         widget.set_text(self.get_display())
         widget.set_width_chars(40)
         if self.is_read_only():
@@ -432,15 +430,15 @@ class Crudel(GObject.GObject):
             props.update(self.crud.get_form_elements()[self.element])
         for prop in props:
             if isinstance(props[prop], int):
-                print "%s.%s = %s" % (self.element, prop, props[prop])
+                print("%s.%s = %s" % (self.element, prop, props[prop]))
             elif isinstance(props[prop], float):
-                print "%s.%s = %s" % (self.element, prop, props[prop])
+                print("%s.%s = %s" % (self.element, prop, props[prop]))
             elif isinstance(props[prop], OrderedDict):
-                print "%s.%s = %s" % (self.element, prop, props[prop])                
+                print("%s.%s = %s" % (self.element, prop, props[prop]))
             elif isinstance(props[prop], Crudel):
                 pass
             else:
-                print "%s.%s = %s" % (self.element, prop, props[prop].encode("utf-8"))
+                print("%s.%s = %s" % (self.element, prop, props[prop]))
 
     def on_cell_edited(self, renderer, path, text):
         """ Edition de la cellule dans la vue """
@@ -448,8 +446,8 @@ class Crudel(GObject.GObject):
         row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
         col_id = self.crud.get_column_prop(self.element, "col_id")
         # print "on_cell_edited", row_id, col_id, key_value
-        if not isinstance(text, (int, float, bool)) :
-            text = text.decode("utf-8")
+        if not isinstance(text, (int, float, bool)):
+            text = text
 
         self.crud_view.liststore[row_id][col_id] = text
 

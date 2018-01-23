@@ -329,7 +329,7 @@ class CrudView(GObject.GObject):
 
         # EXECUTION SQL
         rows = self.crud.sql_to_dict(self.crud.get_basename(), sql, self.crud.ctx)
-        
+
         # print len(rows)
         self.liststore.clear()
         # remplissage des colonnes item_sql
@@ -350,7 +350,7 @@ class CrudView(GObject.GObject):
                 crudel = self.crud.get_element_prop(element, "crudel")
                 # Valorisation du crudel avec la colonne sql
                 crudel.init_value()
-                if row.has_key(element):
+                if element in row:
                     crudel.set_value_sql(row[element])
                 # colonnes crudel
                 display = crudel.get_cell()
@@ -400,10 +400,10 @@ class CrudView(GObject.GObject):
             rows = self.crud.sql_to_dict(self.crud.get_basename()\
                 , sql, self.crud.ctx)
             for row in rows:
-                if row.has_key("sql_footer"):
+                if "sql_footer" in row:
                     self.crud_portail.emit("refresh_footer"\
                         , self.crud.get_table_id() + "." + self.crud.get_view_id()\
-                        , row["sql_footer"].encode("utf-8"))
+                        , row["sql_footer"])
 
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
@@ -433,7 +433,8 @@ class CrudView(GObject.GObject):
     def on_button_edit_clicked(self, widget):
         """ Edition de l'élément sélectionné"""
         # print "Edition de", self.crud.get_selection()[0]
-        self.crud.set_key_value(self.crud.get_selection().keys()[0])
+        for key in self.crud.get_selection().keys():
+            self.crud.set_key_value(key)
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
@@ -472,7 +473,7 @@ class CrudView(GObject.GObject):
         """ Recherche d'éléments dans la vue """
         if len(self.search_entry.get_text()) == 1:
             return
-        self.current_filter = self.search_entry.get_text().encode("utf-8")
+        self.current_filter = self.search_entry.get_text()
         # mémorisation du filtre dans la vue
         self.crud.set_view_prop("filter", self.current_filter)
         self.store_filter.refilter()
@@ -485,7 +486,7 @@ class CrudView(GObject.GObject):
         """ Recherche d'éléments dans la vue """
         if len(self.search_entry_sql.get_text()) == 1:
             return
-        self.search_sql = self.search_entry_sql.get_text().encode("utf-8")
+        self.search_sql = self.search_entry_sql.get_text()
         # mémorisation du filtre dans la vue
         self.crud.set_view_prop("filter", self.search_sql)
         # relecture de la table avec le filtre

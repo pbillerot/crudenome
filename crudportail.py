@@ -169,11 +169,11 @@ class CrudPortail(GObject.GObject):
             application = self.crud.get_json_content(self.crud.config["application_directory"]\
                 + "/" + application_file)
             self.crud.set_application(application)
-            if self.crud.get_application().has_key("icon_file"):
+            if "icon_file" in self.crud.get_application():
                 image = Gtk.Image.new_from_file("data/" + self.crud.get_application_prop("icon_file"))
                 button = Gtk.Button(label=self.crud.get_application_prop("title"), image=image, image_position=Gtk.PositionType.TOP)
                 button.set_always_show_image(True)
-            elif self.crud.get_application().has_key("icon_name"):
+            elif "icon_name" in self.crud.get_application():
                 image = Gtk.Image.new_from_icon_name(self.crud.get_application_prop("icon_name"), Gtk.IconSize.DIALOG)
                 button = Gtk.Button(label=self.crud.get_application_prop("title"), image=image, image_position=Gtk.PositionType.TOP)
                 button.set_always_show_image(True)
@@ -287,9 +287,9 @@ class CrudPortail(GObject.GObject):
             self.crud.set_ticket(ticket_host)
 
         # on change l'icône système
-        if self.crud.get_application().has_key("icon_file"):
+        if "icon_file" in self.crud.get_application():
            self.crud.get_window().set_icon_from_file("data/" + self.crud.get_application_prop("icon_file"))
-        elif self.crud.get_application().has_key("icon_name"):
+        elif "icon_name" in self.crud.get_application():
            self.crud.get_window().set_icon_name(self.crud.get_application_prop("icon_name"))
 
         self.create_sidebar()

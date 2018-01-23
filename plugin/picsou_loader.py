@@ -97,23 +97,48 @@ class PicsouLoadQuotes():
     def get_page_data(self, symbol):
         url = "https://finance.yahoo.com/quote/%s/?p=%s" % (symbol, symbol)
         try:
-            res = requests.get(url)
+            r = requests.get(url)
         except ValueError:
             self.crud.logger.error("Error %s %s", (ValueError, url))
             sys.exit(1)
-        cookie = self.get_cookie_value(res)
-        # lines = r.text.encode('utf-8').strip().replace('}', '\n')
-        lines = res.content.strip().replace('}', '\n')
+        cookie = self.get_cookie_value(r)
+        lines = r.content.decode('unicode-escape').strip(). replace('}', '\n')
         return cookie, lines.split('\n')
+
+    # def get_page_data(self, symbol):
+    #     url = "https://finance.yahoo.com/quote/%s/?p=%s" % (symbol, symbol)
+    #     try:
+    #         res = requests.get(url)
+    #     except ValueError:
+    #         self.crud.logger.error("Error %s %s", (ValueError, url))
+    #         sys.exit(1)
+    #     cookie = self.get_cookie_value(res)
+    #     # lines = r.text.encode('utf-8').strip().replace('}', '\n')
+    #     lines = res.content.strip().replace('}', '\n')
+    #     return cookie, lines.split('\n')
 
     def get_cookie_crumb(self, symbol):
         cookie, lines = self.get_page_data(symbol)
         crumb = self.split_crumb_store(self.find_crumb_store(lines))
-        # Note: possible \u002F value
-        # ,"CrumbStore":{"crumb":"FWP\u002F5EFll3U"
-        # FWP\u002F5EFll3U
-        crumb2 = crumb.decode('unicode-escape')
-        return cookie, crumb2
+        return cookie, crumb
+
+    # def get_cookie_crumb(self, symbol):
+    #     cookie, lines = self.get_page_data(symbol)
+    #     crumb = self.split_crumb_store(self.find_crumb_store(lines))
+    #     # Note: possible \u002F value
+    #     # ,"CrumbStore":{"crumb":"FWP\u002F5EFll3U"
+    #     # FWP\u002F5EFll3U
+    #     crumb2 = crumb.decode('unicode-escape')
+    #     return cookie, crumb2
+
+    def get_data(self, symbol, start_date, end_date, cookie, crumb):
+        """ modéle """
+        filename = '%s.csv' % (symbol)
+        url = "https://query1.finance.yahoo.com/v7/finance/download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s" % (symbol, start_date, end_date, crumb)
+        response = requests.get(url, cookies=cookie)
+        with open (filename, 'wb') as handle:
+            for block in response.iter_content(1024):
+                handle.write(block)
 
     def csv_to_quotes(self, ptf, nbj):
         """
@@ -125,23 +150,35 @@ class PicsouLoadQuotes():
             DELETE FROM COURS WHERE cours_ptf_id = :id
             """, {"id": ptf["ptf_id"]})
 
-        end_date = int(time.mktime(datetime.datetime.now().timetuple()))
+        # end_date = int(time.mktime(datetime.datetime.now().timetuple()))
+        end_date = int(time.time())
         start_date = int(time.mktime((datetime.datetime.now() - datetime.timedelta(days=nbj)).timetuple()))
+        # start_date = 0
+        # self.cookie, self.crumb = self.get_cookie_crumb(ptf["ptf_id"])
         url = "https://query1.finance.yahoo.com/v7/finance/download/{}?period1={}&period2={}&interval=1d&events=history&crumb={}"\
         .format(ptf["ptf_id"], start_date, end_date, self.crumb)
-        # print url
+        # print(url)
 
         with requests.Session() as req:
             conn = None
             try:
-                res = req.get(url, stream=True, cookies=self.cookie)
+                res = req.get(url, cookies=self.cookie)
+                for block in res.iter_content(256):
+                    if b'error' in block:
+                        raise ValueError("ERREUR yahoo %s" % block)
+                # with open("quote.txt", 'wb') as handle:
+                #     for block in res.iter_content(1024):
+                #         handle.write(block)
+
                 if res.encoding is None:
                     res.encoding = 'utf-8'
                 lines = res.iter_lines()
                 iline = 0
                 quotes = []
                 for line in lines:
-                    line = ptf["ptf_id"] + "," + ptf["ptf_name"] + "," + line
+                    line = ptf["ptf_id"] + "," + ptf["ptf_name"] + "," + str(line).replace("b'", "").replace("'", "")
+                    if "null" in line:
+                        continue
                     if iline > 0 and line.find("null") == -1:
                         quotes.append(line.split(","))
                         # print line.split(",")
@@ -151,7 +188,7 @@ class PicsouLoadQuotes():
                 # reader = csv.DictReader(lines)
                 # to_db = [(ptf["ptf_id"], ptf['ptf_name']\
                 #     ,i['Date'], i['Open'], i['High'], i['Low'], i['Close'], i['Adj Close'], i['Volume'])\
-                #     for i in reader]
+                #     for i in riter_content
                 conn = sqlite3.connect(self.crud.get_basename())
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM QUOTES WHERE id = ?", (ptf["ptf_id"],))
@@ -167,7 +204,7 @@ class PicsouLoadQuotes():
                     # pour récup dans picsou_batch
                     col_csv = ['id', 'name', 'date', 'open', 'high', 'low', 'close', 'adj close', 'volume']
                     self.quote = dict(zip(col_csv, quotes.pop()))
-            except sqlite3.Error, e:
+            except sqlite3.Error as e:
                 if conn:
                     conn.rollback()
                 self.crud.logger.error("execSql Error %s", e.args[0])
@@ -222,7 +259,7 @@ class PicsouLoadQuotes():
         SELECT ptf_vol_max FROM ptf
         WHERE ptf_id = :id
         """, {'id': ptf["ptf_id"]})
-        vol_max = rows[0]["ptf_vol_max"]
+        vol_max = int(rows[0]["ptf_vol_max"])
 
 
         sql = "SELECT * from COURS where cours_ptf_id = :ptf_id ORDER by cours_date ASC"
@@ -332,6 +369,7 @@ class PicsouLoadQuotes():
                     else:
                         q12[0] = q12[0] - 1
 
+            cours["cours_open"] = quote[1]
             cours["cours_rsi"] = rsi
             cours["cours_ema12"] = emas12[0]
             cours["cours_ema26"] = emas26[0]
@@ -348,11 +386,14 @@ class PicsouLoadQuotes():
             cours["cours_q50"] = q50[0]
             cours["cours_q26"] = q26[0]
             cours["cours_q12"] = q12[0]
-            cours["cours_volp"] = (volume) / vol_max * 100
+            if vol_max == 0:
+                cours["cours_volp"] = 0
+            else:
+                cours["cours_volp"] = (volume) / vol_max * 100
 
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE COURS
-            set cours_rsi = :cours_rsi
+            set cours_rsi = :cours_rsi, cours_open = :cours_open
             , cours_ema12 = :cours_ema12, cours_ema26 = :cours_ema26, cours_ema50 = :cours_ema50
             , cours_min12 = :cours_min12, cours_min26 = :cours_min26, cours_min50 = :cours_min50
             , cours_max12 = :cours_max12, cours_max26 = :cours_max26, cours_max50 = :cours_max50
@@ -737,11 +778,11 @@ class PicsouLoadQuotes():
                         b_vendre = True
 
                     # le sommet
-                    # if rsis[0] > 67:
-                    #     rsi_67 = True
-                    # if rsi_67 and rsis[0] < rsis[1]:
-                    #     motif += " vr67"
-                    #     b_vendre = True
+                    if rsis[0] > 70:
+                        rsi_67 = True
+                    if rsi_67 and rsis[0] < rsis[1] and gain_percent > 10:
+                        motif += " vr70+10%"
+                        b_vendre = True
                     # if rsis[1] > 67 and q12[0] < 0:
                     #     motif += " rsi6712"
                     #     b_vendre = True
@@ -840,7 +881,7 @@ class PicsouLoadQuotes():
                     elif trend26[0] < 0:
                         ptf["ptf_trade"] = "vt26-"
                     elif rsi_67 and rsis[0] < rsis[1]:
-                        ptf["ptf_trade"] = "vr67"
+                        ptf["ptf_trade"] = "vr70"
                     elif volp[0] > 60 and quotes[0] < quotes[1]:
                         ptf["ptf_trade"] = "vv60"
 
@@ -1046,6 +1087,8 @@ class PicsouLoadQuotes():
                 quantity_lefts.clear()
 
             # Mise à jour du mvt
+            if mvt["mvt_percent"] is None:
+                mvt["mvt_percent"] = 0
             ptf_latent = quantity_left * mvt["mvt_quote"] * (1 - fee/100)
             if mvt["mvt_percent"] != 0:
                 ptf_gain_day = (mvt["mvt_quote"] - mvt["mvt_quote"] / ( 1 + mvt["mvt_percent"] / 100)) * quantity_left

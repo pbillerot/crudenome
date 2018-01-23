@@ -74,8 +74,8 @@
                     "sortable": true
                 },
                 "ptf_q12": {
-                    "label_long": "J12",
-                    "label_short": "J12",
+                    "label_long": "Q12",
+                    "label_short": "Q12",
                     "type": "int",
                     "display": "%1.0f",
                     "col_align": "center",
@@ -83,8 +83,8 @@
                     "sql_color": "case when ptf_q12 > 2 then '#006600' else '#FF0000' end"
                 },
                 "ptf_q26": {
-                    "label_long": "J26",
-                    "label_short": "J26",
+                    "label_long": "Q26",
+                    "label_short": "Q26",
                     "type": "int",
                     "display": "%1.0f",
                     "col_align": "center",
@@ -92,8 +92,8 @@
                     "sql_color": "case when ptf_q26 > 2 then '#006600' else '#FF0000' end"
                 },
                 "ptf_q50": {
-                    "label_long": "J50",
-                    "label_short": "J50",
+                    "label_long": "Q50",
+                    "label_short": "Q50",
                     "type": "int",
                     "display": "%1.0f",
                     "col_align": "center",
@@ -668,6 +668,24 @@
                 }
             },
             "forms": {
+                "fadd": {
+                    "title": "Ajouter d'un cours...",
+                    "elements": {
+                        "cours_id": {},
+                        "cours_ptf_id": {},
+                        "cours_date": {},
+                        "cours_close": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Modifier un cours...",
+                    "elements": {
+                        "cours_id": {},
+                        "cours_ptf_id": {},
+                        "cours_date": {},
+                        "cours_close": {}
+                    }
+                }
             }
         },
         "mvt": {
@@ -881,6 +899,14 @@
                         "mvt_fee": {},
                         "mvt_output": {},
                         "mvt_input": {},
+                        "mvt_quote": {},
+                        "ptf_q12": {},
+                        "ptf_q26": {},
+                        "ptf_q50": {},
+                        "ptf_rsi": {},
+                        "mvt_gain_day": {},
+                        "mvt_gain": {},
+                        "mvt_gain_percent": {},
                         "mvt_left": {},
                         "mvt_note": {}
                     },

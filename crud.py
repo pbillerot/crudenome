@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 # -*- coding:Utf-8 -*-
 """
     Fonctions utiles regroupées dans une classe
 """
-# from __future__ import unicode_literals
 from email.mime.text import MIMEText
 # from logging.handlers import RotatingFileHandler
 # import logging
@@ -11,7 +9,6 @@ import sqlite3
 import os
 import json
 from collections import OrderedDict
-import requests
 # import time
 # from datetime import datetime
 import logging
@@ -22,6 +19,7 @@ import itertools
 import smtplib
 import importlib
 
+import requests
 from crudel import Crudel
 
 class Crud:
@@ -62,7 +60,7 @@ class Crud:
             # Remplacement de ~
             for key in self.config:
                 param = self.config[key]
-                if isinstance(self.config[key], unicode):
+                if not isinstance(self.config[key], dict):
                     self.config[key] = self.config[key].replace("~", os.path.expanduser("~"))
             # chargement de local.json et fusion dans config
             if self.config["local_config"]:
@@ -141,14 +139,13 @@ class Crud:
                 if params[param] is None or isinstance(params[param], int) or isinstance(params[param], float):
                     pp[param] = params[param]
                 else:
-                    # pp[param] = params[param].decode("utf-8")
                     pp[param] = params[param]
             # print sql, pp
             self.logger.info("SQL EXEC [%s]", sql )
             self.logger.info("SQL EXEC %s", self.get_params_display(pp))
             cursor.execute(sql, pp)
             conn.commit()
-        except sqlite3.Error, exc:
+        except sqlite3.Error as exc:
             if conn:
                 conn.rollback()
             self.logger.error("Error %s %s %s", exc.args[0], sql, params)
@@ -174,12 +171,12 @@ class Crud:
             cursor.execute(sql, params)
             desc = cursor.description
             column_names = [col[0] for col in desc]
-            data = [OrderedDict(itertools.izip(column_names, row)) for row in cursor]
-        except sqlite3.Error, exc:
+            data = [OrderedDict(zip(column_names, row)) for row in cursor]
+        except sqlite3.Error as exc:
             if conn:
                 conn.rollback()
 
-            print "Error", exc.args[0], sql, params
+            print("Error", exc.args[0], sql, params)
             self.add_error("%s %s %s" % (exc.args[0], sql, params))
             # sys.exit(1)
         finally:
@@ -200,8 +197,8 @@ class Crud:
             self.logger.info("SQL [%s]", sql)
             cursor.execute(sql, {})
             data = cursor[0][0]
-        except sqlite3.Error, exc:
-            print "Error", exc.args[0], sql
+        except sqlite3.Error as exc:
+            print("Error", exc.args[0], sql)
             self.add_error("%s %s" % (exc.args[0], sql))
         finally:
             if conn:
@@ -214,14 +211,10 @@ class Crud:
         for key in params:
             if params[key] is None:
                 continue
-            if isinstance(params[key], (unicode, str, int, float)):
-                if fmt != "": 
-                    fmt += ", "
-                if isinstance(params[key], (unicode,)):
-                    # fmt += "%s='%s'" % (key, str(params[key].encode("utf-8")))
-                    fmt += "%s='%s'" % (key, (params[key]))
-                else:
-                    fmt += "%s='%s'" % (key, str(params[key]))
+            # if isinstance(params[key], (str, int, float)):
+            if fmt != "":
+                fmt += ", "
+            fmt += "%s='%s'" % (key, str(params[key]))
         return "params: [%s]" % fmt
 
     def send_mail(self, dests, subject, body):
@@ -230,15 +223,15 @@ class Crud:
         """
         from_addr = self.config["smtp_from"]
 
-        mail = MIMEText(body.decode("utf-8"), "html", "utf-8")
+        mail = MIMEText(body, "html", "utf-8")
         mail['From'] = from_addr
-        mail['Subject'] = subject.decode("utf-8")
+        mail['Subject'] = subject
 
         smtp = smtplib.SMTP()
         smtp.connect(self.config["smtp_host"])
         for _i in dests:
             smtp.sendmail(from_addr, _i, mail.as_string())
-            self.logger.info("Mail to %s %s" % (_i, subject.decode("utf-8")))
+            self.logger.info("Mail to %s %s" % (_i, subject))
 
         smtp.close()
 
@@ -394,7 +387,7 @@ class Crud:
             if isinstance(value, (float, int)):
                 values += "[" + str(value) + "]"
             else:
-                values += "[" + value.encode("utf-8") + "]"
+                values += "[" + value + "]"
         return values
 
     # DICTIONNAIRE de l'application
@@ -544,7 +537,6 @@ class Crud:
                 text = text.replace("{" + key + "}", str(word_dict[key]))
             else:
                 text = text.replace("{" + key + "}", (word_dict[key]))
-                # text = text.replace("{" + key + "}", word_dict[key].decode("utf-8"))
         return text
 
     def sql_update_record(self):
@@ -782,13 +774,13 @@ class Crud:
             html += '<tr>'
             for element in self.get_view_elements():
                 crudel = self.get_element_prop(element, "crudel")
-                if row.has_key(element):
+                if element in row:
                     crudel.set_value_sql(row[element])
                 if crudel.get_sql_color() != "":
                     color = ' style="color: %s"' % row[element + "_color"]
                 else:
                     color = ""
-                html += '<td align="%s"%s>%s</td>' % (crudel.get_col_align("left"), color, crudel.get_display().decode("utf-8"))
+                html += '<td align="%s"%s>%s</td>' % (crudel.get_col_align("left"), color, crudel.get_display())
             html += '</tr>'
         html += '<table>'
         return html

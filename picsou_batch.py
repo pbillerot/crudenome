@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/bin/python3
 # -*- coding:Utf-8 -*-
 """
     Batch de mise à jour des données de la base
@@ -42,7 +42,7 @@ class PicsouBatch():
 
     def display(self, msg):
         """ docstring """
-        print msg
+        print(msg)
         # self.crud.logger.info(msg)
 
     def backup(self):
@@ -101,9 +101,10 @@ class PicsouBatch():
         if self.args.quote:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf
-            WHERE ptf_disabled is null or ptf_disabled <> '1'
+            WHERE (ptf_disabled is null or ptf_disabled <> '1')
             ORDER BY ptf_id 
             """, {})
+            # and ptf_id = 'FR0010340620.PA'
             self.display("Actualisation des cours...")
             for ptf in ptfs:
                 loader.run(ptf["ptf_id"], 10)
@@ -125,7 +126,7 @@ class PicsouBatch():
         ',acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
         FROM ACCOUNT where acc_id = 'SIMUL'
         """, {})
-        self.display(rows[0]["sql_footer"].encode("utf-8"))
+        self.display(rows[0]["sql_footer"])
 
         # Mail de compte-rendu
 
@@ -136,10 +137,10 @@ class PicsouBatch():
             # envoi du mail
             subject = u"Picsou du {}".format(self.last_date)
             dest = self.crudel.get_param("smtp_dest")
-            self.crud.send_mail(dest, subject.encode("utf-8"), html.encode("utf-8"))
+            self.crud.send_mail(dest, subject, html)
 
         # if self.args.sms:
-        #     self.crud.send_sms(subject.encode("utf-8") + sms.encode("utf-8"))
+        #     self.crud.send_sms(subject + sms)
 
         # Put de la base de données sur la box
         self.backup()
