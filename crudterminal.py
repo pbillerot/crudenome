@@ -27,10 +27,10 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
 
         self.crud = crud
 
-        self.spawn = GAsyncSpawn()
-        self.spawn.connect("process-done", self.on_process_done)
-        self.spawn.connect("stdout-data", self.on_stdout_data)
-        self.spawn.connect("stderr-data", self.on_stderr_data)
+        # self.spawn = GAsyncSpawn()
+        # self.spawn.connect("process-done", self.on_process_done)
+        # self.spawn.connect("stdout-data", self.on_stdout_data)
+        # self.spawn.connect("stderr-data", self.on_stderr_data)
 
         self.activate_focus()
         self.set_border_width(10)
@@ -90,7 +90,7 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
 
     def on_display(self, msg):
         print(msg)
-        self.textbuffer.insert_at_cursor(msg + "\n", len(msg + "\n"))
+        self.textbuffer.insert_at_cursor("\n" + msg, len(msg + "\n"))
         self.textview.set_cursor_visible(True)
         # Scoll to end of Buffer
         iter = self.textbuffer.get_iter_at_line(self.textbuffer.get_line_count())
@@ -104,8 +104,8 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
         self.display(">>> [%s]" % command)
 
         # Methode 1
-        pid = self.spawn.run(str(command).split(" "))
-        print("Started as process #", pid)
+        # pid = self.spawn.run(str(command).split(" "))
+        # print("Started as process #", pid)
 
         # Methode 2
         # self.source_id = None
@@ -135,18 +135,16 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
 
         # print "Process done %s" % process.poll()
 
-        # threading.Thread(target=self.thread_process, args=(command,)).start()
+        threading.Thread(target=self.thread_process, args=(command,)).start()
 
     def thread_process(self, command):
-        process = subprocess.Popen(str(command).split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
+        process = subprocess.Popen(str(command).split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1024, universal_newlines=True)
         with process.stdout:
             for line in iter(process.stdout.readline, b''):
                 while Gtk.events_pending():
                     Gtk.main_iteration()
                 self.display(line)
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-        process.wait() # wait for the subprocess to exit
+        # process.wait() # wait for the subprocess to exit
 
     def on_input_cmd_activate(self, widget):
         """ CR dans le champ """
@@ -156,8 +154,16 @@ class CrudTerminal(Gtk.Window, GObject.GObject):
         """ Démarrage du shell """
         command = self.input_cmd.get_text()
         self.display(">>> [%s]" % command)
-        pid = self.spawn.run(command.split(" "))
-        print("Started as process #", pid)
+
+        p = subprocess.Popen(str(command).split(" "), shell=True, stderr=subprocess.PIPE)
+        while True:
+            out = p.stderr.read(1)
+            if out == '' and p.poll() != None:
+                break
+            if out != '':
+                self.display(str(out))
+                sys.stdout.write(str(out))
+                sys.stdout.flush()
 
     def on_raz_button_clicked(self, widget):
         """ Nettoyage de la console """

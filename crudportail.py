@@ -196,13 +196,13 @@ class CrudPortail(GObject.GObject):
             self.button_home.connect("clicked", self.on_button_home_clicked)
             self.headerbar.pack_start(self.button_home)
 
-        self.button_test = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_SELECT_COLOR))
-        # https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
-        image = Gtk.Image.new_from_icon_name("utilities-terminal", Gtk.IconSize.LARGE_TOOLBAR)
-        self.button_test = Gtk.Button(None, image=image)
-        self.button_test.set_tooltip_text("Terminal")
-        self.button_test.connect("clicked", self.on_button_test_clicked)
-        self.headerbar.pack_start(self.button_test)
+        # self.button_test = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_SELECT_COLOR))
+        # # https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        # image = Gtk.Image.new_from_icon_name("utilities-terminal", Gtk.IconSize.LARGE_TOOLBAR)
+        # self.button_test = Gtk.Button(None, image=image)
+        # self.button_test.set_tooltip_text("Terminal")
+        # self.button_test.connect("clicked", self.on_button_test_clicked)
+        # self.headerbar.pack_start(self.button_test)
 
         self.headerbar.pack_start(self.box_view)
 
