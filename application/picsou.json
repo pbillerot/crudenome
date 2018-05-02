@@ -887,7 +887,7 @@
                     "form_edit": "fedit",
                     "deletable": true,
                     "icon_name": "emblem-shared",
-                    "limit": 2000,
+                    "limit": 1000,
                     "elements": {
                         "mvt_id": {"hide": true},
                         "mvt_account": {},

@@ -87,11 +87,11 @@ class Crudel(GObject.GObject):
         if not self.is_read_only() and self.get_sql_items():
             items = self.crud.sql_to_dict(self.crud.get_basename(), self.get_sql_items(), {})
             for item in items:
-                keys = item.keys()
-                if len(keys) == 1:
-                    self.items[str(item.get(keys[0]))] = item.get(keys[0])
+                values = list(item.values())
+                if len(values) == 1:
+                    self.items[values[0]] = values[0]
                 else:
-                    self.items[str(item.get(keys[0]))] = item.get(keys[1])
+                    self.items[values[0]] = values[1]
 
     def init_text_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
