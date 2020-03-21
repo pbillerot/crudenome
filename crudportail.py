@@ -278,7 +278,7 @@ class CrudPortail(GObject.GObject):
             ticket_local = os.path.getmtime(self.crud.get_basename())
             if ticket_local != ticket_host:
                 # on récupére la base du serveur
-                shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
+                # shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
                 self.crud.logger.info("Restore OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
                 notif = Notify.Notification.new('Restore OK'\
                 , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\

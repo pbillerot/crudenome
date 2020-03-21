@@ -4,7 +4,7 @@
     "menu_orientation": "horizontal",
     "icon_file": "picsou.jpg",
     "basename": "~/data/picsou/picsou.sqlite",
-    "basehost": "/mnt/freebox/data/picsou/picsou.sqlite",
+    "basehost": "/mnt/nas/data/picsou/picsou.sqlite",
     "shell": {
         "Picsou Backup": "./picsou_batch.py -backup",
         "Picsou Restauration": "./picsou_batch.py -restore",
@@ -672,7 +672,7 @@
             },
             "forms": {
                 "fadd": {
-                    "title": "Ajouter d'un cours...",
+                    "title": "Ajouter un cours...",
                     "elements": {
                         "cours_id": {},
                         "cours_ptf_id": {},
@@ -916,6 +916,7 @@
                     "order_by": "mvt_account, mvt_date desc, mvt_ptf_id, mvt_trade asc"
                 },
                 "vsuivi": {
+                    "hide": true,
                     "title": "PEE PEA",
                     "searchable": true,
                     "form_add": "fadd",
@@ -1048,6 +1049,7 @@
         },
         "account": {
             "key": "acc_id",
+            "key_display": "acc_id",
             "elements": {
                 "acc_id": {
                     "label_long": "Compte",

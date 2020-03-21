@@ -24,7 +24,7 @@ class AppWindow(Gtk.ApplicationWindow):
 
         # When the window is given the "delete_event" signal (this is given
         # by the window manager, usually by the "close" option, or on the
-        # titlebar), we ask it to call the delete_event () function
+        # titlebar), we ask it to call the delete_event () functionpip inst
         # as defined above. The data passed to the callback
         # function is NULL and is ignored in the callback function.
         self.connect('delete-event', self.delete_event)
@@ -62,7 +62,7 @@ class AppWindow(Gtk.ApplicationWindow):
         if self.crud.get_basehost():
             ticket_user = os.path.getmtime(self.crud.get_basename())
             ticket_host = os.path.getmtime(self.crud.get_basehost())
-            if ticket_user > ticket_host:
+            # if ticket_user > ticket_host:
             #     # la base du host a changée depuis la dernière prise
             #     dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
             #                         Gtk.ButtonsType.YES_NO, "La base sur le serveur a changée")
@@ -89,21 +89,21 @@ class AppWindow(Gtk.ApplicationWindow):
 
             #     dialog.destroy()
             # else:
-                shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-                self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
-                notif = Notify.Notification.new('Backup OK'\
-                , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
-                , 'dialog-information')
-                # notif.add_action(
-                #     'id_callback', # identifiant
-                #     'Fermer', # texte du bouton
-                #     self.on_notif, # function callback de notre bouton
-                #     None, # user_datas, ce dont vous avez besoin dans la callback
-                #     None # fonction qui supprime les user_datas
-                # )
-                notif.show()
-                time.sleep(3)
-                # return True
+                # shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+                # self.crud.logger.info("Backup  OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+                # notif = Notify.Notification.new('Backup OK'\
+                # , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
+                # , 'dialog-information')
+                # # notif.add_action(
+                # #     'id_callback', # identifiant
+                # #     'Fermer', # texte du bouton
+                # #     self.on_notif, # function callback de notre bouton
+                # #     None, # user_datas, ce dont vous avez besoin dans la callback
+                # #     None # fonction qui supprime les user_datas
+                # # )
+                # notif.show()
+                # time.sleep(3)
+                # # return True
 
         # Change FALSE to TRUE and the main window will not be destroyed
         # with a "delete_event".

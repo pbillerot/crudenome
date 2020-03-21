@@ -7,17 +7,14 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "/mnt/sandisk/git/crudenome/crudenome.py",
+            "program": "/home/billerot/Git/crudenome/crudenome.py",
             "cwd": "${workspaceRoot}",
             "args": [
                 "-a",
                 "picsou"
             ],
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Batch Quote",
@@ -25,16 +22,13 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
+            "program": "~/Git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
             "args": [
                 "-quote"
             ],
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Batch Histo",
@@ -42,16 +36,13 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
+            "program": "~/Git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
             "args": [
                 "-histo"
             ],
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Batch Mail",
@@ -59,16 +50,13 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
+            "program": "~/Git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
             "args": [
                 "-mail"
             ],
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Batch Simul Account",
@@ -76,17 +64,14 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
+            "program": "~/Git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
             "args": [
                 "-simul",
                 "-account"
             ],
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Batch Account",
@@ -94,16 +79,13 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "/mnt/sandisk/git/crudenome/picsou_batch.py",
+            "program": "~/Git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
             "args": [
                 "-account"
             ],
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Python",
@@ -111,35 +93,10 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "/mnt/sandisk/git/crudenome/crudenome.py",
+            "program": "~/Git/crudenome/crudenome.py",
             "cwd": "${workspaceRoot}",
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "PySpark",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "osx": {
-                "pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
-            },
-            "windows": {
-                "pythonPath": "${env:SPARK_HOME}/bin/spark-submit.cmd"
-            },
-            "linux": {
-                "pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
-            },
-            "program": "${file}",
-            "cwd": "${workspaceRoot}",
-            "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Python Module",
@@ -150,10 +107,7 @@
             "module": "module.name",
             "cwd": "${workspaceRoot}",
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Integrated Terminal/Console",
@@ -165,10 +119,7 @@
             "cwd": "",
             "console": "integratedTerminal",
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "External Terminal/Console",
@@ -180,112 +131,6 @@
             "cwd": "",
             "console": "externalTerminal",
             "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "Django",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${config:python.pythonPath}",
-            "program": "${workspaceRoot}/manage.py",
-            "cwd": "${workspaceRoot}",
-            "args": [
-                "runserver",
-                "--noreload",
-                "--nothreading"
-            ],
-            "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput",
-                "DjangoDebugging"
-            ]
-        },
-        {
-            "name": "Flask",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
-            "program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-            "cwd": "${workspaceRoot}",
-            "env": {
-                "FLASK_APP": "${workspaceRoot}/quickstart/app.py"
-            },
-            "args": [
-                "run",
-                "--no-debugger",
-                "--no-reload"
-            ],
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "Flask (old)",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
-            "program": "${workspaceRoot}/run.py",
-            "cwd": "${workspaceRoot}",
-            "args": [],
-            "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "Pyramid",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${config:python.pythonPath}",
-            "cwd": "${workspaceRoot}",
-            "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "args": [
-                "${workspaceRoot}/development.ini"
-            ],
-            "debugOptions": [
-                "RedirectOutput",
-                "Pyramid"
-            ]
-        },
-        {
-            "name": "Watson",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${config:python.pythonPath}",
-            "program": "${workspaceRoot}/console.py",
-            "cwd": "${workspaceRoot}",
-            "args": [
-                "dev",
-                "runserver",
-                "--noreload=True"
-            ],
-            "env": {},
-            "envFile": "${workspaceRoot}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "Attach (Remote Debug)",
-            "type": "python",
-            "request": "attach",
-            "localRoot": "${workspaceRoot}",
-            "remoteRoot": "${workspaceRoot}",
-            "port": 3000,
-            "secret": "my_secret",
-            "host": "localhost"
-        }
-    ]
+            "envFile": "${workspaceRoot}/.env"
+        }   ]
 }

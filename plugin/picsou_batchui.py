@@ -8,7 +8,7 @@ import shutil
 import os
 import datetime
 
-from .picsou_loader import PicsouLoadQuotes
+from .picsou_loader import PicsouLoadQuotes, PicsouLoadQuotesJ
 from gi.repository import Gtk, GObject
 
 class PicsouBatchUi(Gtk.Window):
@@ -63,12 +63,17 @@ class PicsouBatchUi(Gtk.Window):
         self.with_simulation.set_label("Simulation")
         self.with_simulation.set_active(False)
 
+        self.with_coursdujour = Gtk.CheckButton()
+        self.with_coursdujour.set_label("Cours de jour")
+        self.with_coursdujour.set_active(False)
+
         vbox = Gtk.VBox()
         self.add(vbox)
 
         toolbar = Gtk.HBox()
         vbox.pack_start(toolbar, False, False, 0)
 
+        toolbar.pack_start(self.with_coursdujour, True, True, 0)
         toolbar.pack_start(self.with_simulation, True, True, 0)
         toolbar.pack_start(self.with_histo, True, True, 0)
         toolbar.pack_start(self.with_mail, True, True, 0)
@@ -109,6 +114,7 @@ class PicsouBatchUi(Gtk.Window):
         self.with_mail.set_sensitive(False)
         self.with_histo.set_sensitive(False)
         self.with_simulation.set_sensitive(False)
+        self.with_coursdujour.set_sensitive(False)
         self.close_button.set_sensitive(False)
 
         self.run_calcul()
@@ -118,7 +124,7 @@ class PicsouBatchUi(Gtk.Window):
         ticket_user = os.path.getmtime(self.crud.get_basename())
         ticket_host = os.path.getmtime(self.crud.get_basehost())
         if ticket_user > ticket_host:
-            shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+            # shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
             self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
 
         # self.cancel_button.hide()
@@ -126,6 +132,7 @@ class PicsouBatchUi(Gtk.Window):
         self.with_mail.set_sensitive(True)
         self.with_histo.set_sensitive(True)
         self.with_simulation.set_sensitive(True)
+        self.with_coursdujour.set_sensitive(True)
         self.close_button.set_sensitive(True)
 
     def display(self, msg):
@@ -144,7 +151,7 @@ class PicsouBatchUi(Gtk.Window):
         if self.with_histo.get_active():
             loader = PicsouLoadQuotes(self, self.crud)
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf ORDER BY ptf_id
+            SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
             """, {})
             for ptf in ptfs:
                 while Gtk.events_pending():
@@ -157,6 +164,18 @@ class PicsouBatchUi(Gtk.Window):
             loader = PicsouLoadQuotes(self, self.crud)
             loader.simulateur()
             loader.account()
+            return
+
+        if self.with_coursdujour.get_active():
+            loader = PicsouLoadQuotesJ(self, self.crud)
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
+            """, {})
+            for ptf in ptfs:
+                while Gtk.events_pending():
+                    Gtk.main_iteration()
+                # Chargement de l'historique
+                loader.run(ptf["ptf_id"], 500)
             return
 
         # Chargement des 10 derniers cours

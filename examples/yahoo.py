@@ -33,6 +33,8 @@ def get_cookie_crumb(symbol):
     return cookie, crumb
 
 def get_data(symbol, start_date, end_date, cookie, crumb):
+    # interval = 1d, 1wk, 1mo
+    # events = history, div, split
     filename = '%s.csv' % (symbol)
     url = "https://query1.finance.yahoo.com/v7/finance/download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s" % (symbol, start_date, end_date, crumb)
     print(url)
@@ -46,13 +48,18 @@ def get_now_epoch():
     # @see https://www.linuxquestions.org/questions/programming-9/python-datetime-to-epoch-4175520007/#post5244109
     return int(time.time())
 
+def get_now_5():
+    # @see https://www.linuxquestions.org/questions/programming-9/python-datetime-to-epoch-4175520007/#post5244109
+    return int(time.time())
+
 def download_quotes(symbol):
-    start_date = 0
+    start_date = get_now_epoch() - (3600 * 24 * 5)
     end_date = get_now_epoch()
     cookie, crumb = get_cookie_crumb(symbol)
     get_data(symbol, start_date, end_date, cookie, crumb)
 
-symbol = input('Enter the symbol: ')
+symbol = "FR0010340620.PA"
+#symbol = input('Enter the symbol: ')
 print("--------------------------------------------------")
 print("Downloading %s to %s.csv" % (symbol, symbol))
 download_quotes(symbol)

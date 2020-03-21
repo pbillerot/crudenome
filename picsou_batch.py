@@ -51,7 +51,7 @@ class PicsouBatch():
         ticket_user = os.path.getmtime(self.crud.get_basename())
         ticket_host = os.path.getmtime(self.crud.get_basehost())
         if ticket_user != ticket_host:
-            shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+            # shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
             self.display("Backup OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
         else:
             self.display("Backup NA %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
@@ -62,7 +62,7 @@ class PicsouBatch():
         ticket_user = os.path.getmtime(self.crud.get_basename())
         ticket_host = os.path.getmtime(self.crud.get_basehost())
         if ticket_user != ticket_host:
-            shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
+            # shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
             self.display("Restore OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host)))
         else:
             self.display("Restore NA %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host)))
@@ -92,6 +92,7 @@ class PicsouBatch():
         if self.args.histo:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf
+            WHERE (ptf_disabled is null or ptf_disabled <> '1')
             ORDER BY ptf_id
             """, {})
             self.display("Chargement de l'historique...")
