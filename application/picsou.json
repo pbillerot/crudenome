@@ -4,12 +4,18 @@
     "menu_orientation": "horizontal",
     "icon_file": "picsou.jpg",
     "basename": "~/data/picsou/picsou.sqlite",
-    "basehost": "/mnt/nas/data/picsou/picsou.sqlite",
+    "basehost": "",
+    "basehostOld": "/mnt/nas/data/picsou/picsou.sqlite",
+    "scheduler": {
+        "batch": "./picsou_batch.py -day",
+        "periode_mn": 10
+    },
     "shell": {
         "Picsou Backup": "./picsou_batch.py -backup",
         "Picsou Restauration": "./picsou_batch.py -restore",
         "Picsou Simul": "./picsou_batch.py -simul -account",
-        "Picsou Quote": "./picsou_batch.py -simul -account -quote"
+        "Picsou Quote": "./picsou_batch.py -simul -account -quote",
+        "Picsou Day": "./picsou_batch.py -day"
     },
     "tables": {
         "ptf": {
@@ -1153,6 +1159,203 @@
                         "acc_initial": {},
                         "acc_bet": {},
                         "acc_fee": {}
+                    }
+                }
+            }
+        },
+        "cdays": {
+            "key": "cdays_id",
+            "key_display": "cdays_id",
+            "elements": {
+                "cdays_id": {
+                    "label_long": "id",
+                    "label_short": "id",
+                    "type": "int",
+                    "hide": false
+                },
+                "cdays_ptf_id": {
+                    "label_long": "Valeur",
+                    "label_short": "Valeur",
+                    "type": "text",
+                    "searchable": true
+                },
+                "cdays_name": {
+                    "label_long": "Nom",
+                    "label_short": "Nom",
+                    "type": "text",
+                    "searchable": true,
+                    "expandable": false,
+                    "col_width": 150
+                },
+                "cdays_date": {
+                    "label_long": "Date",
+                    "label_short": "Date",
+                    "type": "calendar",
+                    "sortable": true,
+                    "searchable": true
+                },
+                "cdays_close": {
+                    "label_long": "Cours",
+                    "label_short": "Cours",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_volume": {
+                    "label_long": "Volume",
+                    "label_short": "Volume",
+                    "type": "int"
+                },
+                "cdays_low": {
+                    "label_long": "Min",
+                    "label_short": "Min",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_high": {
+                    "label_long": "Max",
+                    "label_short": "Max",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_time": {
+                    "label_long": "Heure",
+                    "label_short": "Heure",
+                    "type": "text",
+                    "default": "2020-03-22 10:30:00",
+                    "sortable": true,
+                    "searchable": true
+                },
+                "cdays_percent": {
+                    "label_long": "%",
+                    "label_short": "%",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when cdays_percent < 0 then '#FF0000' else '#006600' end"
+                },
+                "cdays_ema": {
+                    "label_long": "EMA",
+                    "label_short": "EMA",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_sma": {
+                    "label_long": "SMA",
+                    "label_short": "SMA",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_max": {
+                    "label_long": "Max",
+                    "label_short": "Max",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_min": {
+                    "label_long": "Min",
+                    "label_short": "Min",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "display": "%3.2f €",
+                    "sql_color": "case when cdays_gain < 0 then '#FF0000' else '#006600' end"
+                },
+                "cdays_gainp": {
+                    "label_long": "en %",
+                    "label_short": "en %",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when cdays_gainp < 0 then '#FF0000' else '#006600' end"
+                },
+                "cdays_inptf": {
+                    "label_long": "Ptf",
+                    "label_short": "Ptf",
+                    "type": "check"
+                },
+                "_batch": {
+                    "label_long": "Actualiation des données",
+                    "label_short": "Actualiser...",
+                    "type": "batch",
+                    "params": {
+                        "plugin": "picsou_batchui.PicsouBatchUi",
+                        "icon_name": "view-refresh",
+                        "day": 14,
+                        "history": 500,
+                        "cash": 10000,
+                        "amount": 1200,
+                        "cost": 0.005,
+                        "cac40_only": false,
+                        "label_myptf": "Mes actions le {}",
+                        "label_resistance": "Mes actions en r&eacute;sistance (vendre)",
+                        "label_support": "Liste des actions en support (achat)",
+                        "label_top14": "TOP 14 des actions",
+                        "smtp_dest": [
+                            "bill.tero@free.fr"
+                        ]
+                    }
+                },
+                "_fgraph": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "form",
+                    "params": {
+                        "plugin": "picsou_graph.PicsouGraphDay",
+                        "icon_name": "applications-office",
+                        "ptf_id": "{cdays_ptf_id}"
+                    }
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Cours du jour",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "searchable_sql": true,
+                    "deletable": true,
+                    "icon_name": "go-jump",
+                    "limit": 400,
+                    "elements": {
+                        "cdays_id": {},
+                        "cdays_ptf_id": {},
+                        "cdays_name": {},
+                        "cdays_time": {},
+                        "cdays_close": {},
+                        "cdays_percent": {},
+                        "cdays_min": {},
+                        "cdays_max": {},
+                        "cdays_ema": {},
+                        "cdays_sma": {},
+                        "_fgraph": {},
+                        "cdays_inptf": {},
+                        "cdays_gain": {},
+                        "cdays_gainp": {},
+                        "_batch": {}
+                    },
+                    "order_by": "cdays.cdays_ptf_id, cdays.cdays_time asc"
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Ajouter un cours...",
+                    "elements": {
+                        "cdays_id": {},
+                        "cdays_ptf_id": {},
+                        "cdays_name": {},
+                        "cdays_close": {},
+                        "cdays_time": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Modifier un cours...",
+                    "elements": {
+                        "cdays_id": {},
+                        "cdays_ptf_id": {},
+                        "cdays_name": {},
+                        "cdays_close": {},
+                        "cdays_time": {}
                     }
                 }
             }

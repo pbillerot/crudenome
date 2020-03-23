@@ -10,14 +10,16 @@ pip3 install pycairo
 pip3 install PyGObject
 pip3 install matplotlib
 pip3 install requests
+pip3 install schedule
 ```
 ### Pour VSCodium
-```shell
-pip3 install pylint
-```
+- Installer l'extension ```ms-python.python```
+- Installer pylint pour python ```pip3 install pylint```
 
 ## SQL
-Utilisation de DB Browser for SQLite http://sqlitebrowser.org/
+- Utilisation de DB Browser for SQLite http://sqlitebrowser.org/
+- Création des tables SQLite
+
 ```sql
 CREATE TABLE ACCOUNT (acc_id TEXT PRIMARY KEY, acc_date TEXT, acc_money REAL DEFAULT (0), acc_latent REAL DEFAULT (0), acc_initial REAL DEFAULT (0), acc_fee REAL DEFAULT (0), acc_gain REAL DEFAULT (0), acc_gain_day REAL DEFAULT (0), acc_bet REAL DEFAULT (0), acc_percent REAL DEFAULT (0))
 
@@ -40,10 +42,54 @@ CREATE TABLE "quotes" ( "id" TEXT, "name" TEXT, "date" TEXT, "open" REAL, "high"
 CREATE TABLE resume (resume_date TEXT, resume_time TEXT, resume_investi REAL, resume_gainj REAL, resume_gain REAL, resume_percent REAL, resume_simul TEXT)
 
 CREATE TABLE "sbf" ( "isin" TEXT, "name" TEXT, "code" TEXT )
-
--- Cours du jour 
-CREATE TABLE "cdays" (cdays_id INTEGER PRIMARY KEY AUTOINCREMENT, cdays_ptf_id TEXT NOT NULL, cdays_name TEXT, cdays_date TEXT, cdays_time TEXT, cdays_close REAL, cdays_open REAL, cdays_low REAL, cdays_high REAL, cdays_percent REAL, cdays_volume REAL, cdays_volp REAL, cdays_max REAL, cdays_min REAL, cdays_trend REAL, cdays_trade TEXT, cdays_quantity REAL, cdays_cost REAL, cdays_gain REAL, cdays_inptf INTEGER, cdays_intest INTEGER)
-
 CREATE UNIQUE INDEX PTF_INDEX ON ptf (ptf_id)
 
+-- Cours du jour 
+CREATE TABLE `cdays` (
+	`cdays_id`	INTEGER PRIMARY KEY AUTOINCREMENT,
+	`cdays_ptf_id`	TEXT NOT NULL,
+	`cdays_name`	TEXT,
+	`cdays_date`	TEXT,
+	`cdays_close`	REAL,
+	`cdays_open`	REAL,
+	`cdays_volume`	REAL,
+	`cdays_low`	REAL,
+	`cdays_high`	REAL,
+	`cdays_time`	TEXT,
+	`cdays_percent`	REAL,
+	`cdays_min`	REAL,
+	`cdays_max`	REAL,
+	`cdays_ema`	REAL,
+	`cdays_sma`	REAL,
+	`cdays_inptf`	INTEGER,
+	`cdays_quantity`	REAL,
+	`cdays_cost`	REAL,
+	`cdays_gain`	REAL,
+	`cdays_gainp`	REAL
+);
+
 ```
+
+## Démarche
+- recup des 6 derniers cours
+- le dernier cours est celui qui nous intéresse car il évolue dans la journée
+- ce dernier cours sera enregistré dans la table "cdays"
+- un automate va recherché ce dernier cours toutes les 10 minutes
+- ces cours seront analysés pour récupérer
+    - la progression "trend"
+    - le cours min et le cours min-1
+    - le cours max et le max-1
+    - le pourcentage de progression par rapport au cours d'achat
+- ordre d'achat si
+    - tobuy
+    - trend > 0
+    - et si max > max-1 
+    - et si min > min-1
+    - et si le nombre de cours est suffisant pour avoir une analyse pertinente
+- ordre de vente si
+    - tosell
+    - max < max-1
+    - et si min < min-1
+
+## Cas
+https://drive.google.com/open?id=1v-FKCZdRNJAXW89Xy-yA2kBaMQPxnXQT

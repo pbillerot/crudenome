@@ -6,9 +6,8 @@
 """
 import shutil
 import os
-import datetime
-
-from .picsou_loader import PicsouLoadQuotes, PicsouLoadQuotesJ
+import datetime, time
+from .picsou_loader import PicsouLoadQuotes, PicsouLoadQuotesDay
 from gi.repository import Gtk, GObject
 
 class PicsouBatchUi(Gtk.Window):
@@ -67,6 +66,10 @@ class PicsouBatchUi(Gtk.Window):
         self.with_coursdujour.set_label("Cours de jour")
         self.with_coursdujour.set_active(False)
 
+        self.with_schedule = Gtk.CheckButton()
+        self.with_schedule.set_label("Boucle 10 minutes")
+        self.with_schedule.set_active(False)
+
         vbox = Gtk.VBox()
         self.add(vbox)
 
@@ -74,9 +77,10 @@ class PicsouBatchUi(Gtk.Window):
         vbox.pack_start(toolbar, False, False, 0)
 
         toolbar.pack_start(self.with_coursdujour, True, True, 0)
-        toolbar.pack_start(self.with_simulation, True, True, 0)
-        toolbar.pack_start(self.with_histo, True, True, 0)
-        toolbar.pack_start(self.with_mail, True, True, 0)
+        toolbar.pack_start(self.with_schedule, True, True, 0)
+        # toolbar.pack_start(self.with_simulation, True, True, 0)
+        # toolbar.pack_start(self.with_histo, True, True, 0)
+        # toolbar.pack_start(self.with_mail, True, True, 0)
         toolbar.pack_start(self.run_button, True, True, 0)
         toolbar.pack_start(self.close_button, True, True, 0)
         # toolbar.pack_start(self.cancel_button, True, True, 0)
@@ -111,29 +115,48 @@ class PicsouBatchUi(Gtk.Window):
         """ docstring """
         # self.cancel_button.set_sensitive(False)
         self.run_button.set_sensitive(False)
-        self.with_mail.set_sensitive(False)
-        self.with_histo.set_sensitive(False)
-        self.with_simulation.set_sensitive(False)
+        # self.with_mail.set_sensitive(False)
+        # self.with_histo.set_sensitive(False)
+        # self.with_simulation.set_sensitive(False)
         self.with_coursdujour.set_sensitive(False)
         self.close_button.set_sensitive(False)
 
-        self.run_calcul()
-        self.crud.get_view().emit("refresh_data_view", "batch", "close")
+        if self.with_schedule.get_active():
+            self.run_calcul()
+            self.crud.get_view().emit("refresh_data_view", "batch", "close")
+            time1 = time.time()
+            while True:
+                if self.with_schedule.get_active():
+                    time2 = time.time()
+                    if ( (time2-time1) > 10 * 60 ):
+                        self.display("........Et ça repart...")
+                        self.run_calcul()
+                        self.crud.get_view().emit("refresh_data_view", "batch", "close")
+                        time1 = time2
+                else:
+                    break
+                while Gtk.events_pending():
+                    Gtk.main_iteration()
+                time.sleep(1)
+        else:
+            self.run_calcul()
+            self.crud.get_view().emit("refresh_data_view", "batch", "close")
 
         # Put de la base de données sur la box
-        ticket_user = os.path.getmtime(self.crud.get_basename())
-        ticket_host = os.path.getmtime(self.crud.get_basehost())
-        if ticket_user > ticket_host:
-            # shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
-            self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
+        # ticket_user = os.path.getmtime(self.crud.get_basename())
+        # ticket_host = os.path.getmtime(self.crud.get_basehost())
+        # if ticket_user > ticket_host:
+        #     # shutil.copy2(self.crud.get_basename(), self.crud.get_basehost())
+        #     self.display("Backup  OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_user)))
 
         # self.cancel_button.hide()
         self.run_button.set_sensitive(True)
-        self.with_mail.set_sensitive(True)
-        self.with_histo.set_sensitive(True)
-        self.with_simulation.set_sensitive(True)
+        # self.with_mail.set_sensitive(True)
+        # self.with_histo.set_sensitive(True)
+        # self.with_simulation.set_sensitive(True)
         self.with_coursdujour.set_sensitive(True)
         self.close_button.set_sensitive(True)
+
 
     def display(self, msg):
         """ docstring """
@@ -145,6 +168,9 @@ class PicsouBatchUi(Gtk.Window):
         iter = self.textbuffer.get_iter_at_line(self.textbuffer.get_line_count())
         self.textview.scroll_to_iter(iter, 0, 0, 0, 0)
         self.crud.logger.info(msg)
+
+    def do_schedule(self):
+        """ Scheduleur """
 
     def run_calcul(self):
         """ docstring """
@@ -167,7 +193,7 @@ class PicsouBatchUi(Gtk.Window):
             return
 
         if self.with_coursdujour.get_active():
-            loader = PicsouLoadQuotesJ(self, self.crud)
+            loader = PicsouLoadQuotesDay(self, self.crud)
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
             """, {})
@@ -176,6 +202,9 @@ class PicsouBatchUi(Gtk.Window):
                     Gtk.main_iteration()
                 # Chargement de l'historique
                 loader.run(ptf["ptf_id"], 500)
+
+            loader.simulateur()
+
             return
 
         # Chargement des 10 derniers cours
@@ -268,19 +297,19 @@ class PicsouBatchUi(Gtk.Window):
                     self.supports.append(msg)
 
             # envoi du mail
-            msg = '<h3>{}</h3>\n<table>\n'.format("Mes actions au {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"]))
-            msg += '\n'.join(self.myptf)
-            msg += '</table>\n'
-            msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_resistance"))
-            msg += '\n'.join(self.resistances)
-            msg += '</table>\n'
-            msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_support"))
-            msg += '\n'.join(self.supports)
-            msg += '</table>\n'
-            msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_top14"))
-            msg += '\n'.join(self.top14)
-            msg += '</table>\n'
-            dest = self.crudel.get_param("smtp_dest")
+            # msg = '<h3>{}</h3>\n<table>\n'.format("Mes actions au {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"]))
+            # msg += '\n'.join(self.myptf)
+            # msg += '</table>\n'
+            # msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_resistance"))
+            # msg += '\n'.join(self.resistances)
+            # msg += '</table>\n'
+            # msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_support"))
+            # msg += '\n'.join(self.supports)
+            # msg += '</table>\n'
+            # msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_top14"))
+            # msg += '\n'.join(self.top14)
+            # msg += '</table>\n'
+            # dest = self.crudel.get_param("smtp_dest")
 
-            subject = u"Picsou du {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"])
-            self.crud.send_mail(dest, subject, msg)
+            # subject = u"Picsou du {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"])
+            # self.crud.send_mail(dest, subject, msg)

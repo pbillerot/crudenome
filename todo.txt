@@ -1,5 +1,6 @@
 TODO
 
+- bug default sql
 - rubrique tags
 - rubrique link
 - sql_ctrl

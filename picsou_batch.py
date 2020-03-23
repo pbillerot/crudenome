@@ -10,7 +10,7 @@ import argparse
 
 from crud import Crud
 from crudel import Crudel
-from plugin.picsou_loader import PicsouLoadQuotes
+from plugin.picsou_loader import PicsouLoadQuotes, PicsouLoadQuotesDay
 
 class PicsouBatch():
     """ Actualisation des données """
@@ -40,10 +40,25 @@ class PicsouBatch():
         if self.args.restore:
             self.restore()
 
+        if self.args.day:
+           self.day()
+
+
     def display(self, msg):
         """ docstring """
         print(msg)
         # self.crud.logger.info(msg)
+
+    def day(self):
+        loader = PicsouLoadQuotesDay(self, self.crud)
+        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
+        """, {})
+        for ptf in ptfs:
+            loader.run(ptf["ptf_id"], 7)
+
+        loader.simulateur()
+
 
     def backup(self):
         """ backup """
@@ -158,6 +173,7 @@ if __name__ == '__main__':
     parser.add_argument('-account', '--account', action='store_true', default=False, help="Requête pour actualiser les comptes")
     parser.add_argument('-backup', '--backup', action='store_true', default=False, help="Sauvegarder la base sur la box")
     parser.add_argument('-restore', '--restore', action='store_true', default=False, help="Restauration de la base locale à partir de la base sur la box")
+    parser.add_argument('-day', '--day', action='store_true', default=False, help="Requête des cours du jour")
     # print parser.parse_args()
 
     PicsouBatch(parser.parse_args())
