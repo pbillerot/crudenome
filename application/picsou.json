@@ -1203,7 +1203,8 @@
                 "cdays_volume": {
                     "label_long": "Volume",
                     "label_short": "Volume",
-                    "type": "int"
+                    "type": "int",
+                    "display": "% u"
                 },
                 "cdays_low": {
                     "label_long": "Min",
@@ -1232,6 +1233,18 @@
                     "display": "%3.2f %%",
                     "sql_color": "case when cdays_percent < 0 then '#FF0000' else '#006600' end"
                 },
+                "cdays_min": {
+                    "label_long": "Min",
+                    "label_short": "Min",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_max": {
+                    "label_long": "Max",
+                    "label_short": "Max",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
                 "cdays_ema": {
                     "label_long": "EMA",
                     "label_short": "EMA",
@@ -1244,15 +1257,24 @@
                     "type": "float",
                     "display": "%3.2f €"
                 },
-                "cdays_max": {
-                    "label_long": "Max",
-                    "label_short": "Max",
-                    "type": "float",
-                    "display": "%3.2f €"
+                "cdays_trade": {
+                    "label_long": "Trade",
+                    "label_short": "Trade",
+                    "type": "text"
                 },
-                "cdays_min": {
-                    "label_long": "Min",
-                    "label_short": "Min",
+                "cdays_inptf": {
+                    "label_long": "Ptf",
+                    "label_short": "Ptf",
+                    "type": "check"
+                },
+                "cdays_quantity": {
+                    "label_long": "Quantité",
+                    "label_short": "QT",
+                    "type": "integer"
+                },
+                "cdays_cost": {
+                    "label_long": "Coût",
+                    "label_short": "Coût",
                     "type": "float",
                     "display": "%3.2f €"
                 },
@@ -1269,11 +1291,6 @@
                     "type": "float",
                     "display": "%3.2f %%",
                     "sql_color": "case when cdays_gainp < 0 then '#FF0000' else '#006600' end"
-                },
-                "cdays_inptf": {
-                    "label_long": "Ptf",
-                    "label_short": "Ptf",
-                    "type": "check"
                 },
                 "_batch": {
                     "label_long": "Actualiation des données",
@@ -1323,11 +1340,13 @@
                         "cdays_name": {},
                         "cdays_time": {},
                         "cdays_close": {},
+                        "cdays_volume": {},
                         "cdays_percent": {},
                         "cdays_min": {},
                         "cdays_max": {},
                         "cdays_ema": {},
                         "cdays_sma": {},
+                        "cdays_trade": {},
                         "_fgraph": {},
                         "cdays_inptf": {},
                         "cdays_gain": {},

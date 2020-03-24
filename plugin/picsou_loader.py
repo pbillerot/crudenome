@@ -40,9 +40,7 @@ class PicsouLoadQuotesDay():
 
     def get_quotes(self, ptf_id, nbj):
         self.csv_to_quotes(self.ptf, nbj)
-
         # Suppression des cours des jours antérieurs
-        # remplacer '2020-03-20' par date('now')
         self.crud.exec_sql(self.crud.get_basename(), """
         delete from cdays
         where cdays_date <> date('now')
@@ -52,7 +50,7 @@ class PicsouLoadQuotesDay():
         insert into cdays
         (cdays_ptf_id, cdays_name, cdays_date, cdays_close
         , cdays_open, cdays_volume, cdays_low, cdays_high, cdays_time)
-        select id, name, date, close, open, volume, low, high, CURRENT_TIMESTAMP 
+        select id, name, date, close, open, volume, low, high, datetime('now', 'localtime') 
         from quotes
         where quotes.id = :id and quotes.date = date('now')
         """, {"id": ptf_id})
@@ -89,50 +87,76 @@ class PicsouLoadQuotesDay():
             quote = 0.0
             quote1 = 0.0
             trend = 0
-            mini = -1
-            maxi = -1
+            mini = 0
+            maxi = 0
             nbc = 0
             quotes = []
             ema = 0
             sma = 0
             ema1 = 0
             sma1 = 0
+            volume = 0
+            trade = ""
+            cday_time = 0
+            time_limit = datetime.datetime.now().replace(hour=17, minute=0, second=0, microsecond=0)
             for cday in cdays:
                 nbc+=1
                 quote1 = quote
+                ema1 = ema
+                sma1 = sma
+
                 quote = cday["cdays_close"]
+                volume = cday["cdays_volume"]
+                cday_time = int(cday["cdays_time"]).timestamp()
+
                 quotes.append(quote)
-                if mini == -1: # début
-                    mini = quote
-                    maxi = quote
-                if quote > maxi: # cas 1
-                    maxi = quote
-                elif quote < maxi and quote > mini and quote < quote1: # cas 2
-                    mini = quote
-                if quote < mini: # cas 4
-                    mini = quote
+
+                if mini == 0: # début
+                    mini = cday["cdays_open"]
+                    maxi = cday["cdays_open"]
+                    ema = cday["cdays_open"]
+                    sma = cday["cdays_open"]
+                    ema1 = cday["cdays_open"]
+                    sma1 = cday["cdays_open"]
+
+                if nbc > 1:
+                    window = nbc//2 if nbc < 24 else 12
+                    ema = self.ema(quotes, window)
+                    sma = self.sma(quotes, window)
+                    maxi = max(quotes[-window:])
+                    mini = min(quotes[-window:])
+                else:
+                    maxi = max(quotes)
+                    mini = min(quotes)
 
                 if nbc > 5:
-                    quoter = quotes[:]
-                    quoter.reverse()
-                    ema = self.ema(quotes, nbc//2)
-                    sma = self.sma(quotes, nbc//2)
-
-                if ema1 == 0:
-                    ema1 = ema
-                    sma2 = sma
+                    if trade == "BUY":
+                        trade = "..."
+                    if trade == "SELL":
+                        trade = ""
+                    if cday_time < time_limit \
+                    and ema > ema1 and ema1 < sma1 and ema > sma: # croisement ema sma -> achat
+                        trade = "BUY"
+                    if trade in ("BUY","...") and ema1 > sma1 and ema < sma: # croisement ema sma -> vente
+                        trade = "SELL"
+                    # fin de journée, on vend tout avant la cloture
+                    if cday_time > time_limit and trade in ("BUY","..."):
+                        trade = "SELL"
 
                 cday["cdays_min"] = mini
                 cday["cdays_max"] = maxi
                 cday["cdays_ema"] = ema
                 cday["cdays_sma"] = sma
+                cday["cdays_trade"] = trade
 
                 # maj du cours
                 self.crud.exec_sql(self.crud.get_basename(), """
                 UPDATE cdays
-                set cdays_min = :cdays_min, cdays_max = :cdays_max
+                set cdays_min = :cdays_min
+                ,cdays_max = :cdays_max
                 ,cdays_ema = :cdays_ema
                 ,cdays_sma = :cdays_sma
+                ,cdays_trade = :cdays_trade
                 WHERE cdays_id = :cdays_id
                 """, cday)
 

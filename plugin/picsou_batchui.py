@@ -129,7 +129,6 @@ class PicsouBatchUi(Gtk.Window):
                 if self.with_schedule.get_active():
                     time2 = time.time()
                     if ( (time2-time1) > 10 * 60 ):
-                        self.display("........Et ça repart...")
                         self.run_calcul()
                         self.crud.get_view().emit("refresh_data_view", "batch", "close")
                         time1 = time2
@@ -169,11 +168,16 @@ class PicsouBatchUi(Gtk.Window):
         self.textview.scroll_to_iter(iter, 0, 0, 0, 0)
         self.crud.logger.info(msg)
 
-    def do_schedule(self):
-        """ Scheduleur """
+    def clearMessage(self):
+        """ docstring """
+        self.textbuffer.Text = ""
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+
 
     def run_calcul(self):
         """ docstring """
+        self.display(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S") + " : run_calcul" )
         if self.with_histo.get_active():
             loader = PicsouLoadQuotes(self, self.crud)
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
@@ -201,7 +205,7 @@ class PicsouBatchUi(Gtk.Window):
                 while Gtk.events_pending():
                     Gtk.main_iteration()
                 # Chargement de l'historique
-                loader.run(ptf["ptf_id"], 500)
+                loader.run(ptf["ptf_id"], 7)
 
             loader.simulateur()
 
