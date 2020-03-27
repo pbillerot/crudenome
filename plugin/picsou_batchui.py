@@ -177,7 +177,7 @@ class PicsouBatchUi(Gtk.Window):
 
     def run_calcul(self):
         """ docstring """
-        self.display(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S") + " : run_calcul" )
+        self.display(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " : run_calcul" )
         if self.with_histo.get_active():
             loader = PicsouLoadQuotes(self, self.crud)
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """

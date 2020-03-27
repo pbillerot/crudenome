@@ -60,6 +60,9 @@ class PicsouGraphDay(Gtk.Window):
         cdays_quotes = []
         cdays_ema = []
         cdays_sma = []
+        cdays_moy = []
+        cdays_rsi = []
+        cdays_trend = []
         cdays_min = []
         cdays_max = []
         cdays_trades = []
@@ -68,6 +71,9 @@ class PicsouGraphDay(Gtk.Window):
             cdays_quotes.append(float(cday["cdays_close"]))
             cdays_ema.append(float(cday["cdays_ema"]))
             cdays_sma.append(float(cday["cdays_sma"]))
+            cdays_moy.append(float(cday["cdays_moy"]))
+            cdays_rsi.append(float(cday["cdays_rsi"]))
+            cdays_trend.append(float(cday["cdays_trend"]))
             cdays_min.append(float(cday["cdays_min"]))
             cdays_max.append(float(cday["cdays_max"]))
             if cday["cdays_trade"] in ('BUY', '...', 'SELL'):
@@ -80,15 +86,23 @@ class PicsouGraphDay(Gtk.Window):
         ax1.plot(cdays_times, cdays_trades, 'o-', label='Trade', linewidth=2)
         ax1.plot(cdays_times, cdays_ema, '-', label='EMA')
         ax1.plot(cdays_times, cdays_sma, '-', label='SMA')
+        ax1.plot(cdays_times, cdays_moy, '-', label='MOY')
         # ax1.plot(cdays_times, cdays_min, '-', label='MIN')
         # ax1.plot(cdays_times, cdays_max, '-', label='Max')
         ax1.set_ylabel('Cours (Euro)')
         ax1.set_xlabel('Heure')
         ax1.legend(loc=3)
 
+        ax2 = ax1.twinx()
+        ax2.plot(cdays_times, cdays_rsi, 'm:', label='RSI')
+        ax2.set_ylabel('RSI')
+        ax2.legend(loc=4)
+
+        plt.xticks(fontsize=6)
+
         fig.autofmt_xdate()
         plt.suptitle("Cours du jour de " + ptf_id + " - " + ptf["ptf_name"])
-        plt.subplots_adjust(left=0.07, bottom=0.1, right=0.98, top=0.95, wspace=None, hspace=None)
+        # plt.subplots_adjust(left=0.07, bottom=0.1, right=0.98, top=0.95, wspace=None, hspace=None)
         plt.grid()
 
         canvas = FigureCanvas(fig)  # a Gtk.DrawingArea

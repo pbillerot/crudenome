@@ -9,6 +9,7 @@ import re
 import sys
 import requests
 import numpy as np
+import pandas as pd
 from gi.repository import Gtk
 
 class PicsouLoadQuotesDay():
@@ -69,13 +70,22 @@ class PicsouLoadQuotesDay():
         - On mise en priorité sur les actions qui ont la croissance la plus forte
         Boucle sur les dates de l'historiques tri /date,action
         """
+        # Nettoyage de la simulation du jour
+        self.crud.exec_sql(self.crud.get_basename(), """
+        delete from trades
+        """, {})
+
         # Boucle sur les PTF
         ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM ptf WHERE ptf_disabled is null or ptf_disabled <> '1'
         ORDER BY ptf_id
         """, {})
+        fday = 0.0
+        ffrais = 0.012
+        fmise = 1200.0
+        time_limit = datetime.datetime.now().replace(hour=17, minute=30, second=0, microsecond=0).timestamp()
         for ptf in ptfs:
-            self.parent.display(ptf["ptf_id"] + " simul...")
+            self.parent.display(ptf["ptf_id"] + " simul... ")
             while Gtk.events_pending():
                 Gtk.main_iteration() # libération des messages UI
             # Boucle sur les COURS du PTF
@@ -86,28 +96,44 @@ class PicsouLoadQuotesDay():
 
             quote = 0.0
             quote1 = 0.0
-            trend = 0
+            quote2 = 0.0
+            quote3 = 0.0
             mini = 0
             maxi = 0
             nbc = 0
             quotes = []
-            ema = 0
-            sma = 0
-            ema1 = 0
-            sma1 = 0
+            ema = 0.0
+            sma = 0.0
+            rsi = 0.0
+            rsi1 = 0.0
+            ema1 = 0.0
+            sma1 = 0.0
+            moy = 0.0 # moyenne calculée sur l'ensemble des données
+            trend = 0.0
+            trend1 = 0.0
+            trend2 = 0.0
             volume = 0
             trade = ""
             cday_time = 0
-            time_limit = datetime.datetime.now().replace(hour=17, minute=0, second=0, microsecond=0)
+            fbuy = 0.0
+            fsell = 0.0
+            iquantity = 0
+            fgain = 0.0
+            fgainp = 0.0
+            trade = ""
             for cday in cdays:
                 nbc+=1
+                quote3 = quote2
+                quote2 = quote1
                 quote1 = quote
+                trend2 = trend1
+                trend1 = trend
+                rsi1 = rsi
                 ema1 = ema
                 sma1 = sma
-
                 quote = cday["cdays_close"]
                 volume = cday["cdays_volume"]
-                cday_time = int(cday["cdays_time"]).timestamp()
+                cday_time = datetime.datetime.strptime(cday["cdays_time"], '%Y-%m-%d %H:%M:%S').timestamp()
 
                 quotes.append(quote)
 
@@ -118,35 +144,78 @@ class PicsouLoadQuotesDay():
                     sma = cday["cdays_open"]
                     ema1 = cday["cdays_open"]
                     sma1 = cday["cdays_open"]
+                    moy = cday["cdays_open"]
+                    rsi = 40.0
 
                 if nbc > 1:
-                    window = nbc//2 if nbc < 24 else 12
+                    window = nbc//2 if nbc < 16 else 8
                     ema = self.ema(quotes, window)
                     sma = self.sma(quotes, window)
-                    maxi = max(quotes[-window:])
-                    mini = min(quotes[-window:])
-                else:
-                    maxi = max(quotes)
-                    mini = min(quotes)
+                    moy = self.sma(quotes, nbc//2)
+                    if window > 3 : rsi = self.rsi(quotes, nbc//2)
 
-                if nbc > 5:
-                    if trade == "BUY":
-                        trade = "..."
-                    if trade == "SELL":
-                        trade = ""
-                    if cday_time < time_limit \
-                    and ema > ema1 and ema1 < sma1 and ema > sma: # croisement ema sma -> achat
-                        trade = "BUY"
-                    if trade in ("BUY","...") and ema1 > sma1 and ema < sma: # croisement ema sma -> vente
-                        trade = "SELL"
+                trend = sma - moy
+
+                if quote > maxi:  # ça monte
+                    maxi = quote
+                if quote < mini:  # ça baisse
+                    mini = quote
+
+                if quote > quote1 and quote1 < quote2:  # ça remonte
+                    maxi = quote
+                    if quote1 > mini: # le mini remonte
+                        mini = quote1
+
+                """
+                si la moyenne à court terme est plus élevée que la moyenne à long terme,
+                    nous sommes sur une tendance haussière -> on achète
+                si la moyenne à court terme est inférieure à la moyenne à long terme,
+                    la tendance est baissière -> on vend
+                """
+                if trade == "BUY":
+                    trade = "..."
+                if trade == "SELL":
+                    trade = ""
+                if nbc > 2:
+                    # VENTE
+                    if trade in ("BUY","..."):
+                        if rsi > 60 : trade = "SELL"
                     # fin de journée, on vend tout avant la cloture
-                    if cday_time > time_limit and trade in ("BUY","..."):
+                    if cday_time > time_limit and trade in ("BUY","...") : 
                         trade = "SELL"
+
+                    # ACHAT si dans la période du marché 
+                    # et si pas de trade en cours pour l'action
+                    if trade == "WAIT" : 
+                        if rsi > rsi1 : trade = "BUY"
+                    if cday_time < time_limit and trade == "":
+                        if rsi < 39 : trade = "WAIT"
+
+                if trade == "BUY":
+                    fbuy = quote
+                    iquantity = fmise//fbuy
+
+                if trade == "SELL":
+                    fsell = quote
+                    # Enregistrement des nouveaux trades
+                    fgain = fsell*iquantity-fbuy*iquantity-fbuy*iquantity*ffrais
+                    fgainp = (fgain / (fbuy*iquantity)) * 100
+                    fday += fgain 
+                    self.crud.exec_sql(self.crud.get_basename(), """
+                    insert into trades (trades_ptf_id, trades_time, trades_buy, trades_sell
+                    ,trades_quantity, trades_gain, trades_gainp, trades_day)
+                    select :ptf_id, :cdays_time, :fbuy, :fsell, :iquantity, :fgain, :fgainp, :fday
+                    where not exists (select 1 from trades where trades_ptf_id = :ptf_id and trades_time = :cdays_time)
+                    """, {"ptf_id": ptf["ptf_id"], "cdays_time": cday["cdays_time"]
+                    ,"fbuy": fbuy, "fsell": fsell, "iquantity": iquantity, "fgain": fgain, "fgainp": fgainp, "fday": fday})
 
                 cday["cdays_min"] = mini
                 cday["cdays_max"] = maxi
                 cday["cdays_ema"] = ema
                 cday["cdays_sma"] = sma
+                cday["cdays_moy"] = moy
+                cday["cdays_rsi"] = rsi
+                cday["cdays_trend"] = moy
                 cday["cdays_trade"] = trade
 
                 # maj du cours
@@ -156,6 +225,9 @@ class PicsouLoadQuotesDay():
                 ,cdays_max = :cdays_max
                 ,cdays_ema = :cdays_ema
                 ,cdays_sma = :cdays_sma
+                ,cdays_moy = :cdays_moy
+                ,cdays_rsi = :cdays_rsi
+                ,cdays_trend = :cdays_trend
                 ,cdays_trade = :cdays_trade
                 WHERE cdays_id = :cdays_id
                 """, cday)
@@ -262,7 +334,19 @@ class PicsouLoadQuotesDay():
                 if conn:
                     conn.close()
 
-    def get_rsi(self, prices, n=14):
+    def rsi_bug(self, prices, n=14):
+        ''' rsi indicator '''
+        delta = np.diff(prices)
+        dUp, dDown = delta.copy(), delta.copy()
+        dUp[dUp < 0] = 0
+        dDown[dDown > 0] = 0
+
+        RolUp = pd.rolling_mean(dUp, n)
+        RolDown = pd.rolling_mean(dDown, n).abs()
+        RS = RolUp / RolDown
+        return RS
+
+    def rsi(self, prices, n=14):
         deltas = np.diff(prices)
         seed = deltas[:n+1]
         up = seed[seed>=0].sum()/n
@@ -284,7 +368,6 @@ class PicsouLoadQuotesDay():
             down = (down*(n-1) + downval)/n
             rs = up/down
             rsi[i] = 100. - 100./(1.+rs)
-
         return rsi[len(rsi)-1]
 
     def ema(self, data, window):

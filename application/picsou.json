@@ -15,7 +15,8 @@
         "Picsou Restauration": "./picsou_batch.py -restore",
         "Picsou Simul": "./picsou_batch.py -simul -account",
         "Picsou Quote": "./picsou_batch.py -simul -account -quote",
-        "Picsou Day": "./picsou_batch.py -day"
+        "Picsou Day": "./picsou_batch.py -day",
+        "Picsou Day 10 mns": "./picsou_batch.py -day10"
     },
     "tables": {
         "ptf": {
@@ -256,6 +257,7 @@
                     "form_edit": "fedit",
                     "icon_name": "folder-download",
                     "searchable": true,
+                    "hide": true,
                     "elements": {
                         "ptf_account": {},
                         "ptf_id": {},
@@ -316,6 +318,7 @@
                     "form_edit": "fedit",
                     "icon_name": "folder-documents",
                     "searchable": true,
+                    "hide": true,
                     "elements": {
                         "ptf_account": {},
                         "ptf_id": {},
@@ -650,6 +653,7 @@
                     "searchable_sql": true,
                     "icon_name": "go-jump",
                     "limit": 400,
+                    "hide": true,
                     "elements": {
                         "cours_id": {},
                         "cours_ptf_id": {},
@@ -894,6 +898,7 @@
                     "deletable": true,
                     "icon_name": "emblem-shared",
                     "limit": 1000,
+                    "hide": true,
                     "elements": {
                         "mvt_id": {"hide": true},
                         "mvt_account": {},
@@ -957,6 +962,7 @@
                     "sql_footer": "SELECT printf('<b>PEA</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'PEA'"
                 },
                 "vsimul": {
+                    "hide": true,
                     "title": "Simul",
                     "searchable": true,
                     "form_add": "fadd",
@@ -990,6 +996,7 @@
                     "sql_footer": "SELECT printf('<b>SIMUL</b> Gain du jour: <b>%.2f</b> € Espèce: <b>%.2f</b> Gain: <b>%.2f</b> € Latent: <b>%.2f</b> € soit <b>%.2f</b> %', acc_gain_day, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer FROM ACCOUNT where acc_id = 'SIMUL'"
                 },
                 "vfictif": {
+                    "hide": true,
                     "title": "Fictif",
                     "searchable": true,
                     "form_add": "fadd",
@@ -1122,6 +1129,7 @@
             },
             "views": {
                 "vall": {
+                    "hide": true,
                     "title": "Comptes",
                     "form_add": "fadd",
                     "form_edit": "fedit",
@@ -1257,6 +1265,26 @@
                     "type": "float",
                     "display": "%3.2f €"
                 },
+                "cdays_moy": {
+                    "info": "Moyenne long terme calculée sur l'ensemble des données",
+                    "label_long": "MOY",
+                    "label_short": "MOY",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "cdays_rsi": {
+                    "label_long": "RSI",
+                    "label_short": "RSI",
+                    "type": "float",
+                    "display": "%3.2f"
+                },
+                "cdays_trend": {
+                    "label_long": "TREND",
+                    "label_short": "TREND",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when cdays_trend < 0 then '#FF0000' else '#006600' end"
+                },
                 "cdays_trade": {
                     "label_long": "Trade",
                     "label_short": "Trade",
@@ -1346,6 +1374,9 @@
                         "cdays_max": {},
                         "cdays_ema": {},
                         "cdays_sma": {},
+                        "cdays_moy": {},
+                        "cdays_rsi": {},
+                        "cdays_trend": {},
                         "cdays_trade": {},
                         "_fgraph": {},
                         "cdays_inptf": {},
@@ -1357,27 +1388,97 @@
                 }
             },
             "forms": {
-                "fadd": {
-                    "title": "Ajouter un cours...",
-                    "elements": {
-                        "cdays_id": {},
-                        "cdays_ptf_id": {},
-                        "cdays_name": {},
-                        "cdays_close": {},
-                        "cdays_time": {}
-                    }
+            }
+        },
+        "trades": {
+            "key": "trades_id",
+            "key_display": "trades_id",
+            "elements": {
+                "trades_id": {
+                    "label_long": "id",
+                    "label_short": "id",
+                    "type": "int",
+                    "hide": false
                 },
-                "fedit": {
-                    "title": "Modifier un cours...",
-                    "elements": {
-                        "cdays_id": {},
-                        "cdays_ptf_id": {},
-                        "cdays_name": {},
-                        "cdays_close": {},
-                        "cdays_time": {}
+                "trades_ptf_id": {
+                    "label_long": "Valeur",
+                    "label_short": "Valeur",
+                    "type": "text",
+                    "searchable": true
+                },
+                "trades_time": {
+                    "label_long": "Date Heure",
+                    "label_short": "Date Heure",
+                    "type": "text",
+                    "sortable": true,
+                    "searchable": true
+                },
+                "trades_buy": {
+                    "label_long": "Achat",
+                    "label_short": "Achat",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "trades_sell": {
+                    "label_long": "Vente",
+                    "label_short": "Vente",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "trades_quantity": {
+                    "label_long": "Quantité",
+                    "label_short": "Qt",
+                    "type": "int"
+                },
+                "trades_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "display": "%3.2f €",
+                    "sql_color": "case when trades_gain < 0 then '#FF0000' else '#006600' end"
+                },
+                "trades_gainp": {
+                    "label_long": "%",
+                    "label_short": "%",
+                    "type": "float",
+                    "display": "%3.2f %%",
+                    "sql_color": "case when trades_gainp < 0 then '#FF0000' else '#006600' end"
+                },
+                "_fgraph": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "form",
+                    "params": {
+                        "plugin": "picsou_graph.PicsouGraphDay",
+                        "icon_name": "applications-office",
+                        "ptf_id": "{trades_ptf_id}"
                     }
                 }
-            }
+            },
+            "views": {
+                "vall": {
+                    "title": "Trades du jour",
+                    "searchable_sql": true,
+                    "deletable": true,
+                    "icon_name": "go-jump",
+                    "limit": 100,
+                    "elements": {
+                        "trades_id": {},
+                        "trades_ptf_id": {},
+                        "trades_time": {},
+                        "trades_buy": {},
+                        "trades_sell": {},
+                        "trades_quantity": {},
+                        "trades_gain": {},
+                        "trades_gainp": {},
+                        "_fgraph": {}
+                    },
+                    "order_by": "trades.trades_time, trades.trades_ptf_id",
+                    "sql_footer": "SELECT printf('Le PICSOU du Jour : <b>%.2f</b> €', sum(trades_gain)) AS sql_footer FROM trades"
+                }
+            },
+            "forms": {}
         }
+
     }
 }

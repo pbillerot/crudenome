@@ -337,43 +337,44 @@ class CrudView(GObject.GObject):
             crudel = self.crud.get_element_prop(element, "crudel")
             # crudel.init_crudel_sql()
         row_id = 0
-        for row in rows:
-            store = []
-            # print row
-            # 1ère colonne col_row_id
-            store.append(row_id)
-            # 2ème colonne col_searchable_id
-            store.append("#F0F8FF") 
-            # 3ème colonne col_editable_id
-            store.append("#F0FFF0") 
-            for element in self.crud.get_view_elements():
-                crudel = self.crud.get_element_prop(element, "crudel")
-                # Valorisation du crudel avec la colonne sql
-                crudel.init_value()
-                if element in row:
-                    crudel.set_value_sql(row[element])
-                # colonnes crudel
-                display = crudel.get_cell()
-                # print element, crudel.get_value(), display
-                store.append(display)
-                # colonnes techniques
-                if crudel.get_sql_color() != "":
-                    store.append(row[element + "_color"])
-                if crudel.is_sortable():
-                    store.append(crudel.get_value())
-            # col_action_id
-            if self.crud.get_view_prop("deletable", False)\
-                or self.crud.get_view_prop("form_edit", None) is not None:
-                store.append(False)
-            # dernière colonne vide
-            store.append("")
-            # print "store", row_id, store
-            self.liststore.append(store)
-            row_id += 1
+        if rows:
+            for row in rows:
+                store = []
+                # print row
+                # 1ère colonne col_row_id
+                store.append(row_id)
+                # 2ème colonne col_searchable_id
+                store.append("#F0F8FF") 
+                # 3ème colonne col_editable_id
+                store.append("#F0FFF0") 
+                for element in self.crud.get_view_elements():
+                    crudel = self.crud.get_element_prop(element, "crudel")
+                    # Valorisation du crudel avec la colonne sql
+                    crudel.init_value()
+                    if element in row:
+                        crudel.set_value_sql(row[element])
+                    # colonnes crudel
+                    display = crudel.get_cell()
+                    # print element, crudel.get_value(), display
+                    store.append(display)
+                    # colonnes techniques
+                    if crudel.get_sql_color() != "":
+                        store.append(row[element + "_color"])
+                    if crudel.is_sortable():
+                        store.append(crudel.get_value())
+                # col_action_id
+                if self.crud.get_view_prop("deletable", False)\
+                    or self.crud.get_view_prop("form_edit", None) is not None:
+                    store.append(False)
+                # dernière colonne vide
+                store.append("")
+                # print "store", row_id, store
+                self.liststore.append(store)
+                row_id += 1
 
-        self.qligne_view = len(rows)
-        # suppression de la sélection
-        self.emit("init_widget", self.__class__, "update_listore")
+            self.qligne_view = len(rows)
+            # suppression de la sélection
+            self.emit("init_widget", self.__class__, "update_listore")
 
     def filter_func(self, model, iter, data):
         """Tests if the text in the row is the one in the filter"""

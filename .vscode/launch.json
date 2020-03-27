@@ -9,24 +9,43 @@
             "pythonPath": "${config:python.pythonPath}",
             "program": "/home/billerot/Git/crudenome/crudenome.py",
             "cwd": "${workspaceRoot}",
-            "args": [
-                "-a",
-                "picsou"
-            ],
+            "args": ["-a","picsou"],
             "env": {},
             "envFile": "${workspaceRoot}/.env"
         },
         {
-            "name": "Batch Quote",
+            "name": "Batch Day Quote",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "~/Git/crudenome/picsou_batch.py",
+            "program": "/home/billerot/Git/crudenome/picsou_batch.py",
             "cwd": "${workspaceRoot}",
-            "args": [
-                "-quote"
-            ],
+            "args": ["-day","-quote"],
+            "env": {},
+            "envFile": "${workspaceRoot}/.env"
+        },
+        {
+            "name": "Batch Day Simul",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "/home/billerot/Git/crudenome/picsou_batch.py",
+            "cwd": "${workspaceRoot}",
+            "args": ["-day","-simul"],
+            "env": {},
+            "envFile": "${workspaceRoot}/.env"
+        },
+        {
+            "name": "Batch Day Quote Repeat",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "/home/billerot/Git/crudenome/picsou_batch.py",
+            "cwd": "${workspaceRoot}",
+            "args": ["-dayrepeat","-quote"],
             "env": {},
             "envFile": "${workspaceRoot}/.env"
         },

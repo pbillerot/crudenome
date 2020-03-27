@@ -5,7 +5,7 @@
 """
 import shutil
 import os
-import datetime
+import datetime, time
 import argparse
 
 from crud import Crud
@@ -29,11 +29,6 @@ class PicsouBatch():
 
         self.crud.set_application(application)
 
-        if self.args.histo or self.args.quote\
-        or self.args.simul or self.args.account\
-        or self.args.mail or self.args.sms:
-            self.run_calcul()
-
         if self.args.backup:
             self.backup()
 
@@ -41,24 +36,41 @@ class PicsouBatch():
             self.restore()
 
         if self.args.day:
-           self.day()
+           self.run_day()
 
+        if self.args.dayrepeat:
+           self.day_schedule()
 
     def display(self, msg):
         """ docstring """
         print(msg)
         # self.crud.logger.info(msg)
 
-    def day(self):
+    def day_schedule(self):
+        """ Lancement toutes les 5 minutes de day """
+        self.run_day()
+        time1 = time.time()
+        while True:
+            time2 = time.time()
+            if ( (time2-time1) > 5 * 60 ):
+                print()
+                self.run_day()
+                time1 = time2
+            time.sleep(1)
+
+    def run_day(self):
+        self.display(datetime.datetime.now().strftime("%Y/%m/%d, %H:%M:%S") + " : Calcul en cours..." )
         loader = PicsouLoadQuotesDay(self, self.crud)
-        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
-        """, {})
-        for ptf in ptfs:
-            loader.run(ptf["ptf_id"], 7)
+        
+        if self.args.quote:
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
+            """, {})
+            for ptf in ptfs:
+                loader.run(ptf["ptf_id"], 7)
 
-        loader.simulateur()
-
+        if self.args.simul:
+            loader.simulateur()
 
     def backup(self):
         """ backup """
@@ -174,6 +186,7 @@ if __name__ == '__main__':
     parser.add_argument('-backup', '--backup', action='store_true', default=False, help="Sauvegarder la base sur la box")
     parser.add_argument('-restore', '--restore', action='store_true', default=False, help="Restauration de la base locale à partir de la base sur la box")
     parser.add_argument('-day', '--day', action='store_true', default=False, help="Requête des cours du jour")
+    parser.add_argument('-dayrepeat', '--dayrepeat', action='store_true', default=False, help="Requête des cours du jour périodiquement")
     # print parser.parse_args()
 
     PicsouBatch(parser.parse_args())
