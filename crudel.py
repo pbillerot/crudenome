@@ -377,7 +377,7 @@ class Crudel(GObject.GObject):
         if self.is_sortable():
             col_id += 1
             tvc.set_sort_column_id(col_id)
-        if self.is_col_editable():
+        if self.is_col_editable() and self.get_type() == "text":
             tvc.add_attribute(renderer, "background", 2) # 3ème colonne
         if self.is_searchable() and not self.is_col_editable():
             tvc.add_attribute(renderer, "background", 1) # 2ème colonne
@@ -463,7 +463,7 @@ class Crudel(GObject.GObject):
             , sql, {"key_value": key_value, "text": text})
 
 ########################################################
-### Classes des crudel en fonction dy type d'élément ####################################################
+### Classes des crudel en fonction dy type d'élément ###
 ########################################################
 
 class CrudelBatch(Crudel):

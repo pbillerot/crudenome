@@ -71,25 +71,7 @@ CREATE TABLE `cdays` (
 ```
 
 ## Démarche
-- recup des 6 derniers cours
-- le dernier cours est celui qui nous intéresse car il évolue dans la journée
-- ce dernier cours sera enregistré dans la table "cdays"
-- un automate va recherché ce dernier cours toutes les 10 minutes
-- ces cours seront analysés pour récupérer
-    - la progression "trend"
-    - le cours min et le cours min-1
-    - le cours max et le max-1
-    - le pourcentage de progression par rapport au cours d'achat
-- ordre d'achat si
-    - tobuy
-    - trend > 0
-    - et si max > max-1 
-    - et si min > min-1
-    - et si le nombre de cours est suffisant pour avoir une analyse pertinente
-- ordre de vente si
-    - tosell
-    - max < max-1
-    - et si min < min-1
 
-## Cas
+## Dessins
 https://drive.google.com/open?id=1v-FKCZdRNJAXW89Xy-yA2kBaMQPxnXQT
+

@@ -15,8 +15,8 @@ from plugin.picsou_loader import PicsouLoadQuotes, PicsouLoadQuotesDay
 class PicsouBatch():
     """ Actualisation des données """
     # Planification dans cron
-    # 55 9,11,16 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -quote -simul -sms
-    # 55 17 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -quote -simul -sms -mail
+    # 55 9,11,16 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -quote -trade -sms
+    # 55 17 * * 1-5 /home/pi/git/crudenome/picsou_batch.py -quote -trade -sms -mail
 
     def __init__(self, args):
 
@@ -69,8 +69,8 @@ class PicsouBatch():
             for ptf in ptfs:
                 loader.run(ptf["ptf_id"], 7)
 
-        if self.args.simul:
-            loader.simulateur()
+        if self.args.trade:
+            loader.trade(self.args.rsimin, self.args.rsimax)
 
     def backup(self):
         """ backup """
@@ -137,7 +137,7 @@ class PicsouBatch():
             for ptf in ptfs:
                 loader.run(ptf["ptf_id"], 10)
 
-        if self.args.simul:
+        if self.args.trade:
             loader.simulateur()
 
         if self.args.account:
@@ -180,13 +180,15 @@ if __name__ == '__main__':
     parser.add_argument('-mail', '--mail', action='store_true', default=False, help="Envoi mail à la fin")
     parser.add_argument('-sms', '--sms', action='store_true', default=False, help="Envoi SMS à la fin")
     parser.add_argument('-histo', '--histo', action='store_true', default=False, help="Rechargement de l'historique des cours sur 500 jours")
-    parser.add_argument('-simul', '--simul', action='store_true', default=False, help="Avec recalcul du simulateur")
-    parser.add_argument('-quote', '--quote', action='store_true', default=False, help="Requête pour actualiser le cours du jour")
+    parser.add_argument('-trade', '--trade', action='store_true', default=False, help="Avec activation du trader")
+    parser.add_argument('-quote', '--quote', action='store_true', default=False, help="Avec actualisation des cours du jour")
     parser.add_argument('-account', '--account', action='store_true', default=False, help="Requête pour actualiser les comptes")
     parser.add_argument('-backup', '--backup', action='store_true', default=False, help="Sauvegarder la base sur la box")
     parser.add_argument('-restore', '--restore', action='store_true', default=False, help="Restauration de la base locale à partir de la base sur la box")
     parser.add_argument('-day', '--day', action='store_true', default=False, help="Requête des cours du jour")
     parser.add_argument('-dayrepeat', '--dayrepeat', action='store_true', default=False, help="Requête des cours du jour périodiquement")
+    parser.add_argument('rsimin', help="Palier bas du rsi")
+    parser.add_argument('rsimax', help="Palier haut du rsi")
     # print parser.parse_args()
 
     PicsouBatch(parser.parse_args())

@@ -417,7 +417,6 @@ class Crud:
             return path
         else:
             return None
-
     # table
     def get_table_views(self):
         """ Obtenir la liste des vues de la table courante """

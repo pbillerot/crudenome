@@ -207,7 +207,7 @@ class PicsouBatchUi(Gtk.Window):
                 # Chargement de l'historique
                 loader.run(ptf["ptf_id"], 7)
 
-            loader.simulateur()
+            loader.trade()
 
             return
 

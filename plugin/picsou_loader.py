@@ -9,7 +9,6 @@ import re
 import sys
 import requests
 import numpy as np
-import pandas as pd
 from gi.repository import Gtk
 
 class PicsouLoadQuotesDay():
@@ -61,7 +60,7 @@ class PicsouLoadQuotesDay():
         set cdays_percent = ( (cdays_close - cdays_open) / cdays_open) * 100 
         """, {})
 
-    def simulateur(self):
+    def trade(self, srsimin, srsimax):
         """
         Simulation d'achat et de vente d'actions à partir du cours de la journé
         - On dispose d'un compte "espèces" d'un montant fixé au départ 10 000 € par exemple
@@ -70,20 +69,27 @@ class PicsouLoadQuotesDay():
         - On mise en priorité sur les actions qui ont la croissance la plus forte
         Boucle sur les dates de l'historiques tri /date,action
         """
+        rsimin = int(srsimin)
+        rsimax = int(srsimax)
+        # Calcul du timestamp du jour à 17 heures 15 (heure limite d'achat)
+        time_limit = datetime.datetime.now().replace(hour=19, minute=15, second=0, microsecond=0).timestamp()
+
         # Nettoyage de la simulation du jour
+        datetoday = datetime.datetime.now().strftime("%Y-%m-%d")
         self.crud.exec_sql(self.crud.get_basename(), """
-        delete from trades
-        """, {})
+        delete from trades where trades_date = :date and trades_rsi = :rsi
+        """, {"date": datetoday, "rsi": "{}-{}".format(rsimin,rsimax)})
 
         # Boucle sur les PTF
         ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM ptf WHERE ptf_disabled is null or ptf_disabled <> '1'
         ORDER BY ptf_id
         """, {})
+        fcostp = self.crud.get_application_prop("trade")["cost"] # coût de la transaction ex: 0.012 %
+        fstake = self.crud.get_application_prop("trade")["stake"] # mise ou enjeu
         fday = 0.0
-        ffrais = 0.012
-        fmise = 1200.0
-        time_limit = datetime.datetime.now().replace(hour=17, minute=30, second=0, microsecond=0).timestamp()
+        fbank = 0.0
+        fdayp = 0.0
         for ptf in ptfs:
             self.parent.display(ptf["ptf_id"] + " simul... ")
             while Gtk.events_pending():
@@ -98,21 +104,10 @@ class PicsouLoadQuotesDay():
             quote1 = 0.0
             quote2 = 0.0
             quote3 = 0.0
-            mini = 0
-            maxi = 0
             nbc = 0
             quotes = []
-            ema = 0.0
-            sma = 0.0
-            rsi = 0.0
+            rsi = 50
             rsi1 = 0.0
-            ema1 = 0.0
-            sma1 = 0.0
-            moy = 0.0 # moyenne calculée sur l'ensemble des données
-            trend = 0.0
-            trend1 = 0.0
-            trend2 = 0.0
-            volume = 0
             trade = ""
             cday_time = 0
             fbuy = 0.0
@@ -121,116 +116,94 @@ class PicsouLoadQuotesDay():
             fgain = 0.0
             fgainp = 0.0
             trade = ""
+            firstQuoteIsPositive = False
             for cday in cdays:
                 nbc+=1
                 quote3 = quote2
                 quote2 = quote1
                 quote1 = quote
-                trend2 = trend1
-                trend1 = trend
                 rsi1 = rsi
-                ema1 = ema
-                sma1 = sma
-                quote = cday["cdays_close"]
-                volume = cday["cdays_volume"]
+
+                # Calcul du timestamp du cours courant
                 cday_time = datetime.datetime.strptime(cday["cdays_time"], '%Y-%m-%d %H:%M:%S').timestamp()
 
+                if nbc == 1 :
+                    firstQuoteIsPositive = True if cday["cdays_percent"] > 0 else False
+
+                quote = cday["cdays_close"]
                 quotes.append(quote)
 
-                if mini == 0: # début
-                    mini = cday["cdays_open"]
-                    maxi = cday["cdays_open"]
-                    ema = cday["cdays_open"]
-                    sma = cday["cdays_open"]
-                    ema1 = cday["cdays_open"]
-                    sma1 = cday["cdays_open"]
-                    moy = cday["cdays_open"]
-                    rsi = 40.0
+                if nbc > 11 : rsi = self.rsi(quotes, nbc//2)
 
-                if nbc > 1:
-                    window = nbc//2 if nbc < 16 else 8
-                    ema = self.ema(quotes, window)
-                    sma = self.sma(quotes, window)
-                    moy = self.sma(quotes, nbc//2)
-                    if window > 3 : rsi = self.rsi(quotes, nbc//2)
+                if trade == "BUY" : trade = "..."
+                if trade == "SELL": trade = ""
 
-                trend = sma - moy
+                # VENTE
+                if trade in ("BUY","..."):
+                    if rsi > rsimax : trade = "SELL"
+                # fin de journée, on vend tout avant la cloture
+                if cday_time > time_limit and trade in ("BUY","...") : 
+                    trade = "SELL"
 
-                if quote > maxi:  # ça monte
-                    maxi = quote
-                if quote < mini:  # ça baisse
-                    mini = quote
-
-                if quote > quote1 and quote1 < quote2:  # ça remonte
-                    maxi = quote
-                    if quote1 > mini: # le mini remonte
-                        mini = quote1
-
-                """
-                si la moyenne à court terme est plus élevée que la moyenne à long terme,
-                    nous sommes sur une tendance haussière -> on achète
-                si la moyenne à court terme est inférieure à la moyenne à long terme,
-                    la tendance est baissière -> on vend
-                """
-                if trade == "BUY":
-                    trade = "..."
-                if trade == "SELL":
-                    trade = ""
-                if nbc > 2:
-                    # VENTE
-                    if trade in ("BUY","..."):
-                        if rsi > 60 : trade = "SELL"
-                    # fin de journée, on vend tout avant la cloture
-                    if cday_time > time_limit and trade in ("BUY","...") : 
-                        trade = "SELL"
-
-                    # ACHAT si dans la période du marché 
-                    # et si pas de trade en cours pour l'action
-                    if trade == "WAIT" : 
-                        if rsi > rsi1 : trade = "BUY"
-                    if cday_time < time_limit and trade == "":
-                        if rsi < 39 : trade = "WAIT"
+                # ACHAT si dans la période du marché 
+                # et si pas de trade en cours pour l'action
+                if trade == "WAIT" : 
+                    if rsi > rsi1 : trade = "BUY"
+                if cday_time < time_limit and trade == "":
+                    if rsi < rsimin : trade = "WAIT"
 
                 if trade == "BUY":
-                    fbuy = quote
-                    iquantity = fmise//fbuy
+                    if cday["cdays_volume"] < 100000 or firstQuoteIsPositive == False:
+                        trade = ""
+                    else:
+                        fbuy = quote
+                        iquantity = fstake//fbuy
+                        # On augmente la banque si pas assez de cash
+                        fcost = fbuy*iquantity*fcostp
+                        if fbank <= (fbuy*iquantity + fcost) :
+                            fbank = fbank + fbuy*iquantity + fcost
 
                 if trade == "SELL":
                     fsell = quote
-                    # Enregistrement des nouveaux trades
-                    fgain = fsell*iquantity-fbuy*iquantity-fbuy*iquantity*ffrais
+                    # Enregistrement du TRADE
+                    fcost = fsell*iquantity*fcostp+fbuy*iquantity*fcostp
+                    fgain = fsell*iquantity-fbuy*iquantity-fcost
                     fgainp = (fgain / (fbuy*iquantity)) * 100
                     fday += fgain 
-                    self.crud.exec_sql(self.crud.get_basename(), """
-                    insert into trades (trades_ptf_id, trades_time, trades_buy, trades_sell
-                    ,trades_quantity, trades_gain, trades_gainp, trades_day)
-                    select :ptf_id, :cdays_time, :fbuy, :fsell, :iquantity, :fgain, :fgainp, :fday
-                    where not exists (select 1 from trades where trades_ptf_id = :ptf_id and trades_time = :cdays_time)
-                    """, {"ptf_id": ptf["ptf_id"], "cdays_time": cday["cdays_time"]
-                    ,"fbuy": fbuy, "fsell": fsell, "iquantity": iquantity, "fgain": fgain, "fgainp": fgainp, "fday": fday})
+                    # On remet le gain en cash
+                    if fgain > 0 :
+                        fbank = fbank + fgain
 
-                cday["cdays_min"] = mini
-                cday["cdays_max"] = maxi
-                cday["cdays_ema"] = ema
-                cday["cdays_sma"] = sma
-                cday["cdays_moy"] = moy
+                    self.crud.exec_sql(self.crud.get_basename(), """
+                    insert into trades (trades_ptf_id, trades_date, trades_time, trades_buy, trades_sell
+                    ,trades_quantity, trades_cost, trades_gain, trades_gainp, trades_rsi)
+                    select :ptf_id, :cdays_date, :cdays_time, :fbuy, :fsell, :iquantity, :fcost, :fgain, :fgainp, :rsi
+                    where not exists (select 1 from trades where trades_ptf_id = :ptf_id and trades_time = :cdays_time)
+                    """, {"ptf_id": ptf["ptf_id"], "cdays_date": cday["cdays_date"], "cdays_time": cday["cdays_time"]
+                    ,"fbuy": fbuy, "fsell": fsell, "iquantity": iquantity, "fcost": fcost, "fgain": fgain, "fgainp": fgainp
+                    ,"rsi": "{}-{}".format(rsimin,rsimax)
+                    })
+
                 cday["cdays_rsi"] = rsi
-                cday["cdays_trend"] = moy
                 cday["cdays_trade"] = trade
 
                 # maj du cours
                 self.crud.exec_sql(self.crud.get_basename(), """
                 UPDATE cdays
-                set cdays_min = :cdays_min
-                ,cdays_max = :cdays_max
-                ,cdays_ema = :cdays_ema
-                ,cdays_sma = :cdays_sma
-                ,cdays_moy = :cdays_moy
-                ,cdays_rsi = :cdays_rsi
-                ,cdays_trend = :cdays_trend
+                set cdays_rsi = :cdays_rsi
                 ,cdays_trade = :cdays_trade
                 WHERE cdays_id = :cdays_id
                 """, cday)
+            # Compte-rendu dans TRADES de fday, fbank, fdayp
+            if fbank > 0 : fdayp = (fday / fbank) * 100
+            self.crud.exec_sql(self.crud.get_basename(), """
+            UPDATE trades
+            set trades_daybank = :fbank
+            ,trades_day = :fday
+            ,trades_dayp = :fdayp
+            WHERE trades_date = date('now')
+            """, {"fbank": fbank, "fday": fday, "fdayp": fdayp})
+
 
     def split_crumb_store(self, v):
         return v.split(':')[2].strip('"')
@@ -334,18 +307,6 @@ class PicsouLoadQuotesDay():
                 if conn:
                     conn.close()
 
-    def rsi_bug(self, prices, n=14):
-        ''' rsi indicator '''
-        delta = np.diff(prices)
-        dUp, dDown = delta.copy(), delta.copy()
-        dUp[dUp < 0] = 0
-        dDown[dDown > 0] = 0
-
-        RolUp = pd.rolling_mean(dUp, n)
-        RolDown = pd.rolling_mean(dDown, n).abs()
-        RS = RolUp / RolDown
-        return RS
-
     def rsi(self, prices, n=14):
         deltas = np.diff(prices)
         seed = deltas[:n+1]
@@ -369,26 +330,6 @@ class PicsouLoadQuotesDay():
             rs = up/down
             rsi[i] = 100. - 100./(1.+rs)
         return rsi[len(rsi)-1]
-
-    def ema(self, data, window):
-        if len(data) < 2 * window:
-            raise ValueError("data is too short")
-            # return 0
-        c = 2.0 / (window + 1)
-        current_ema = self.sma(data[-window*2:-window], window)
-        for value in data[-window:]:
-            current_ema = (c * value) + ((1 - c) * current_ema)
-        # print window, current_ema, data
-        return current_ema
-
-    def sma(self, data, window):
-        """
-        Calculates Simple Moving Average
-        http://fxtrade.oanda.com/learn/forex-indicators/simple-moving-average
-        """
-        if len(data) < window:
-            return 0
-        return sum(data[-window:]) / float(window)        
 
 class PicsouLoadQuotes():
     """

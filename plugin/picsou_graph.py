@@ -3,6 +3,16 @@
     Fenêtre d'affichage de graphique
     Utilisation de la librairie matplotlib
 
+    matplotlib. colors
+    b : blue.
+    g : green.
+    r : red.
+    c : cyan.
+    m : magenta.
+    y : yellow.
+    k : black.
+    w : white.
+
 """
 from datetime import datetime
 
@@ -58,24 +68,14 @@ class PicsouGraphDay(Gtk.Window):
 
         cdays_times = []
         cdays_quotes = []
-        cdays_ema = []
-        cdays_sma = []
-        cdays_moy = []
+        cdays_opens = []
         cdays_rsi = []
-        cdays_trend = []
-        cdays_min = []
-        cdays_max = []
         cdays_trades = []
         for cday in cdays:
             cdays_times.append(cday["cdays_time"][11:16])
             cdays_quotes.append(float(cday["cdays_close"]))
-            cdays_ema.append(float(cday["cdays_ema"]))
-            cdays_sma.append(float(cday["cdays_sma"]))
-            cdays_moy.append(float(cday["cdays_moy"]))
+            cdays_opens.append(float(cday["cdays_open"]))
             cdays_rsi.append(float(cday["cdays_rsi"]))
-            cdays_trend.append(float(cday["cdays_trend"]))
-            cdays_min.append(float(cday["cdays_min"]))
-            cdays_max.append(float(cday["cdays_max"]))
             if cday["cdays_trade"] in ('BUY', '...', 'SELL'):
                 cdays_trades.append(float(cday["cdays_close"]))
             else:
@@ -84,11 +84,7 @@ class PicsouGraphDay(Gtk.Window):
         fig, ax1 = plt.subplots()
         ax1.plot(cdays_times, cdays_quotes, 'o-', label='Cours')
         ax1.plot(cdays_times, cdays_trades, 'o-', label='Trade', linewidth=2)
-        ax1.plot(cdays_times, cdays_ema, '-', label='EMA')
-        ax1.plot(cdays_times, cdays_sma, '-', label='SMA')
-        ax1.plot(cdays_times, cdays_moy, '-', label='MOY')
-        # ax1.plot(cdays_times, cdays_min, '-', label='MIN')
-        # ax1.plot(cdays_times, cdays_max, '-', label='Max')
+        ax1.plot(cdays_times, cdays_opens, 'g:', label='Open')
         ax1.set_ylabel('Cours (Euro)')
         ax1.set_xlabel('Heure')
         ax1.legend(loc=3)
