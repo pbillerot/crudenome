@@ -64,7 +64,7 @@ class PicsouBatch():
         
         if self.args.quote:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
+            SELECT * FROM ptf where ptf_enabled = '1' ORDER BY ptf_id
             """, {})
             for ptf in ptfs:
                 loader.run(ptf["ptf_id"], 7)
@@ -119,7 +119,7 @@ class PicsouBatch():
         if self.args.histo:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf
-            WHERE (ptf_disabled is null or ptf_disabled <> '1')
+            WHERE (ptf_enabled = '1')
             ORDER BY ptf_id
             """, {})
             self.display("Chargement de l'historique...")
@@ -129,7 +129,7 @@ class PicsouBatch():
         if self.args.quote:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf
-            WHERE (ptf_disabled is null or ptf_disabled <> '1')
+            WHERE (ptf_enabled = '1')
             ORDER BY ptf_id 
             """, {})
             # and ptf_id = 'FR0010340620.PA'

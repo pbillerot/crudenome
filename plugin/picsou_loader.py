@@ -72,7 +72,7 @@ class PicsouLoadQuotesDay():
         rsimin = int(srsimin)
         rsimax = int(srsimax)
         # Calcul du timestamp du jour à 17 heures 15 (heure limite d'achat)
-        time_limit = datetime.datetime.now().replace(hour=19, minute=15, second=0, microsecond=0).timestamp()
+        time_limit = datetime.datetime.now().replace(hour=17, minute=15, second=0, microsecond=0).timestamp()
 
         # Nettoyage de la simulation du jour
         datetoday = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -82,12 +82,13 @@ class PicsouLoadQuotesDay():
 
         # Boucle sur les PTF
         ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM ptf WHERE ptf_disabled is null or ptf_disabled <> '1'
+        SELECT * FROM ptf WHERE ptf_enabled = '1'
         ORDER BY ptf_id
         """, {})
         fcostp = self.crud.get_application_prop("trade")["cost"] # coût de la transaction ex: 0.012 %
         fstake = self.crud.get_application_prop("trade")["stake"] # mise ou enjeu
         fday = 0.0
+        fcash = 0.0
         fbank = 0.0
         fdayp = 0.0
         for ptf in ptfs:
@@ -111,7 +112,9 @@ class PicsouLoadQuotesDay():
             trade = ""
             cday_time = 0
             fbuy = 0.0
+            fachat = 0.0
             fsell = 0.0
+            fvente = 0.0
             iquantity = 0
             fgain = 0.0
             fgainp = 0.0
@@ -159,28 +162,41 @@ class PicsouLoadQuotesDay():
                         fbuy = quote
                         iquantity = fstake//fbuy
                         # On augmente la banque si pas assez de cash
-                        fcost = fbuy*iquantity*fcostp
-                        if fbank <= (fbuy*iquantity + fcost) :
-                            fbank = fbank + fbuy*iquantity + fcost
+                        fcost_buy = fbuy*iquantity*fcostp
+                        fachat = fbuy*iquantity + fcost_buy
+                        if fbank <= fachat :
+                            fdelta = fachat - fbank
+                            fcash = fcash + fdelta
+                            fbank = fbank + fdelta
+                        # Info sur console
+                        print("ACHAT de {} {:3d} actions à {:06.2f} soit {:06.2f} dont frais {:5.2f}"
+                        .format(cdays["cdays_time"], cdays["cdays_ptf_id"], iquantity, fbuy, fachat, fcost_buy))
 
                 if trade == "SELL":
                     fsell = quote
                     # Enregistrement du TRADE
-                    fcost = fsell*iquantity*fcostp+fbuy*iquantity*fcostp
-                    fgain = fsell*iquantity-fbuy*iquantity-fcost
-                    fgainp = (fgain / (fbuy*iquantity)) * 100
+                    fcost_sell = fsell*iquantity*fcostp
+                    fvente = fsell*iquantity - fcost_sell
+                    fgain = fvente -fachat
+                    fgainp = (fgain / fachat) * 100
                     fday += fgain 
-                    # On remet le gain en cash
-                    if fgain > 0 :
-                        fbank = fbank + fgain
+                    # On met la vente en banque
+                    fbank = fbank + fvente
 
+                    # Info sur console
+                    print("{} VENTE de {} {:3d} actions à {:06.2f} soit {:06.2f} dont frais {:5.2f}"
+                    .format(cdays["cdays_time"], cdays["cdays_ptf_id"], iquantity, fsell, fvente, fcost_sell))
+
+                    # Enregistreemnt du trade terminé
                     self.crud.exec_sql(self.crud.get_basename(), """
                     insert into trades (trades_ptf_id, trades_date, trades_time, trades_buy, trades_sell
                     ,trades_quantity, trades_cost, trades_gain, trades_gainp, trades_rsi)
                     select :ptf_id, :cdays_date, :cdays_time, :fbuy, :fsell, :iquantity, :fcost, :fgain, :fgainp, :rsi
                     where not exists (select 1 from trades where trades_ptf_id = :ptf_id and trades_time = :cdays_time)
                     """, {"ptf_id": ptf["ptf_id"], "cdays_date": cday["cdays_date"], "cdays_time": cday["cdays_time"]
-                    ,"fbuy": fbuy, "fsell": fsell, "iquantity": iquantity, "fcost": fcost, "fgain": fgain, "fgainp": fgainp
+                    ,"fbuy": fbuy, "fsell": fsell, "iquantity": iquantity
+                    ,"fcost": fcost_buy+fcost_sell
+                    , "fgain": fgain, "fgainp": fgainp
                     ,"rsi": "{}-{}".format(rsimin,rsimax)
                     })
 
@@ -194,15 +210,14 @@ class PicsouLoadQuotesDay():
                 ,cdays_trade = :cdays_trade
                 WHERE cdays_id = :cdays_id
                 """, cday)
-            # Compte-rendu dans TRADES de fday, fbank, fdayp
-            if fbank > 0 : fdayp = (fday / fbank) * 100
+            # Compte-rendu dans TRADES de fday, fcash, fdayp
+            if fcash > 0 : fdayp = (fday / fcash) * 100
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE trades
-            set trades_daybank = :fbank
+            set trades_cash = :fcash
             ,trades_day = :fday
-            ,trades_dayp = :fdayp
             WHERE trades_date = date('now')
-            """, {"fbank": fbank, "fday": fday, "fdayp": fdayp})
+            """, {"fcash": fcash, "fday": fday})
 
 
     def split_crumb_store(self, v):
@@ -817,7 +832,7 @@ class PicsouLoadQuotes():
             """, {})
         else:
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf WHERE ptf_disabled is null or ptf_disabled <> '1'
+            SELECT * FROM ptf WHERE ptf_enabled = '1'
             ORDER BY ptf_id
             """, {})
         for ptf in ptfs:

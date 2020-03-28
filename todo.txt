@@ -1,5 +1,8 @@
 TODO
 
+
+- cash nécessaire
+
 - bug default sql
 - rubrique tags
 - rubrique link

@@ -49,15 +49,24 @@
                     "col_editable": true,
                     "searchable": true
                 },
-                "ptf_disabled": {
-                    "label_long": "Valeur Non Active",
-                    "label_short": "NA",
+                "ptf_enabled": {
+                    "label_long": "Valeur Active",
+                    "label_short": "Active",
                     "type": "check",
                     "col_editable": true
                 },
+                "_url_yahoo": {
+                    "label_long": "Lien vers Yahoo",
+                    "label_short": "Yahoo",
+                    "type": "url",
+                    "params": {
+                        "url": "https://fr.finance.yahoo.com/chart/{ptf_id}",
+                        "icon_name": "applications-internet"
+                    }
+                },
                 "_fgraph": {
                     "label_long": "Graph",
-                    "label_short": "",
+                    "label_short": "Graph",
                     "type": "form",
                     "params": {
                         "plugin": "picsou_graph.PicsouGraphDay",
@@ -86,7 +95,7 @@
             },
             "views": {
                 "vactif": {
-                    "title": "Ptf Actifs",
+                    "title": "Valeurs Actives",
                     "form_add": "fadd",
                     "form_edit": "fedit",
                     "icon_name": "folder",
@@ -95,14 +104,15 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "_fgraph": {},
-                        "ptf_disabled": {},
-                        "ptf_note": {}
+                        "ptf_enabled": {},
+                        "ptf_note": {},
+                        "_url_yahoo": {}
                     },
-                    "sql_where": "ptf_disabled is null or ptf_disabled <> '1'",
+                    "sql_where": "ptf_enabled = '1'",
                     "order_by": "ptf_id"
                 },
                 "vall": {
-                    "title": "Ptf",
+                    "title": "Toutes les valeurs",
                     "form_add": "fadd",
                     "form_edit": "fedit",
                     "icon_name": "folder",
@@ -111,8 +121,9 @@
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
+                        "ptf_enabled": {},
                         "_fgraph": {},
-                        "ptf_disabled": {},
+                        "_url_yahoo": {},
                         "ptf_note": {}
                     },
                     "order_by": "ptf_id"
@@ -134,7 +145,7 @@
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
-                        "ptf_disabled": {},
+                        "ptf_enabled": {},
                         "ptf_note": {}
                     }
                 },
@@ -143,7 +154,8 @@
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
-                        "ptf_disabled": {},
+                        "ptf_enabled": {},
+                        "_url_yahoo": {},
                         "ptf_note": {}
                     }
                 }
@@ -319,7 +331,20 @@
                     "label_long": "Valeur",
                     "label_short": "Valeur",
                     "type": "text",
-                    "searchable": true
+                    "searchable": true,
+                    "sortable": true
+                },
+                "_ptf_name": {
+                    "label_long": "Nom",
+                    "label_short": "Nom",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true,
+                    "sql_text": "SELECT ptf_name From ptf where ptf_id = '{trades_ptf_id}'",
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN ptf on ptf.ptf_id = trades.trades_ptf_id",
+                        "display": "ptf_name"
+                    }
                 },
                 "trades_date": {
                     "label_long": "Jour",
@@ -377,9 +402,9 @@
                     "display": "%3.2f %%",
                     "sql_color": "case when trades_gainp < 0 then '#FF0000' else '#006600' end"
                 },
-                "trades_daybank": {
-                    "label_long": "Banque",
-                    "label_short": "Banque",
+                "trades_cash": {
+                    "label_long": "Cash",
+                    "label_short": "Cash",
                     "type": "float",
                     "display": "%3.2f €"
                 },
@@ -390,12 +415,14 @@
                     "display": "%3.2f €",
                     "sql_color": "case when trades_day < 0 then '#FF0000' else '#006600' end"
                 },
-                "trades_dayp": {
-                    "label_long": "%%",
-                    "label_short": "%%",
-                    "type": "float",
-                    "display": "%3.2f %%",
-                    "sql_color": "case when trades_dayp < 0 then '#FF0000' else '#006600' end"
+                "_url_yahoo": {
+                    "label_long": "Lien vers Yahoo",
+                    "label_short": "Yahoo",
+                    "type": "url",
+                    "params": {
+                        "url": "https://fr.finance.yahoo.com/chart/{trades_ptf_id}",
+                        "icon_name": "applications-internet"
+                    }
                 },
                 "_fgraph": {
                     "label_long": "Graph",
@@ -418,6 +445,7 @@
                     "elements": {
                         "trades_id": {},
                         "trades_ptf_id": {},
+                        "_ptf_name": {},
                         "trades_time": {},
                         "trades_rsi": {},
                         "trades_buy": {},
@@ -427,9 +455,9 @@
                         "trades_gain": {},
                         "trades_gainp": {},
                         "_fgraph": {},
-                        "trades_daybank": {},
-                        "trades_day": {},
-                        "trades_dayp": {}
+                        "_url_yahoo": {},
+                        "trades_cash": {},
+                        "trades_day": {}
                     },
                     "sql_where": "trades_date = date('now')",
                     "order_by": "trades.trades_time, trades.trades_ptf_id",
@@ -444,6 +472,7 @@
                     "elements": {
                         "trades_id": {},
                         "trades_ptf_id": {},
+                        "_ptf_name": {},
                         "trades_time": {},
                         "trades_rsi": {},
                         "trades_buy": {},
@@ -453,9 +482,9 @@
                         "trades_gain": {},
                         "trades_gainp": {},
                         "_fgraph": {},
-                        "trades_daybank": {},
-                        "trades_day": {},
-                        "trades_dayp": {}
+                        "_url_yahoo": {},
+                        "trades_cash": {},
+                        "trades_day": {}
                     },
                     "order_by": "trades.trades_time, trades.trades_ptf_id",
                     "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(trades_gain)) AS sql_footer FROM trades"

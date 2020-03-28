@@ -44,6 +44,8 @@ class Crudel(GObject.GObject):
             crudel = CrudelRadio(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "uid":
             crudel = CrudelUid(crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "url":
+            crudel = CrudelUrl(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "view":
             crudel = CrudelView(crud, element, type_parent)
         else:
@@ -1002,6 +1004,56 @@ class CrudelUid(Crudel):
 
     def set_value_widget(self):
         pass
+
+class CrudelUrl(Crudel):
+    """ Ouverture d'une Url dans la browser par défaut
+    """
+
+    def __init__(self, crud, element, type_parent):
+        Crudel.__init__(self, crud, element, type_parent)
+
+    def get_type_gdk(self):
+        return GObject.TYPE_STRING
+
+    def _get_renderer(self, treeview):
+        renderer = CellRendererClickablePixbuf()
+        renderer.connect('clicked', self.on_clicked_in_view)
+        return renderer
+
+    def get_widget_box(self):
+        # todo
+        hbox = Gtk.HBox()
+        label = self._get_widget_label()
+        label.set_label("")
+
+        self.widget = Gtk.LinkButton(self.get_param_replace("url", "params.url not define"), self.get_label_long())
+
+        # arrangement
+        hbox.pack_start(label, False, False, 5)
+        hbox.pack_start(self.widget, False, False, 5)
+        return hbox
+
+    def _get_tvc(self, renderer, col_id):
+        tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, icon_name=col_id)
+        return tvc
+
+    def get_cell(self):
+        # la colonne aura pour valeur le nom de l'icone
+        # https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        # /usr/share/icons/Adwaita/scalable/actions
+        return self.get_param("icon_name", "applications-internet")
+
+    def on_clicked_in_view(self, cell, path):
+        """ Clic sur l'élément dans une vue """
+        key_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        key_display = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_display", key_id)]
+        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        self.crud.set_row_id(row_id)
+        self.crud.remove_all_selection()
+        self.crud.add_selection(key_id, key_display)
+        self.crud.set_key_value(key_id)
+        url = self.get_param_replace("url", "params.url not define")
+        Gtk.show_uri_on_window(None, url, datetime.datetime.now().timestamp())
 
 #
 #####################################################################################
