@@ -14,52 +14,38 @@
             "envFile": "${workspaceRoot}/.env"
         },
         {
-            "name": "Batch Day Quote",
+            "name": "Batch Quote",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
             "program": "/home/billerot/Git/crudenome/picsou.py",
             "cwd": "${workspaceRoot}",
-            "args": ["39","60","-day","-quote"],
+            "args": ["-day","-quote"],
             "env": {},
             "envFile": "${workspaceRoot}/.env"
         },
         {
-            "name": "Batch Day Trade",
+            "name": "Batch Trade",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
             "program": "/home/billerot/Git/crudenome/picsou.py",
             "cwd": "${workspaceRoot}",
-            "args": ["39","60","-day","-trade"],
+            "args": ["-day","-trade"],
             "env": {},
             "envFile": "${workspaceRoot}/.env"
         },
         {
-            "name": "Batch Day Quote Repeat",
+            "name": "Batch Quote Repeat",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
             "program": "/home/billerot/Git/crudenome/picsou.py",
             "cwd": "${workspaceRoot}",
-            "args": ["39","60","-dayrepeat","-quote"],
-            "env": {},
-            "envFile": "${workspaceRoot}/.env"
-        },
-        {
-            "name": "Batch Histo",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
-            "program": "~/Git/crudenome/picsou_batch.py",
-            "cwd": "${workspaceRoot}",
-            "args": [
-                "-histo"
-            ],
+            "args": ["-dayrepeat","-quote"],
             "env": {},
             "envFile": "${workspaceRoot}/.env"
         },
@@ -69,7 +55,7 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "~/Git/crudenome/picsou_batch.py",
+            "program": "/home/billerot/Git/crudenome/picsou.py",
             "cwd": "${workspaceRoot}",
             "args": [
                 "-mail"
@@ -78,36 +64,20 @@
             "envFile": "${workspaceRoot}/.env"
         },
         {
-            "name": "Batch Simul Account",
+            "name": "Batch ",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "~/Git/crudenome/picsou_batch.py",
+            "program": "/home/billerot/Git/crudenome/picsou.py",
             "cwd": "${workspaceRoot}",
             "args": [
-                "-simul",
-                "-account"
             ],
             "env": {},
             "envFile": "${workspaceRoot}/.env"
         },
         {
-            "name": "Batch Account",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
-            "program": "~/Git/crudenome/picsou_batch.py",
-            "cwd": "${workspaceRoot}",
-            "args": [
-                "-account"
-            ],
-            "env": {},
-            "envFile": "${workspaceRoot}/.env"
-        },
-        {
-            "name": "Python",
+            "name": "Crudenome",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,

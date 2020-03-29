@@ -87,6 +87,7 @@ class PicsouGraphDay(Gtk.Window):
         ax1.plot(cdays_times, cdays_opens, 'g:', label='Open')
         ax1.set_ylabel('Cours (Euro)')
         ax1.set_xlabel('Heure')
+        ax1.tick_params(axis="x", labelsize=6)
         ax1.legend(loc=3)
 
         ax2 = ax1.twinx()
@@ -94,11 +95,9 @@ class PicsouGraphDay(Gtk.Window):
         ax2.set_ylabel('RSI')
         ax2.legend(loc=4)
 
-        plt.xticks(fontsize=6)
-
         fig.autofmt_xdate()
         plt.suptitle("Cours du jour de " + ptf_id + " - " + ptf["ptf_name"])
-        # plt.subplots_adjust(left=0.07, bottom=0.1, right=0.98, top=0.95, wspace=None, hspace=None)
+        plt.subplots_adjust(left=0.07, bottom=0.1, right=0.93, top=0.93, wspace=None, hspace=None)
         plt.grid()
 
         canvas = FigureCanvas(fig)  # a Gtk.DrawingArea

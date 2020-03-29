@@ -1,3 +1,5 @@
+update cdays set cdays_date = '2020-03-29', cdays_time = '2020-03-29 ' || substr(cdays_time,12)
+
 select * from PTF
 --where ptf_id = 'ACA.PA'
 order by ptf_id

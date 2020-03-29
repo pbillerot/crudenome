@@ -7,7 +7,7 @@
 import shutil
 import os
 import datetime, time
-from .picsou_loader import PicsouLoadQuotes, PicsouLoadQuotesDay
+from .picsou_loader import PicsouLoadQuotes, PicsouLoader
 from gi.repository import Gtk, GObject
 
 class PicsouBatchUi(Gtk.Window):
@@ -197,7 +197,7 @@ class PicsouBatchUi(Gtk.Window):
             return
 
         if self.with_coursdujour.get_active():
-            loader = PicsouLoadQuotesDay(self, self.crud)
+            loader = PicsouLoader(self, self.crud)
             ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
             SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
             """, {})

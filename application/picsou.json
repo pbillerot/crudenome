@@ -4,11 +4,12 @@
     "menu_orientation": "horizontal",
     "icon_file": "picsou.jpg",
     "basename": "~/data/picsou/picsou.sqlite",
-    "basehost": "",
-    "basehostOld": "/mnt/nas/data/picsou/picsou.sqlite",
+    "basehost": "/mnt/nas/data/picsou/picsou.sqlite",
     "trade": {
         "stake": 1200,
-        "cost": 0.007
+        "cost": 0.0048,
+        "rsimin": 39,
+        "rsimax": 60
     },
     "scheduler": {
         "batch": "./picsou_batch.py -day",
@@ -360,11 +361,6 @@
                     "sortable": true,
                     "searchable": true
                 },
-                "trades_rsi": {
-                    "label_long": "RSI",
-                    "label_short": "RSI",
-                    "type": "text"
-                },
                 "trades_buy": {
                     "label_long": "Achat",
                     "label_short": "Achat",
@@ -383,8 +379,8 @@
                     "type": "int"
                 },
                 "trades_cost": {
-                    "label_long": "Coût",
-                    "label_short": "Coût",
+                    "label_long": "Frais",
+                    "label_short": "Frais",
                     "type": "float",
                     "display": "%3.2f €"
                 },
@@ -447,7 +443,6 @@
                         "trades_ptf_id": {},
                         "_ptf_name": {},
                         "trades_time": {},
-                        "trades_rsi": {},
                         "trades_buy": {},
                         "trades_sell": {},
                         "trades_quantity": {},
@@ -474,7 +469,6 @@
                         "trades_ptf_id": {},
                         "_ptf_name": {},
                         "trades_time": {},
-                        "trades_rsi": {},
                         "trades_buy": {},
                         "trades_sell": {},
                         "trades_quantity": {},
