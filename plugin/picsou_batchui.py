@@ -7,7 +7,7 @@
 import shutil
 import os
 import datetime, time
-from .picsou_loader import PicsouLoadQuotes, PicsouLoader
+from .picsou_loader import PicsouLoader
 from gi.repository import Gtk, GObject
 
 class PicsouBatchUi(Gtk.Window):
@@ -37,7 +37,8 @@ class PicsouBatchUi(Gtk.Window):
         self.rsi_time = "14:35"
         self.myptf = []
 
-        self.run_button = Gtk.Button(stock=Gtk.STOCK_REFRESH)
+        self.run_button = Gtk.Button("Exécuter")
+        # self.run_button = Gtk.Button(stock=Gtk.STOCK_REFRESH)
         self.run_button.set_always_show_image(True)
         self.run_button.set_tooltip_text("Démarrer l'actualisation...")
         self.run_button.connect("clicked", self.on_run_button_clicked)
@@ -50,21 +51,13 @@ class PicsouBatchUi(Gtk.Window):
         self.close_button.set_always_show_image(True)
         self.close_button.connect("clicked", self.on_close_button_clicked)
 
-        self.with_mail = Gtk.CheckButton()
-        self.with_mail.set_label("Envoyer le mail à la fin")
-        self.with_mail.set_active(False)
+        self.with_trade = Gtk.CheckButton()
+        self.with_trade.set_label("Trading")
+        self.with_trade.set_active(False)
 
-        self.with_histo = Gtk.CheckButton()
-        self.with_histo.set_label("Recharger l'historique")
-        self.with_histo.set_active(False)
-
-        self.with_simulation = Gtk.CheckButton()
-        self.with_simulation.set_label("Simulation")
-        self.with_simulation.set_active(False)
-
-        self.with_coursdujour = Gtk.CheckButton()
-        self.with_coursdujour.set_label("Cours de jour")
-        self.with_coursdujour.set_active(False)
+        self.with_quote = Gtk.CheckButton()
+        self.with_quote.set_label("Cours du jour")
+        self.with_quote.set_active(False)
 
         self.with_schedule = Gtk.CheckButton()
         self.with_schedule.set_label("Boucle 10 minutes")
@@ -76,11 +69,9 @@ class PicsouBatchUi(Gtk.Window):
         toolbar = Gtk.HBox()
         vbox.pack_start(toolbar, False, False, 0)
 
-        toolbar.pack_start(self.with_coursdujour, True, True, 0)
+        toolbar.pack_start(self.with_trade, True, True, 0)
+        toolbar.pack_start(self.with_quote, True, True, 0)
         toolbar.pack_start(self.with_schedule, True, True, 0)
-        # toolbar.pack_start(self.with_simulation, True, True, 0)
-        # toolbar.pack_start(self.with_histo, True, True, 0)
-        # toolbar.pack_start(self.with_mail, True, True, 0)
         toolbar.pack_start(self.run_button, True, True, 0)
         toolbar.pack_start(self.close_button, True, True, 0)
         # toolbar.pack_start(self.cancel_button, True, True, 0)
@@ -118,7 +109,7 @@ class PicsouBatchUi(Gtk.Window):
         # self.with_mail.set_sensitive(False)
         # self.with_histo.set_sensitive(False)
         # self.with_simulation.set_sensitive(False)
-        self.with_coursdujour.set_sensitive(False)
+        self.with_quote.set_sensitive(False)
         self.close_button.set_sensitive(False)
 
         if self.with_schedule.get_active():
@@ -153,7 +144,7 @@ class PicsouBatchUi(Gtk.Window):
         # self.with_mail.set_sensitive(True)
         # self.with_histo.set_sensitive(True)
         # self.with_simulation.set_sensitive(True)
-        self.with_coursdujour.set_sensitive(True)
+        self.with_quote.set_sensitive(True)
         self.close_button.set_sensitive(True)
 
 
@@ -170,150 +161,19 @@ class PicsouBatchUi(Gtk.Window):
 
     def clearMessage(self):
         """ docstring """
-        self.textbuffer.Text = ""
+        start = self.textbuffer.get_iter_at_line(self.textbuffer.get_line_count())
+        self.textbuffer.delete(self.textbuffer.get_iter_at_line(0), self.textbuffer.get_end_iter())
         while Gtk.events_pending():
             Gtk.main_iteration()
 
-
     def run_calcul(self):
         """ docstring """
-        self.display(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " : run_calcul" )
-        if self.with_histo.get_active():
-            loader = PicsouLoadQuotes(self, self.crud)
-            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
-            """, {})
-            for ptf in ptfs:
-                while Gtk.events_pending():
-                    Gtk.main_iteration()
-                # Chargement de l'historique
-                loader.run(ptf["ptf_id"], 500)
-            return
-
-        if self.with_simulation.get_active():
-            loader = PicsouLoadQuotes(self, self.crud)
-            loader.simulateur()
-            loader.account()
-            return
-
-        if self.with_coursdujour.get_active():
+        self.clearMessage()
+        if self.with_trade.get_active():
             loader = PicsouLoader(self, self.crud)
-            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf where ptf_disabled is null or ptf_disabled <> '1' ORDER BY ptf_id
-            """, {})
-            for ptf in ptfs:
-                while Gtk.events_pending():
-                    Gtk.main_iteration()
-                # Chargement de l'historique
-                loader.run(ptf["ptf_id"], 7)
-
             loader.trade()
 
-            return
+        if self.with_quote.get_active():
+            loader = PicsouLoader(self, self.crud)
+            loader.quote()
 
-        # Chargement des 10 derniers cours
-        loader = PicsouLoadQuotes(self, self.crud)
-        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM ptf 
-        where ptf_disabled is null or ptf_disabled <> '1'
-        ORDER BY ptf_id
-        """, {})
-        for ptf in ptfs:
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            # Chargement de l'historique
-            loader.run(ptf["ptf_id"], 10)
-
-        loader.simulateur()
-        loader.account()
-
-        rows = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT printf('SIMUL
-        Gain du jour: %8.2f €
-                Cash: %8.2f €
-              Espèce: %8.2f €
-                Gain: %8.2f €
-              Latent: %8.2f €
-                 soit %8.2f prc
-        ', acc_gain_day, acc_initial, acc_money, acc_gain, acc_latent, acc_percent) AS sql_footer
-        FROM ACCOUNT where acc_id = 'SIMUL'
-        """, {})
-        self.display(rows[0]["sql_footer"])
-
-        # Mail de compte-rendu
-        if self.with_mail.get_active():
-            # TOP 14
-            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            select * from ptf order by ptf_q26 desc limit 14
-            """, {})
-            for ptf in ptfs:
-                url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])
-                msg = """<tr>
-                <td style="text-align: right">{0:3.2f}%</td>
-                <td>{1}</td><td>{2}</td>
-                <td style="text-align: right">{3:.2f}</td>
-                <td style="text-align: right">{4:.2f}%</td>
-                <td>{5}</td>
-                </tr>
-                """.format(ptf["ptf_q26"], ptf["ptf_account"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], url)
-                self.top14.append(msg)
-
-            # Mon portefeuille
-            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            select * from ptf order by ptf_gainp desc
-            """, {})
-            msg = """<tr>
-            <th>Action</th>
-            <th>Cours</th>
-            <th>du J</th>
-            <th>Revient</th>
-            <th>Nbre</th>
-            <th>Gain</th>
-            <th>en %</th>
-            <th>14 j</th>
-            <th>&nbsp;</th>
-            </tr>"""
-            self.myptf.append(msg)
-            for ptf in ptfs:
-                url = '<a href="https://fr.finance.yahoo.com/chart/{0}">{0}</a>'.format(ptf["ptf_id"])                
-                if ptf["ptf_account"] is not None and ptf["ptf_account"] != "":
-                    msg = """<tr>
-                    <td>{0}</td>
-                    <td style="text-align: right">{1:.2f}</td>
-                    <td style="text-align: right">{2:.2f}%</td>
-                    <td style="text-align: right">{3:.2f}</td>
-                    <td style="text-align: right">{4}</td>
-                    <td style="text-align: right">{5:.2f} €</td>
-                    <td style="text-align: right">{6:.2f}%</td>
-                    <td style="text-align: right">{7:.2f}%</td>
-                    <td>{8}</td>
-                    </tr>""".format(ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_percent"], ptf["ptf_cost"], ptf["ptf_quantity"], ptf["ptf_gain"], ptf["ptf_gainp"], ptf["ptf_q26"], url)                     
-                    self.myptf.append(msg)
-
-                if ptf["ptf_account"] is not None and ptf["ptf_account"] != "" and ptf["ptf_trade"] == "RRR":
-                    msg = '<tr><td>{0}</td><td>{1}</td><td style="text-align: right">{2:.2f}</td><td>{3}</td></tr>'\
-                    .format(ptf["ptf_date"], ptf["ptf_name"], ptf["ptf_quote"], url)
-                    self.resistances.append(msg)
-
-                if ptf["ptf_trade"] == "SSS":
-                    msg = '<tr><td>{0}</td><td>{1}</td><td style="text-align: right">{2:.2f}</td><td style="text-align: right">{3}</td><td>{4}</td></tr>'\
-                    .format(ptf["ptf_date"], ptf["ptf_name"], ptf["ptf_quote"], ptf["ptf_quantity"], url)
-                    self.supports.append(msg)
-
-            # envoi du mail
-            # msg = '<h3>{}</h3>\n<table>\n'.format("Mes actions au {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"]))
-            # msg += '\n'.join(self.myptf)
-            # msg += '</table>\n'
-            # msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_resistance"))
-            # msg += '\n'.join(self.resistances)
-            # msg += '</table>\n'
-            # msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_support"))
-            # msg += '\n'.join(self.supports)
-            # msg += '</table>\n'
-            # msg += "<h3>{}</h3>\n<table>\n".format(self.crudel.get_param("label_top14"))
-            # msg += '\n'.join(self.top14)
-            # msg += '</table>\n'
-            # dest = self.crudel.get_param("smtp_dest")
-
-            # subject = u"Picsou du {} gain {:.2f} €".format(self.rsi_date, gain[0]["result"])
-            # self.crud.send_mail(dest, subject, msg)

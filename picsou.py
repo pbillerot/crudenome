@@ -60,16 +60,13 @@ class PicsouBatch():
 
     def run_day(self):
         self.display(datetime.datetime.now().strftime("%Y/%m/%d, %H:%M:%S") + " : Calcul en cours..." )
-        loader = PicsouLoader(self, self.crud)
         
         if self.args.quote:
-            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM ptf where ptf_enabled = '1' ORDER BY ptf_id
-            """, {})
-            for ptf in ptfs:
-                loader.run(ptf["ptf_id"], 7)
+            loader = PicsouLoader(self, self.crud)
+            loader.quote()
 
         if self.args.trade:
+            loader = PicsouLoader(self, self.crud)
             loader.trade()
 
     def backup(self):
@@ -98,8 +95,6 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog='picsou_batch')
     # add a -c/--color option
-    parser.add_argument('-mail', action='store_true', default=False, help="Envoi mail à la fin")
-    parser.add_argument('-sms', action='store_true', default=False, help="Envoi SMS à la fin")
     parser.add_argument('-trade', action='store_true', default=False, help="Avec activation du trader")
     parser.add_argument('-quote', action='store_true', default=False, help="Avec actualisation des cours du jour")
     parser.add_argument('-backup', action='store_true', default=False, help="Sauvegarder la base sur la box")

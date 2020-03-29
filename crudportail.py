@@ -273,18 +273,18 @@ class CrudPortail(GObject.GObject):
         self.crud.set_portail(self)
 
         # Récupération de la base du serveur si elle est différente
-        if self.crud.get_basehost():
-            ticket_host = os.path.getmtime(self.crud.get_basehost())
-            ticket_local = os.path.getmtime(self.crud.get_basename())
-            if ticket_local != ticket_host:
-                # on récupére la base du serveur
-                # shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
-                self.crud.logger.info("Restore OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
-                notif = Notify.Notification.new('Restore OK'\
-                , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
-                , 'dialog-information').show()
+        # if self.crud.get_basehost():
+        #     ticket_host = os.path.getmtime(self.crud.get_basehost())
+        #     ticket_local = os.path.getmtime(self.crud.get_basename())
+        #     if ticket_local != ticket_host:
+        #         # on récupére la base du serveur
+        #         # shutil.copy2(self.crud.get_basehost(), self.crud.get_basename())
+        #         self.crud.logger.info("Restore OK %s %s", self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))
+        #         notif = Notify.Notification.new('Restore OK'\
+        #         , "%s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host))\
+        #         , 'dialog-information').show()
 
-            self.crud.set_ticket(ticket_host)
+        #     self.crud.set_ticket(ticket_host)
 
         # on change l'icône système
         if "icon_file" in self.crud.get_application():

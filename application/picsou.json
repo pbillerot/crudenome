@@ -361,6 +361,13 @@
                     "sortable": true,
                     "searchable": true
                 },
+                "trades_order": {
+                    "label_long": "Ordre",
+                    "label_short": "Ordre",
+                    "type": "text",
+                    "sortable": true,
+                    "searchable": true
+                },
                 "trades_buy": {
                     "label_long": "Achat",
                     "label_short": "Achat",
@@ -420,6 +427,15 @@
                         "icon_name": "applications-internet"
                     }
                 },
+                "_batch": {
+                    "label_long": "Actualiation des données",
+                    "label_short": "Actualiser...",
+                    "type": "batch",
+                    "params": {
+                        "plugin": "picsou_batchui.PicsouBatchUi",
+                        "icon_name": "view-refresh"
+                    }
+                },
                 "_fgraph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
@@ -443,6 +459,7 @@
                         "trades_ptf_id": {},
                         "_ptf_name": {},
                         "trades_time": {},
+                        "trades_order": {},
                         "trades_buy": {},
                         "trades_sell": {},
                         "trades_quantity": {},
@@ -452,7 +469,8 @@
                         "_fgraph": {},
                         "_url_yahoo": {},
                         "trades_cash": {},
-                        "trades_day": {}
+                        "trades_day": {},
+                        "_batch": {}
                     },
                     "sql_where": "trades_date = date('now')",
                     "order_by": "trades.trades_time, trades.trades_ptf_id",
@@ -469,6 +487,7 @@
                         "trades_ptf_id": {},
                         "_ptf_name": {},
                         "trades_time": {},
+                        "trades_order": {},
                         "trades_buy": {},
                         "trades_sell": {},
                         "trades_quantity": {},
