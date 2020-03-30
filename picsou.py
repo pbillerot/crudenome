@@ -63,7 +63,7 @@ class PicsouBatch():
         
         if self.args.quote:
             loader = PicsouLoader(self, self.crud)
-            loader.quote()
+            loader.quotes()
 
         if self.args.trade:
             loader = PicsouLoader(self, self.crud)

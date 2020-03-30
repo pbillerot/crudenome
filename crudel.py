@@ -832,9 +832,10 @@ class CrudelForm(Crudel):
         if self.get_param("plugin"):
             # relecture de la ligne
             plugin = self.get_param("plugin")
+            arg = self.get_param_replace("arg")
             plugin_class = self.crud.load_class("plugin." + plugin)
             self.crud.set_crudel(self)
-            form = plugin_class(self.crud)
+            form = plugin_class(self.crud, arg)
         else:
             self.crud.set_action("update")
             self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)

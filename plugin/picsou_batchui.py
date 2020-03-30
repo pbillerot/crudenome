@@ -60,7 +60,7 @@ class PicsouBatchUi(Gtk.Window):
         self.with_quote.set_active(False)
 
         self.with_schedule = Gtk.CheckButton()
-        self.with_schedule.set_label("Boucle 10 minutes")
+        self.with_schedule.set_label("Boucle 5 minutes")
         self.with_schedule.set_active(False)
 
         vbox = Gtk.VBox()
@@ -102,6 +102,9 @@ class PicsouBatchUi(Gtk.Window):
         """ docstring """
         self.destroy()
 
+    def refresh_data(self):
+        self.run_calcul()
+
     def on_run_button_clicked(self, widget):
         """ docstring """
         # self.cancel_button.set_sensitive(False)
@@ -114,23 +117,9 @@ class PicsouBatchUi(Gtk.Window):
 
         if self.with_schedule.get_active():
             self.run_calcul()
-            self.crud.get_view().emit("refresh_data_view", "batch", "close")
-            time1 = time.time()
-            while True:
-                if self.with_schedule.get_active():
-                    time2 = time.time()
-                    if ( (time2-time1) > 10 * 60 ):
-                        self.run_calcul()
-                        self.crud.get_view().emit("refresh_data_view", "batch", "close")
-                        time1 = time2
-                else:
-                    break
-                while Gtk.events_pending():
-                    Gtk.main_iteration()
-                time.sleep(1)
+            GObject.timeout_add(1000 * 60 * 5, self.refresh_data)
         else:
             self.run_calcul()
-            self.crud.get_view().emit("refresh_data_view", "batch", "close")
 
         # Put de la base de données sur la box
         # ticket_user = os.path.getmtime(self.crud.get_basename())
@@ -169,11 +158,11 @@ class PicsouBatchUi(Gtk.Window):
     def run_calcul(self):
         """ docstring """
         self.clearMessage()
+        if self.with_quote.get_active():
+            loader = PicsouLoader(self, self.crud)
+            loader.quotes()
         if self.with_trade.get_active():
             loader = PicsouLoader(self, self.crud)
             loader.trade()
 
-        if self.with_quote.get_active():
-            loader = PicsouLoader(self, self.crud)
-            loader.quote()
 

@@ -25,7 +25,7 @@ class PicsouLoader():
         self.cookie, self.crumb = self.get_cookie_crumb("ACA.PA") 
         self.quote = {} # dernière cotation
 
-    def quote(self):
+    def quotes(self):
         ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM ptf where ptf_enabled = '1' ORDER BY ptf_id
         """, {})
@@ -33,7 +33,8 @@ class PicsouLoader():
             while Gtk.events_pending():
                 Gtk.main_iteration()
             # Chargement de l'historique
-            self.csv_to_quotes(self.ptf, 7)
+            self.parent.display("Cours de {}...".format(ptf["ptf_id"]))
+            self.csv_to_quotes(ptf, 7)
             # Suppression des cours des jours antérieurs
             self.crud.exec_sql(self.crud.get_basename(), """
             delete from cdays
@@ -60,8 +61,8 @@ class PicsouLoader():
         """
         rsimin = self.crud.get_application_prop("trade")["rsimin"]
         rsimax = self.crud.get_application_prop("trade")["rsimax"]
-        # Calcul du timestamp du jour à 17 heures 15 (heure limite d'achat)
-        time_limit = datetime.datetime.now().replace(hour=17, minute=15, second=0, microsecond=0).timestamp()
+        # Calcul du timestamp du jour à 17 heures 20 (heure limite d'achat)
+        time_limit = datetime.datetime.now().replace(hour=17, minute=20, second=0, microsecond=0).timestamp()
 
         # Nettoyage de la simulation du jour
         datetoday = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -98,6 +99,7 @@ class PicsouLoader():
             rsi1 = 0.0
             trade = ""
             cday_time = 0
+            cday_time_buy = 0
             fbuy = 0.0
             fachat = 0.0
             fsell = 0.0
@@ -143,9 +145,10 @@ class PicsouLoader():
                     if rsi < rsimin : trade = "WAIT"
 
                 if trade == "BUY":
-                    if cday["cdays_volume"] < 100000 or firstQuoteIsPositive == False:
+                    if cday["cdays_volume"] < 100000 or cday_time > time_limit : #or firstQuoteIsPositive == False:
                         trade = ""
                     else:
+                        cday_time_buy = cday["cdays_time"]
                         fbuy = quote
                         iquantity = fstake//fbuy
                         # On augmente la banque si pas assez de cash
@@ -202,11 +205,38 @@ class PicsouLoader():
                 ,cdays_trade = :cdays_trade
                 WHERE cdays_id = :cdays_id
                 """, cday)
+            # fin cday
+            if trade == "...":
+                fsell = quote
+                # Mise à jour du TRADE en cours
+                fcost_sell = fsell*iquantity*fcostp
+                fvente = fsell*iquantity - fcost_sell
+                fgain = fvente -fachat
+                fgainp = (fgain / fachat) * 100
+                fday += fgain 
+                journal.append({"time": cday["cdays_time"], "ope": fvente
+                , "message": "{} ..WAIT.. {} \tde {:3.0f} actions à {:7.2f} € soit {:7.2f} € net (frais {:5.2f} €) gain {:7.2f} €"
+                .format(cday["cdays_time"], cday["cdays_ptf_id"], iquantity, fsell, fvente, fcost_sell, fgain)
+                })
+
+                self.crud.exec_sql(self.crud.get_basename(), """
+                update trades set trades_ptf_id = :ptf_id
+                ,trades_sell = :fsell
+                ,trades_cost = :fcost
+                ,trades_gain = :fgain
+                ,trades_gainp = :fgainp
+                where trades_ptf_id = :ptf_id and trades_time = :cday_time_buy
+                """, {"ptf_id": ptf["ptf_id"]
+                ,"fsell": fsell
+                ,"fcost": fcost_sell
+                ,"fgain": fgain
+                ,"fgainp": fgainp
+                ,"cday_time_buy": cday_time_buy
+                })
+
+        # fin ptfs
         # Compte-rendu dans TRADES de fday, fcash, fdayp
         # Calcul du cash nécessaire pour réaliser les opérations
-        # x = {1: 2, 3: 4, 4: 3, 2: 1, 0: 0}
-        # {k: v for k, v in sorted(x.items(), key=lambda item: item[1])}
-        # {0: 0, 2: 1, 1: 2, 4: 3, 3: 4}
         self.parent.display("--- OPERATIONS DU JOUR ---")
         fcash = 0.0
         fbank = 0.0

@@ -5,6 +5,7 @@
     "icon_file": "picsou.jpg",
     "basename": "~/data/picsou/picsou.sqlite",
     "basehost": "/mnt/nas/data/picsou/picsou.sqlite",
+    "data_directory": "/mnt/sandisk/nas/data/picsou",
     "trade": {
         "stake": 1200,
         "cost": 0.0048,
@@ -72,7 +73,7 @@
                     "params": {
                         "plugin": "picsou_graph.PicsouGraphDay",
                         "icon_name": "applications-office",
-                        "ptf_id": "{ptf_id}"
+                        "arg": "{ptf_id}"
                     }
                 },
                 "_batch": {
@@ -284,7 +285,7 @@
                     "params": {
                         "plugin": "picsou_graph.PicsouGraphDay",
                         "icon_name": "applications-office",
-                        "ptf_id": "{cdays_ptf_id}"
+                        "arg": "{cdays_ptf_id}"
                     }
                 }
             },
@@ -436,6 +437,16 @@
                         "icon_name": "view-refresh"
                     }
                 },
+                "_image": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "form",
+                    "params": {
+                        "plugin": "picsou_image.PicsouImage",
+                        "icon_name": "insert-image",
+                        "arg": "{trades_ptf_id} {trades_date}.png"
+                    }
+                },
                 "_fgraph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
@@ -443,7 +454,7 @@
                     "params": {
                         "plugin": "picsou_graph.PicsouGraphDay",
                         "icon_name": "applications-office",
-                        "ptf_id": "{trades_ptf_id}"
+                        "arg": "{trades_ptf_id}"
                     }
                 }
             },
@@ -458,6 +469,7 @@
                         "trades_id": {},
                         "trades_ptf_id": {},
                         "_ptf_name": {},
+                        "trades_date": {"hide":true},
                         "trades_time": {},
                         "trades_order": {},
                         "trades_buy": {},
@@ -470,6 +482,7 @@
                         "_url_yahoo": {},
                         "trades_cash": {},
                         "trades_day": {},
+                        "_image": {},
                         "_batch": {}
                     },
                     "sql_where": "trades_date = date('now')",
