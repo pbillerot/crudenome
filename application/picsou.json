@@ -3,9 +3,9 @@
     "info": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
     "menu_orientation": "horizontal",
     "icon_file": "picsou.jpg",
-    "basename": "~/data/picsou/picsou.sqlite",
-    "basehost": "/mnt/nas/data/picsou/picsou.sqlite",
-    "data_directory": "/mnt/sandisk/nas/data/picsou",
+    "basename": "/mnt/nas/data/picsou/picsou.sqlite",
+    "basehost": "~/data/picsou/picsou.sqlite",
+    "data_directory": "/mnt/nas/data/picsou",
     "trade": {
         "stake": 1200,
         "cost": 0.0048,
