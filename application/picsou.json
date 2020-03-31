@@ -9,8 +9,8 @@
     "trade": {
         "stake": 1200,
         "cost": 0.0048,
-        "rsimin": 39,
-        "rsimax": 60
+        "rsimin": 25,
+        "rsimax": 70
     },
     "scheduler": {
         "batch": "./picsou_batch.py -day",
@@ -57,6 +57,14 @@
                     "type": "check",
                     "col_editable": true
                 },
+                "ptf_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "display": "%3.2f €",
+                    "sortable": true,
+                    "sql_color": "case when ptf_gain < 0 then '#FF0000' else '#006600' end"
+                },
                 "_url_yahoo": {
                     "label_long": "Lien vers Yahoo",
                     "label_short": "Yahoo",
@@ -66,14 +74,14 @@
                         "icon_name": "applications-internet"
                     }
                 },
-                "_fgraph": {
+                "_image": {
                     "label_long": "Graph",
                     "label_short": "Graph",
                     "type": "form",
                     "params": {
-                        "plugin": "picsou_graph.PicsouGraphDay",
-                        "icon_name": "applications-office",
-                        "arg": "{ptf_id}"
+                        "plugin": "picsou_image.PicsouImage",
+                        "icon_name": "insert-image",
+                        "arg": "{ptf_id}.png"
                     }
                 },
                 "_batch": {
@@ -105,13 +113,15 @@
                     "elements": {
                         "ptf_id": {},
                         "ptf_name": {},
-                        "_fgraph": {},
                         "ptf_enabled": {},
+                        "_image": {},
+                        "ptf_gain": {},
                         "ptf_note": {},
                         "_url_yahoo": {}
                     },
                     "sql_where": "ptf_enabled = '1'",
-                    "order_by": "ptf_id"
+                    "order_by": "ptf_gain desc, ptf_id",
+                    "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(ptf_gain)) AS sql_footer FROM ptf where ptf_enabled = 1"
                 },
                 "vall": {
                     "title": "Toutes les valeurs",
@@ -124,9 +134,10 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
-                        "_fgraph": {},
-                        "_url_yahoo": {},
-                        "ptf_note": {}
+                        "_image": {},
+                        "ptf_gain": {},
+                        "ptf_note": {},
+                        "_url_yahoo": {}
                     },
                     "order_by": "ptf_id"
                 },
@@ -239,6 +250,18 @@
                     "type": "float",
                     "display": "%3.2f"
                 },
+                "cdays_ema": {
+                    "label_long": "EMA",
+                    "label_short": "EMA",
+                    "type": "float",
+                    "display": "%3.2f"
+                },
+                "cdays_sma": {
+                    "label_long": "SMA",
+                    "label_short": "SMA",
+                    "type": "float",
+                    "display": "%3.2f"
+                },
                 "cdays_trade": {
                     "label_long": "Trade",
                     "label_short": "Trade",
@@ -278,6 +301,16 @@
                         "icon_name": "view-refresh"
                     }
                 },
+                "_image": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "form",
+                    "params": {
+                        "plugin": "picsou_image.PicsouImage",
+                        "icon_name": "insert-image",
+                        "arg": "{cdays_ptf_id}.png"
+                    }
+                },
                 "_fgraph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
@@ -307,6 +340,8 @@
                         "cdays_volume": {},
                         "cdays_percent": {},
                         "cdays_rsi": {},
+                        "cdays_ema": {},
+                        "cdays_sma": {},
                         "cdays_trade": {},
                         "_fgraph": {},
                         "cdays_gain": {},
@@ -397,6 +432,7 @@
                     "label_short": "Gain",
                     "type": "float",
                     "display": "%3.2f €",
+                    "sortable": true,
                     "sql_color": "case when trades_gain < 0 then '#FF0000' else '#006600' end"
                 },
                 "trades_gainp": {
@@ -444,7 +480,7 @@
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
                         "icon_name": "insert-image",
-                        "arg": "{trades_ptf_id} {trades_date}.png"
+                        "arg": "{trades_ptf_id}.png"
                     }
                 },
                 "_fgraph": {
@@ -478,7 +514,6 @@
                         "trades_cost": {},
                         "trades_gain": {},
                         "trades_gainp": {},
-                        "_fgraph": {},
                         "_url_yahoo": {},
                         "trades_cash": {},
                         "trades_day": {},
@@ -507,10 +542,10 @@
                         "trades_cost": {},
                         "trades_gain": {},
                         "trades_gainp": {},
-                        "_fgraph": {},
                         "_url_yahoo": {},
                         "trades_cash": {},
-                        "trades_day": {}
+                        "trades_day": {},
+                        "_image": {}
                     },
                     "order_by": "trades.trades_time, trades.trades_ptf_id",
                     "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(trades_gain)) AS sql_footer FROM trades"

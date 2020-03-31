@@ -30,8 +30,10 @@ class PicsouGraphDay(Gtk.Window):
         'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str, str,))
     }
     def do_init_widget(self, str_from, str_arg=""):
-        """ Traitement du signal """
+        """ Initialisation du widget après __init__ """
         # print ("do_init_widget {}({}) -> {}".format(str_from, str_arg, self.__class__))
+        print("PicsouGraphDay.init... " + self.ptf_id)
+        self.create_widget()
 
     def refresh_data(self):
         print("Refresh_data {}...".format(self.ptf_id))
@@ -46,30 +48,18 @@ class PicsouGraphDay(Gtk.Window):
         Gtk.Window.__init__(self, title="Graphique du jour")
         
         self.crud = crud
-        self.crudel = crud.get_crudel()
-        # relecture de l'enregistrement de la vue
-        rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_VIEW)
-        for row in rows:
-            for element in self.crud.get_view_elements():
-                crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_VIEW)
-                crudel.init_value()
-                self.crud.set_element_prop(element, "crudel", crudel)
-                if row.get(element, False):
-                    crudel.set_value_sql(row[element])
-        values = self.crud.get_table_values()
-        self.ptf_id = self.crudel.get_param_replace("arg")
-        # self.ptf_id = arg
-        print("PicsouGraphDay.init... " + self.ptf_id)
+        self.ptf_id = arg
 
-        self.create_widget()
-        
-        GObject.timeout_add(1000 * 60 * 5, self.refresh_data)
+        # à revoir car perpétuel jusqu'à l'arrêt de l'application
+        # GObject.timeout_add(1000 * 60 * 5, self.refresh_data)
 
     def create_widget(self):
         """ Construction du dessin et du toolbar """
+        fig = self.create_graph()
+        if fig:
+            self.canvas = FigureCanvas(fig)  # a Gtk.DrawingArea
+            self.canvas.set_size_request(800, 600)
 
-        self.canvas = self.create_canvas()
-        if self.canvas:
             self.vbox = Gtk.VBox()
             self.vbox.pack_start(self.canvas, True, True, 0)
 
@@ -81,6 +71,7 @@ class PicsouGraphDay(Gtk.Window):
 
             self.vbox.pack_end(self.toolbar, False, False, 0)
             self.add(self.vbox)
+
         self.show_all()
 
     def update_widget(self):
@@ -89,7 +80,7 @@ class PicsouGraphDay(Gtk.Window):
                 Gtk.main_iteration()
         self.create_widget()
 
-    def create_canvas(self):
+    def create_graph(self):
         """ """
         ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT * FROM PTF WHERE ptf_id = :id
@@ -110,6 +101,8 @@ class PicsouGraphDay(Gtk.Window):
         cdays_quotes = []
         cdays_opens = []
         cdays_rsi = []
+        cdays_ema = []
+        cdays_sma = []
         cdays_trades = []
         cdays_date = ""
         if len(cdays) > 0:
@@ -119,6 +112,8 @@ class PicsouGraphDay(Gtk.Window):
                 cdays_quotes.append(float(cday["cdays_close"]))
                 cdays_opens.append(float(cday["cdays_open"]))
                 cdays_rsi.append(float(cday["cdays_rsi"]))
+                cdays_ema.append(float(cday["cdays_ema"]))
+                cdays_sma.append(float(cday["cdays_sma"]))
                 if cday["cdays_trade"] in ('BUY', '...', 'SELL'):
                     cdays_trades.append(float(cday["cdays_close"]))
                 else:
@@ -129,7 +124,9 @@ class PicsouGraphDay(Gtk.Window):
             fig.set_figheight(9)
             ax1.plot(cdays_times, cdays_quotes, 'o-', label='Cours')
             ax1.plot(cdays_times, cdays_trades, 'o-', label='Trade', linewidth=2)
-            ax1.plot(cdays_times, cdays_opens, 'g:', label='Open')
+            ax1.plot(cdays_times, cdays_ema, 'r:', label='EMA')
+            ax1.plot(cdays_times, cdays_sma, 'g:', label='SMA')
+            ax1.plot(cdays_times, cdays_opens, 'k:', label='Open')
             ax1.set_ylabel('Cours (Euro)')
             ax1.set_xlabel('Heure')
             ax1.tick_params(axis="x", labelsize=6)
@@ -145,14 +142,10 @@ class PicsouGraphDay(Gtk.Window):
             plt.subplots_adjust(left=0.08, bottom=0.1, right=0.93, top=0.93, wspace=None, hspace=None)
             plt.grid()
             
-            png_path = "{}/png/{} {}.png".format(self.crud.get_application_prop("data_directory")
-                ,self.ptf_id
-                ,cdays_date)
+            png_path = "{}/png/{}.png".format(self.crud.get_application_prop("data_directory")
+                ,self.ptf_id)
             plt.savefig(png_path)
+            plt.close()
 
-            canvas = FigureCanvas(fig)  # a Gtk.DrawingArea
-            canvas.set_size_request(800, 600)
-            return canvas
-        else:
-            return None
+            return fig
 

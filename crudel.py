@@ -829,6 +829,14 @@ class CrudelForm(Crudel):
         self.crud.remove_all_selection()
         self.crud.add_selection(key_id, key_display)
         self.crud.set_key_value(key_id)
+        # Chargement des éléments de la ligne courante
+        rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_VIEW)
+        for row in rows:
+            for element in self.crud.get_view_elements():
+                crudel = self.crud.get_element_prop(element, "crudel")
+                if row.get(element, False):
+                    crudel.set_value_sql(row[element])
+
         if self.get_param("plugin"):
             # relecture de la ligne
             plugin = self.get_param("plugin")
@@ -840,8 +848,9 @@ class CrudelForm(Crudel):
             self.crud.set_action("update")
             self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
             self.crud.set_form_id(self.get_param("form"))
+            arg = self.get_param_replace("arg")
             from crudform import CrudForm
-            form = CrudForm(self.crud, None)
+            form = CrudForm(self.crud, arg)
         # self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 

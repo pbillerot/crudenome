@@ -10,6 +10,7 @@ import sys
 import requests
 import numpy as np
 from gi.repository import Gtk
+from plugin.picsou_graph import PicsouGraphDay
 
 class PicsouLoader():
     """
@@ -26,34 +27,42 @@ class PicsouLoader():
         self.quote = {} # dernière cotation
 
     def quotes(self):
-        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM ptf where ptf_enabled = '1' ORDER BY ptf_id
-        """, {})
-        for ptf in ptfs:
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            # Chargement de l'historique
-            self.parent.display("Cours de {}...".format(ptf["ptf_id"]))
-            self.csv_to_quotes(ptf, 7)
-            # Suppression des cours des jours antérieurs
-            self.crud.exec_sql(self.crud.get_basename(), """
-            delete from cdays
-            where cdays_date <> date('now')
+        now = datetime.datetime.now()
+        today910 = now.replace(hour=9, minute=10, second=0, microsecond=0)
+        today1750 = now.replace(hour=17, minute=50, second=0, microsecond=0)
+        if now > today1750 and now < today1750 :
+            ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM ptf where ptf_enabled = '1' ORDER BY ptf_id
             """, {})
-            # insertion du dernier cours récupéré dans self.quote
-            self.crud.exec_sql(self.crud.get_basename(), """
-            insert into cdays
-            (cdays_ptf_id, cdays_name, cdays_date, cdays_close
-            , cdays_open, cdays_volume, cdays_low, cdays_high, cdays_time)
-            select id, name, date, close, open, volume, low, high, datetime('now', 'localtime') 
-            from quotes
-            where quotes.id = :id and quotes.date = date('now')
-            """, {"id": ptf["ptf_id"]})
-            # calcul cours_percent
-            self.crud.exec_sql(self.crud.get_basename(), """
-            UPDATE cdays
-            set cdays_percent = ( (cdays_close - cdays_open) / cdays_open) * 100 
-            """, {})
+            for ptf in ptfs:
+                while Gtk.events_pending():
+                    Gtk.main_iteration()
+                # Chargement de l'historique
+                self.parent.display("Cours de {}...".format(ptf["ptf_id"]))
+
+                self.csv_to_quotes(ptf, 7)
+                
+                # Suppression des cours des jours antérieurs
+                self.crud.exec_sql(self.crud.get_basename(), """
+                delete from cdays
+                where cdays_date <> date('now')
+                """, {})
+                # insertion du dernier cours récupéré dans self.quote
+                self.crud.exec_sql(self.crud.get_basename(), """
+                insert into cdays
+                (cdays_ptf_id, cdays_name, cdays_date, cdays_close
+                , cdays_open, cdays_volume, cdays_low, cdays_high, cdays_time)
+                select id, name, date, close, open, volume, low, high, datetime('now', 'localtime') 
+                from quotes
+                where quotes.id = :id and quotes.date = date('now')
+                """, {"id": ptf["ptf_id"]})
+                # calcul cours_percent
+                self.crud.exec_sql(self.crud.get_basename(), """
+                UPDATE cdays
+                set cdays_percent = ( (cdays_close - cdays_open) / cdays_open) * 100 
+                """, {})
+        else:
+            self.parent.display("Quote en dehors des plages autorisées".format())
 
     def trade(self):
         """
@@ -97,6 +106,12 @@ class PicsouLoader():
             quotes = []
             rsi = 50
             rsi1 = 0.0
+            ema = 0.0
+            ema1 = 0.0
+            qema = 0 # compteur nbre de cours avec ema < ema1
+            sma = 0.0
+            emas = []
+            smas = []
             trade = ""
             cday_time = 0
             cday_time_buy = 0
@@ -115,6 +130,7 @@ class PicsouLoader():
                 quote2 = quote1
                 quote1 = quote
                 rsi1 = rsi
+                ema1 = ema
 
                 # Calcul du timestamp du cours courant
                 cday_time = datetime.datetime.strptime(cday["cdays_time"], '%Y-%m-%d %H:%M:%S').timestamp()
@@ -125,7 +141,16 @@ class PicsouLoader():
                 quote = cday["cdays_close"]
                 quotes.append(quote)
 
-                if nbc > 11 : rsi = self.rsi(quotes, nbc//2)
+                if nbc > 11 : 
+                    window = nbc//2 if nbc < 24 else 12
+                    rsi = self.rsi(quotes, window)
+                    ema = self.ema(quotes, window)
+                    sma = self.sma(quotes, window)
+                else:
+                    ema = quote
+                    sma = quote
+                
+                qema = qema + 1 if ema < ema1 else 0
 
                 if trade == "BUY" : trade = "..."
                 if trade == "SELL": trade = ""
@@ -139,13 +164,16 @@ class PicsouLoader():
 
                 # ACHAT si dans la période du marché 
                 # et si pas de trade en cours pour l'action
+                # if trade == "WAIT" : 
+                #     if qema > 12 : trade = ""
                 if trade == "WAIT" : 
                     if rsi > rsi1 : trade = "BUY"
-                if cday_time < time_limit and trade == "":
+
+                if cday_time < time_limit and trade == "" and nbc > 15:
                     if rsi < rsimin : trade = "WAIT"
 
                 if trade == "BUY":
-                    if cday["cdays_volume"] < 100000 or cday_time > time_limit : #or firstQuoteIsPositive == False:
+                    if cday_time > time_limit : #or firstQuoteIsPositive == False cday["cdays_volume"] < 100000 or 
                         trade = ""
                     else:
                         cday_time_buy = cday["cdays_time"]
@@ -197,15 +225,17 @@ class PicsouLoader():
                     })
 
                 cday["cdays_rsi"] = rsi
+                cday["cdays_ema"] = ema
+                cday["cdays_sma"] = sma
                 cday["cdays_trade"] = trade
 
                 self.crud.exec_sql(self.crud.get_basename(), """
                 UPDATE cdays
-                set cdays_rsi = :cdays_rsi
+                set cdays_rsi = :cdays_rsi, cdays_ema = :cdays_ema, cdays_sma = :cdays_sma
                 ,cdays_trade = :cdays_trade
                 WHERE cdays_id = :cdays_id
                 """, cday)
-            # fin cday
+            # fin cday du ptf en cours
             if trade == "...":
                 fsell = quote
                 # Mise à jour du TRADE en cours
@@ -233,6 +263,9 @@ class PicsouLoader():
                 ,"fgainp": fgainp
                 ,"cday_time_buy": cday_time_buy
                 })
+            # Génération du graphique
+            graph = PicsouGraphDay(self.crud, ptf["ptf_id"])
+            graph.create_graph()
 
         # fin ptfs
         # Compte-rendu dans TRADES de fday, fcash, fdayp
@@ -263,6 +296,11 @@ class PicsouLoader():
         self.parent.display("--- BILAN DU JOUR : gain {:7.2f} € Cash {:7.2f} € "
         .format(fday, fcash))
 
+        # Report des gain dans PTF
+        self.crud.exec_sql(self.crud.get_basename(), """
+        UPDATE ptf 
+        SET ptf_gain = (select sum(trades_gain) as gain from trades where trades_ptf_id = ptf_id group by trades_ptf_id)
+        """, {})
 
     def split_crumb_store(self, v):
         return v.split(':')[2].strip('"')
