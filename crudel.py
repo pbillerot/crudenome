@@ -42,6 +42,8 @@ class Crudel(GObject.GObject):
             crudel = CrudelInt(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "radio":
             crudel = CrudelRadio(crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "plugin":
+            crudel = CrudelPlugin(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "uid":
             crudel = CrudelUid(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "url":
@@ -837,20 +839,12 @@ class CrudelForm(Crudel):
                 if row.get(element, False):
                     crudel.set_value_sql(row[element])
 
-        if self.get_param("plugin"):
-            # relecture de la ligne
-            plugin = self.get_param("plugin")
-            arg = self.get_param_replace("arg")
-            plugin_class = self.crud.load_class("plugin." + plugin)
-            self.crud.set_crudel(self)
-            form = plugin_class(self.crud, arg)
-        else:
-            self.crud.set_action("update")
-            self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-            self.crud.set_form_id(self.get_param("form"))
-            arg = self.get_param_replace("arg")
-            from crudform import CrudForm
-            form = CrudForm(self.crud, arg)
+        self.crud.set_action("update")
+        self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
+        self.crud.set_form_id(self.get_param("form"))
+        args = self.get_args_replace()
+        from crudform import CrudForm
+        form = CrudForm(self.crud, args)
         # self.app_window.show_all()
         form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
@@ -913,6 +907,78 @@ class CrudelInt(Crudel):
 
     def get_value(self):
         return int(self.value)
+
+class CrudelPlugin(Crudel):
+    """ Appel d'un formulaire dans une vue
+        Affichage d'un sous formulaire
+    """
+
+    def __init__(self, crud, element, type_parent):
+        Crudel.__init__(self, crud, element, type_parent)
+
+    def get_type_gdk(self):
+        return GObject.TYPE_STRING
+
+    def init_value(self):
+        self.set_value("")
+
+    def get_widget_box(self):
+        hbox = Gtk.HBox()
+        label = self._get_widget_label()
+        label.set_label("")
+
+        self.widget = Gtk.CheckButton()
+        if self.is_read_only():
+            self.widget.set_sensitive(False)
+
+        self.widget.set_label(self.get_label_long())
+        self.widget.set_active(self.get_value())
+        # arrangement
+        hbox.pack_start(label, False, False, 5)
+        hbox.pack_start(self.widget, False, False, 5)
+        return hbox
+
+    def _get_renderer(self, treeview):
+        renderer = CellRendererClickablePixbuf()
+        renderer.connect('clicked', self.on_clicked_in_view)
+        return renderer
+
+    def _get_tvc(self, renderer, col_id):
+        tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, icon_name=col_id)
+        return tvc
+
+    def set_value_widget(self):
+        self.value = self.get_widget().get_active()
+
+    def get_cell(self):
+        # la colonne aura pour valeur le nom de l'icone
+        # https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        # /usr/share/icons/Adwaita/scalable/actions
+        return self.get_param("icon_name", "applications-accessories")
+
+    def on_clicked_in_view(self, cell, path):
+        """ Clic sur l'élément dans une vue """
+        key_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        key_display = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_display", key_id)]
+        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        self.crud.set_row_id(row_id)
+        self.crud.remove_all_selection()
+        self.crud.add_selection(key_id, key_display)
+        self.crud.set_key_value(key_id)
+        # Chargement des éléments de la ligne courante
+        rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_VIEW)
+        for row in rows:
+            for element in self.crud.get_view_elements():
+                crudel = self.crud.get_element_prop(element, "crudel")
+                if row.get(element, False):
+                    crudel.set_value_sql(row[element])
+
+        plugin = self.get_param("plugin")
+        args = self.get_args_replace()
+        plugin_class = self.crud.load_class("plugin." + plugin)
+        self.crud.set_crudel(self)
+        form = plugin_class(self.crud, args)
+        form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
 class CrudelRadio(Crudel):
     """ Gestion des colonnes et champs de type Radio """

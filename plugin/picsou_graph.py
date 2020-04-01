@@ -16,6 +16,7 @@
 """
 from datetime import datetime
 from crudel import Crudel
+import os
 from gi.repository import Gtk, GObject
 
 # import matplotlib as mpl
@@ -44,11 +45,12 @@ class PicsouGraphDay(Gtk.Window):
             print("Refresh_data {} end ".format(self.ptf_id))
             return False
 
-    def __init__(self, crud, arg):
+    def __init__(self, crud, args):
         Gtk.Window.__init__(self, title="Graphique du jour")
         
         self.crud = crud
-        self.ptf_id = arg
+        self.ptf_id = args["ptf_id"]
+        self.path = self.crud.get_application_prop("data_directory") + "/" + args["path"]
 
         # à revoir car perpétuel jusqu'à l'arrêt de l'application
         # GObject.timeout_add(1000 * 60 * 5, self.refresh_data)
@@ -142,9 +144,10 @@ class PicsouGraphDay(Gtk.Window):
             plt.subplots_adjust(left=0.08, bottom=0.1, right=0.93, top=0.93, wspace=None, hspace=None)
             plt.grid()
             
-            png_path = "{}/png/{}.png".format(self.crud.get_application_prop("data_directory")
-                ,self.ptf_id)
-            plt.savefig(png_path)
+            path_dir = os.path.dirname(self.path)
+            if os.path.exists(path_dir) == False: 
+                os.makedirs(path_dir)
+            plt.savefig(self.path)
             plt.close()
 
             return fig

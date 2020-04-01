@@ -12,17 +12,17 @@ class PicsouImage(Gtk.Window):
         """ Traitement du signal """
         # print ("do_init_widget {}({}) -> {}".format(str_from, str_arg, self.__class__))
 
-    def __init__(self, crud, arg):
-        Gtk.Window.__init__(self, title=arg)
+    def __init__(self, crud, args):
+        Gtk.Window.__init__(self, title=args)
         self.crud = crud
-        self.arg = arg
+        self.args = args
         self.set_size_request(800, 600)
 
         self.create_widget()
 
     def create_widget(self):
         """ Construction du dessin et du toolbar """
-        path = "{}/png/{}".format(self.crud.get_application_prop("data_directory"),self.arg)
+        path = "{}/{}".format(self.crud.get_application_prop("data_directory"),self.args["path"])
         self.image = Gtk.Image()
         self.image.set_from_file(path)
         self.add(self.image)

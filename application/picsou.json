@@ -9,8 +9,8 @@
     "trade": {
         "stake": 1200,
         "cost": 0.0048,
-        "rsimin": 25,
-        "rsimax": 70
+        "rsimin": 30,
+        "rsimax": 60
     },
     "scheduler": {
         "batch": "./picsou_batch.py -day",
@@ -19,10 +19,9 @@
     "shell": {
         "Picsou Backup": "./picsou_batch.py -backup",
         "Picsou Restauration": "./picsou_batch.py -restore",
-        "Picsou Simul": "./picsou_batch.py -simul -account",
-        "Picsou Quote": "./picsou_batch.py -simul -account -quote",
-        "Picsou Day": "./picsou_batch.py -day",
-        "Picsou Day 10 mns": "./picsou_batch.py -day10"
+        "Picsou Trade": "./picsou.py -day -trade",
+        "Picsou Quote": "./picsou.py -day -quote",
+        "Picsou Repeat": "./picsou.py -dayrepeat -quote -trade"
     },
     "tables": {
         "ptf": {
@@ -65,7 +64,7 @@
                     "sortable": true,
                     "sql_color": "case when ptf_gain < 0 then '#FF0000' else '#006600' end"
                 },
-                "_url_yahoo": {
+                "_yahoo": {
                     "label_long": "Lien vers Yahoo",
                     "label_short": "Yahoo",
                     "type": "url",
@@ -74,14 +73,26 @@
                         "icon_name": "applications-internet"
                     }
                 },
+                "_date": {
+                    "label_long": "Date",
+                    "label_short": "Date",
+                    "type": "text",
+                    "text_sql": "select date('now') as _date",
+                    "jointure": {
+                        "join": "left outer join (select date('now') as _date) as t",
+                        "display": "_date"
+                    }
+                },
                 "_image": {
                     "label_long": "Graph",
                     "label_short": "Graph",
-                    "type": "form",
+                    "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "insert-image",
-                        "arg": "{ptf_id}.png"
+                        "icon_name": "insert-image"
+                    },
+                    "args": {
+                        "path": "png/{_date}/{ptf_id}.png"
                     }
                 },
                 "_batch": {
@@ -91,6 +102,19 @@
                     "params": {
                         "plugin": "picsou_batchui.PicsouBatchUi",
                         "icon_name": "view-refresh"
+                    }
+                },
+                "_vptf": {
+                    "label_long": "Historique",
+                    "label_short": "Historique",
+                    "type": "view",
+                    "height": 300,
+                    "params": {
+                        "table": "trades",
+                        "view": "vptf"
+                    },
+                    "args": {
+                        "trades_ptf_id": "{ptf_id}"
                     }
                 },
                 "_backup": {
@@ -114,10 +138,11 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
+                        "_date": {},
                         "_image": {},
                         "ptf_gain": {},
                         "ptf_note": {},
-                        "_url_yahoo": {}
+                        "_yahoo": {}
                     },
                     "sql_where": "ptf_enabled = '1'",
                     "order_by": "ptf_gain desc, ptf_id",
@@ -137,7 +162,7 @@
                         "_image": {},
                         "ptf_gain": {},
                         "ptf_note": {},
-                        "_url_yahoo": {}
+                        "_yahoo": {}
                     },
                     "order_by": "ptf_id"
                 },
@@ -168,8 +193,9 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
-                        "_url_yahoo": {},
-                        "ptf_note": {}
+                        "_yahoo": {},
+                        "ptf_note": {},
+                        "_vptf": {}
                     }
                 }
             }
@@ -204,6 +230,12 @@
                     "type": "calendar",
                     "sortable": true,
                     "searchable": true
+                },
+                "cdays_open": {
+                    "label_long": "Open",
+                    "label_short": "Open",
+                    "type": "float",
+                    "display": "%3.2f €"
                 },
                 "cdays_close": {
                     "label_long": "Cours",
@@ -301,32 +333,44 @@
                         "icon_name": "view-refresh"
                     }
                 },
+                "_yahoo": {
+                    "label_long": "Lien vers Yahoo",
+                    "label_short": "Yahoo",
+                    "type": "url",
+                    "params": {
+                        "url": "https://fr.finance.yahoo.com/chart/{cdays_ptf_id}",
+                        "icon_name": "applications-internet"
+                    }
+                },
                 "_image": {
                     "label_long": "Graph",
                     "label_short": "Graph",
-                    "type": "form",
+                    "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "insert-image",
-                        "arg": "{cdays_ptf_id}.png"
+                        "icon_name": "insert-image"
+                    },
+                    "args": {
+                        "path": "png/{cdays_date}/{cdays_ptf_id}.png"
                     }
                 },
                 "_fgraph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
-                    "type": "form",
+                    "type": "plugin",
                     "params": {
                         "plugin": "picsou_graph.PicsouGraphDay",
-                        "icon_name": "applications-office",
-                        "arg": "{cdays_ptf_id}"
+                        "icon_name": "applications-office"
+                    },
+                    "args": {
+                        "ptf_id": "{cdays_ptf_id}",
+                        "path": "png/{cdays_date}/{cdays_ptf_id}.png"
                     }
                 }
             },
             "views": {
                 "vall": {
                     "title": "Cours du jour",
-                    "form_add": "fadd",
-                    "form_edit": "fedit",
                     "searchable_sql": true,
                     "deletable": true,
                     "icon_name": "go-jump",
@@ -336,6 +380,7 @@
                         "cdays_ptf_id": {},
                         "cdays_name": {},
                         "cdays_time": {},
+                        "cdays_open": {},
                         "cdays_close": {},
                         "cdays_volume": {},
                         "cdays_percent": {},
@@ -346,6 +391,7 @@
                         "_fgraph": {},
                         "cdays_gain": {},
                         "cdays_gainp": {},
+                        "_yahoo": {},
                         "_batch": {}
                     },
                     "order_by": "cdays.cdays_ptf_id, cdays.cdays_time asc"
@@ -455,7 +501,7 @@
                     "display": "%3.2f €",
                     "sql_color": "case when trades_day < 0 then '#FF0000' else '#006600' end"
                 },
-                "_url_yahoo": {
+                "_yahoo": {
                     "label_long": "Lien vers Yahoo",
                     "label_short": "Yahoo",
                     "type": "url",
@@ -476,21 +522,13 @@
                 "_image": {
                     "label_long": "Graph",
                     "label_short": "Graph",
-                    "type": "form",
+                    "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "insert-image",
-                        "arg": "{trades_ptf_id}.png"
-                    }
-                },
-                "_fgraph": {
-                    "label_long": "Graph",
-                    "label_short": "Graph",
-                    "type": "form",
-                    "params": {
-                        "plugin": "picsou_graph.PicsouGraphDay",
-                        "icon_name": "applications-office",
-                        "arg": "{trades_ptf_id}"
+                        "icon_name": "insert-image"
+                    },
+                    "args": {
+                        "path": "png/{trades_date}/{trades_ptf_id}.png"
                     }
                 }
             },
@@ -514,7 +552,7 @@
                         "trades_cost": {},
                         "trades_gain": {},
                         "trades_gainp": {},
-                        "_url_yahoo": {},
+                        "_yahoo": {},
                         "trades_cash": {},
                         "trades_day": {},
                         "_image": {},
@@ -542,13 +580,37 @@
                         "trades_cost": {},
                         "trades_gain": {},
                         "trades_gainp": {},
-                        "_url_yahoo": {},
+                        "_yahoo": {},
                         "trades_cash": {},
                         "trades_day": {},
                         "_image": {}
                     },
                     "order_by": "trades.trades_time, trades.trades_ptf_id",
                     "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(trades_gain)) AS sql_footer FROM trades"
+                },
+                "vptf": {
+                    "title": "Historique",
+                    "hide": true,
+                    "searchable_sql": true,
+                    "deletable": true,
+                    "icon_name": "go-jump",
+                    "limit": 100,
+                    "elements": {
+                        "trades_id": {"hide":true},
+                        "trades_ptf_id": {"hide":true},
+                        "_ptf_name": {"hide":true},
+                        "trades_date": {"hide":true},
+                        "trades_time": {},
+                        "trades_order": {},
+                        "trades_buy": {},
+                        "trades_sell": {},
+                        "trades_quantity": {},
+                        "trades_cost": {},
+                        "trades_gain": {},
+                        "trades_gainp": {},
+                        "_image": {}
+                    },
+                    "order_by": "trades.trades_time, trades.trades_ptf_id"
                 }
             },
             "forms": {}

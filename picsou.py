@@ -48,18 +48,26 @@ class PicsouBatch():
 
     def day_repeat(self):
         """ Lancement toutes les 5 minutes de day """
-        self.run_day()
         time1 = time.time()
+        isStart = True
         while True:
             time2 = time.time()
-            if ( (time2-time1) > 5 * 60 ):
-                print()
+            if isStart: # Un exec au début
                 self.run_day()
-                time1 = time2
+                isStart = False
+            if ( (time2-time1) > 5 * 60 ):
+                now = datetime.datetime.now()
+                today0910 = now.replace(hour=9, minute=12, second=0, microsecond=0)
+                today1750 = now.replace(hour=17, minute=50, second=0, microsecond=0)
+                if now > today0910 and now < today1750 :
+                        self.run_day()
+                        time1 = time2
+                else:
+                    self.display("Picsou en dehors des plages autorisées".format())
             time.sleep(1)
 
     def run_day(self):
-        self.display(datetime.datetime.now().strftime("%Y/%m/%d, %H:%M:%S") + " : Calcul en cours..." )
+        self.display(datetime.datetime.now().strftime("%Y/%m/%d, %H:%M:%S") + " : Picsou se démène..." )
         
         if self.args.quote:
             loader = PicsouLoader(self, self.crud)
@@ -68,6 +76,8 @@ class PicsouBatch():
         if self.args.trade:
             loader = PicsouLoader(self, self.crud)
             loader.trade()
+
+        self.display(datetime.datetime.now().strftime("%Y/%m/%d, %H:%M:%S") + " : Picsou se repose" )
 
     def backup(self):
         """ backup """
