@@ -10,7 +10,7 @@
         "stake": 1200,
         "cost": 0.0048,
         "rsimin": 30,
-        "rsimax": 60
+        "rsimax": 70
     },
     "scheduler": {
         "batch": "./picsou_batch.py -day",
@@ -371,7 +371,7 @@
             "views": {
                 "vall": {
                     "title": "Cours du jour",
-                    "searchable_sql": true,
+                    "searchable": true,
                     "deletable": true,
                     "icon_name": "go-jump",
                     "limit": 400,
@@ -535,7 +535,7 @@
             "views": {
                 "vday": {
                     "title": "Trades du jour",
-                    "searchable_sql": true,
+                    "searchable": true,
                     "deletable": true,
                     "icon_name": "go-jump",
                     "limit": 100,
@@ -564,7 +564,7 @@
                 },
                 "vall": {
                     "title": "Trades Histo",
-                    "searchable_sql": true,
+                    "searchable": true,
                     "deletable": true,
                     "icon_name": "go-jump",
                     "limit": 100,
@@ -591,7 +591,7 @@
                 "vptf": {
                     "title": "Historique",
                     "hide": true,
-                    "searchable_sql": true,
+                    "searchable": true,
                     "deletable": true,
                     "icon_name": "go-jump",
                     "limit": 100,

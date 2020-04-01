@@ -69,7 +69,7 @@ class PicsouLoader():
         rsimin = self.crud.get_application_prop("trade")["rsimin"]
         rsimax = self.crud.get_application_prop("trade")["rsimax"]
         # Calcul du timestamp du jour à 17 heures 20 (heure limite d'achat)
-        time_limit = datetime.datetime.now().replace(hour=17, minute=20, second=0, microsecond=0).timestamp()
+        time_limit = datetime.datetime.now().replace(hour=17, minute=25, second=0, microsecond=0).timestamp()
 
         # Nettoyage de la simulation du jour
         datetoday = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -165,10 +165,10 @@ class PicsouLoader():
 
                 if cday_time < time_limit and trade == "":
                     # if rsi < rsimin : trade = "WAIT"
-                    if rsi < rsimin : trade = "WAIT"
+                    if rsi < rsimin : trade = "BUY"
 
                 if trade == "BUY":
-                    if cday_time > time_limit : #or firstQuoteIsPositive == False cday["cdays_volume"] < 100000 or 
+                    if cday_time > time_limit : 
                         trade = ""
                     else:
                         cday_time_buy = cday["cdays_time"]
