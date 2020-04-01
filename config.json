@@ -10,7 +10,7 @@
     "application_directory": "./application",
     "local_config": "~/data/crudenome/local.json",
     "shell": {
-        "Picsou Backup": "./picsou_batch.py -backup",
-        "Picsou Restauration": "./picsou_batch.py -restore"
+        "Picsou Backup": "./picsou.py -backup",
+        "Picsou Restauration": "./picsou.py -restore"
     }
 }
