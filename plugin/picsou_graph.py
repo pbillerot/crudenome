@@ -106,9 +106,18 @@ class PicsouGraphDay(Gtk.Window):
         cdays_ema = []
         cdays_sma = []
         cdays_trades = []
+        cdays_dvol = []
+        cdays_vma = []
         cdays_date = ""
+        dvolmax = 0
+        nbc = 0
         if len(cdays) > 0:
+            # calcul du volume max
             for cday in cdays:
+                dvol = int(cday["cdays_dvol"])
+                if dvol > dvolmax : dvolmax = dvol
+            for cday in cdays:
+                nbc += 1
                 cdays_date = cday["cdays_date"]
                 cdays_times.append(cday["cdays_time"][11:16])
                 cdays_quotes.append(float(cday["cdays_close"]))
@@ -116,6 +125,9 @@ class PicsouGraphDay(Gtk.Window):
                 cdays_rsi.append(float(cday["cdays_rsi"]))
                 cdays_ema.append(float(cday["cdays_ema"]))
                 cdays_sma.append(float(cday["cdays_sma"]))
+                cdays_dvol.append((float(cday["cdays_dvol"])/dvolmax)*100)
+                cdays_vma.append((float(cday["cdays_vma"])/dvolmax)*100)
+
                 if cday["cdays_trade"] in ('BUY', '...', 'SELL'):
                     cdays_trades.append(float(cday["cdays_close"]))
                 else:
@@ -135,7 +147,9 @@ class PicsouGraphDay(Gtk.Window):
             ax1.legend(loc=3)
 
             ax2 = ax1.twinx()
-            ax2.plot(cdays_times, cdays_rsi, 'm:', label='RSI')
+            ax2.plot(cdays_times, cdays_rsi, 'mo:', label='RSI')
+            ax2.bar(cdays_times, cdays_dvol, label='Volume', color='k', alpha=0.1)
+            ax2.plot(cdays_times, cdays_vma, 'ko:', label='VMA', alpha=0.1)
             ax2.set_ylabel('RSI')
             ax2.legend(loc=4)
 

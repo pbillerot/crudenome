@@ -9,7 +9,7 @@
     "trade": {
         "stake": 1200,
         "cost": 0.0048,
-        "rsimin": 30,
+        "rsimin": 20,
         "rsimax": 70
     },
     "scheduler": {
@@ -54,6 +54,13 @@
                     "label_long": "Valeur Active",
                     "label_short": "Active",
                     "type": "check",
+                    "col_editable": true
+                },
+                "ptf_top": {
+                    "label_long": "TOP",
+                    "label_short": "TOP",
+                    "type": "check",
+                    "sortable": true,
                     "col_editable": true
                 },
                 "ptf_gain": {
@@ -140,13 +147,14 @@
                         "ptf_enabled": {},
                         "_date": {},
                         "_image": {},
+                        "ptf_top": {},
                         "ptf_gain": {},
                         "ptf_note": {},
                         "_yahoo": {}
                     },
                     "sql_where": "ptf_enabled = '1'",
                     "order_by": "ptf_gain desc, ptf_id",
-                    "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(ptf_gain)) AS sql_footer FROM ptf where ptf_enabled = 1"
+                    "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(ptf_gain)) AS sql_footer FROM ptf where ptf_top = 1"
                 },
                 "vall": {
                     "title": "Toutes les valeurs",
@@ -243,7 +251,7 @@
                     "type": "float",
                     "display": "%3.2f €"
                 },
-                "cdays_volume": {
+                "cdays_dvol": {
                     "label_long": "Volume",
                     "label_short": "Volume",
                     "type": "int",
@@ -382,7 +390,7 @@
                         "cdays_time": {},
                         "cdays_open": {},
                         "cdays_close": {},
-                        "cdays_volume": {},
+                        "cdays_dvol": {},
                         "cdays_percent": {},
                         "cdays_rsi": {},
                         "cdays_ema": {},
