@@ -40,10 +40,10 @@ class PicsouLoader():
             self.csv_to_quotes(ptf, 14)
             
             # Suppression des cours des jours antérieurs
-            # self.crud.exec_sql(self.crud.get_basename(), """
-            # delete from cdays
-            # where cdays_date <> date('now')
-            # """, {})
+            self.crud.exec_sql(self.crud.get_basename(), """
+            delete from cdays
+            where cdays_date <> date('now')
+            """, {})
             # insertion du dernier cours récupéré dans self.quote
             self.crud.exec_sql(self.crud.get_basename(), """
             insert into cdays
@@ -111,11 +111,12 @@ class PicsouLoader():
             ema = 0.0
             ema1 = 0.0
             sma = 0.0
+            sma0 = 0.0
             sma1 = 0.0
+            sma2 = 0.0
+            sma3 = 0.0
             emas = []
             smas = []
-            vmas = []
-            vma = 0
             trade = ""
             cday_time = 0
             cday_time_buy = 0
@@ -127,10 +128,13 @@ class PicsouLoader():
             fgain = 0.0
             fgainp = 0.0
             trade = ""
+            # Gestion des volumes
+            vol = 0
+            vol1 = 0 # vol - 1 pour calculer le delta dvol
             dvol = 0
             dvols = [] # vol1 - vol
-            vol = 0
-            vol1 = 0
+            vevo = 0 # % / max dvols
+            vevos = [] 
             if len(cdays) > 0 :
                 for cday in cdays:
                     nbc+=1
@@ -139,6 +143,8 @@ class PicsouLoader():
                     quote1 = quote
                     rsi1 = rsi
                     ema1 = ema
+                    sma3 = sma2
+                    sma2 = sma1
                     sma1 = sma
                     vol1 = vol
 
@@ -150,9 +156,10 @@ class PicsouLoader():
                     vol = cday["cdays_volume"]
                     dvol = vol - vol1
                     dvols.append(dvol)
+                    vevo = (dvol/max(dvols))*100
 
                     sma = self.sma(quotes, 14)
-                    vma = self.sma(dvols, 14)
+                    if nbc == 1 : sma0 = sma
                     if nbc > 13 : 
                         rsi = self.rsi(quotes, 14)
                         window = nbc//2 if nbc < 28 else 14
@@ -176,9 +183,12 @@ class PicsouLoader():
                         if rsi > rsi1 : trade = "BUY"
 
                     if cday_time < time_limit and trade == "":
+                        # if rsi < rsimin : trade = "WAIT"
                         if rsi < rsimin : trade = "WAIT"
+                        # if rsi < 30 and vevo > 60 : trade = "BUY"
+                        # if nbc > 3 and nbc < 12 and sma > sma0 and sma > sma1 and sma1 > sma2 and sma2 > sma3 : trade = "BUY"
                         # if rsi < 30 :
-                            # if dvol > vma :
+                            # if dvol > vevo :
                             #     if ema1 < sma1 and ema1 < sma and ema > sma :
                             #         trade = "BUY"
 
@@ -208,11 +218,6 @@ class PicsouLoader():
                             ,"fcost": fcost_buy
                             , "fgain":None, "fgainp": None
                             })
-                            # Envoi du SMS
-                            if ptf["ptf_top"] == 1 :
-                                url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
-                                msg = "PICSOU ACHAT {} : {} actions à {:7.2f} € {}".format(ptf["ptf_id"], int(iquantity), fbuy, url)
-                                self.crud.send_sms(msg)
 
                     if trade == "SELL":
                         fsell = quote
@@ -244,15 +249,29 @@ class PicsouLoader():
                     cday["cdays_sma"] = sma
                     cday["cdays_trade"] = trade
                     cday["cdays_dvol"] = dvol
-                    cday["cdays_vma"] = vma
+                    cday["cdays_vevo"] = vevo
 
                     self.crud.exec_sql(self.crud.get_basename(), """
                     UPDATE cdays
                     set cdays_rsi = :cdays_rsi, cdays_ema = :cdays_ema, cdays_sma = :cdays_sma
-                    ,cdays_trade = :cdays_trade, cdays_dvol = :cdays_dvol, cdays_vma = :cdays_vma
+                    ,cdays_trade = :cdays_trade, cdays_dvol = :cdays_dvol, cdays_vevo = :cdays_vevo
                     WHERE cdays_id = :cdays_id
                     """, cday)
                 # fin cday du ptf en cours
+                if trade == "BUY":
+                    # Envoi du SMS
+                    if ptf["ptf_top"] == 1 :
+                        url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
+                        msg = "PICSOU ACHAT {} : {} actions à {:7.2f} € {}".format(ptf["ptf_id"], int(iquantity), fbuy, url)
+                        self.crud.send_sms(msg)
+
+                if trade == "SELL":
+                    # Envoi du SMS
+                    if ptf["ptf_top"] == 1 :
+                        url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
+                        msg = "PICSOU VENTE {} : {} actions à {:7.2f} € (gain: {:7.2f} €) {}".format(ptf["ptf_id"], int(iquantity), fvente, fgain, url)
+                        self.crud.send_sms(msg)
+
                 if trade == "...":
                     fsell = quote
                     # Mise à jour du TRADE en cours

@@ -552,6 +552,8 @@ class CrudView(GObject.GObject):
         if self.treeiter_selected:
             # key_id = self.store_filter_sort[self.treeiter_selected][self.crud.get_view_prop("key_id")]
             row_id = model[self.treeiter_selected][0]
+            # TODO self.treeview.gtk_tree_view_scroll_to_cell(Gtk.TreePath(row_id), None)
+            self.treeview.grab_focus()
             # print "Select", key_id, row_id
             self.crud.set_row_id(row_id)
 

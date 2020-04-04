@@ -582,7 +582,7 @@ class CrudelCheck(Crudel):
         self.value = self.get_widget().get_active()
 
     def on_cell_toggle(self, renderer, path):
-        """ Clic sur la coche """
+        """ Clic sur la coche dans une view"""
         key_id = self.crud.get_key_id()
         key_value = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
         row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
@@ -1130,6 +1130,9 @@ class CrudelUrl(Crudel):
         self.crud.set_key_value(key_id)
         url = self.get_param_replace("url", "params.url not define")
         Gtk.show_uri_on_window(None, url, datetime.datetime.now().timestamp())
+
+    def set_value_widget(self):
+        pass
 
 #
 #####################################################################################

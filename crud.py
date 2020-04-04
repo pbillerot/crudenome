@@ -549,6 +549,8 @@ class Crud:
             crudel = self.get_element_prop(element, "crudel")
             if crudel.is_read_only():
                 continue
+            if crudel.is_virtual():
+                continue
             if b_first:
                 b_first = False
             else:
@@ -580,6 +582,8 @@ class Crud:
             crudel = self.get_element_prop(element, "crudel")
             if crudel.is_read_only():
                 continue
+            if crudel.is_virtual():
+                continue
             if b_first:
                 b_first = False
             else:
@@ -593,6 +597,8 @@ class Crud:
                 continue
             crudel = self.get_element_prop(element, "crudel")
             if crudel.is_read_only():
+                continue
+            if crudel.is_virtual():
                 continue
             if b_first:
                 b_first = False
@@ -682,6 +688,8 @@ class Crud:
         # ajout des colonnes de jointure
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
+            if crudel.is_virtual():
+                continue
             if crudel.with_jointure()\
             and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
                 sql += ", " + crudel.get_jointure("display") + " as " + element
@@ -692,6 +700,8 @@ class Crud:
         join = ""
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
+            if crudel.is_virtual():
+                continue
             if crudel.with_jointure()\
             and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
                 if crudel.get_jointure("join"):

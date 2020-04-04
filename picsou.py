@@ -48,6 +48,7 @@ class PicsouBatch():
 
     def day_repeat(self):
         """ Lancement toutes les 5 minutes de day """
+        # TODO pas de iSTart si en dehors de la plage
         time1 = time.time()
         isStart = True
         while True:
@@ -63,7 +64,7 @@ class PicsouBatch():
                         self.run_day()
                         time1 = time2
                 else:
-                    self.display("Picsou en dehors des plages autorisées".format())
+                    self.display("Picsou en dehors de la plage autorisée".format())
             time.sleep(1)
 
     def run_day(self):

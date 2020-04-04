@@ -10,7 +10,7 @@
         "stake": 1200,
         "cost": 0.0048,
         "rsimin": 20,
-        "rsimax": 70
+        "rsimax": 60
     },
     "scheduler": {
         "batch": "./picsou_batch.py -day",
@@ -257,6 +257,12 @@
                     "type": "int",
                     "display": "% u"
                 },
+                "cdays_vevo": {
+                    "label_long": "Vol %",
+                    "label_short": "Vol %",
+                    "type": "int",
+                    "display": "%3f"
+                },
                 "cdays_low": {
                     "label_long": "Min",
                     "label_short": "Min",
@@ -379,7 +385,7 @@
             "views": {
                 "vall": {
                     "title": "Cours du jour",
-                    "searchable": true,
+                    "searchable_sql": true,
                     "deletable": true,
                     "icon_name": "go-jump",
                     "limit": 400,

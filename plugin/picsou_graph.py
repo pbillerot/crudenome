@@ -107,7 +107,7 @@ class PicsouGraphDay(Gtk.Window):
         cdays_sma = []
         cdays_trades = []
         cdays_dvol = []
-        cdays_vma = []
+        cdays_vevo = []
         cdays_date = ""
         dvolmax = 0
         nbc = 0
@@ -126,7 +126,7 @@ class PicsouGraphDay(Gtk.Window):
                 cdays_ema.append(float(cday["cdays_ema"]))
                 cdays_sma.append(float(cday["cdays_sma"]))
                 cdays_dvol.append((float(cday["cdays_dvol"])/dvolmax)*100)
-                cdays_vma.append((float(cday["cdays_vma"])/dvolmax)*100)
+                cdays_vevo.append(float(cday["cdays_vevo"]))
 
                 if cday["cdays_trade"] in ('BUY', '...', 'SELL'):
                     cdays_trades.append(float(cday["cdays_close"]))
@@ -149,7 +149,7 @@ class PicsouGraphDay(Gtk.Window):
             ax2 = ax1.twinx()
             ax2.plot(cdays_times, cdays_rsi, 'mo:', label='RSI')
             ax2.bar(cdays_times, cdays_dvol, label='Volume', color='k', alpha=0.1)
-            ax2.plot(cdays_times, cdays_vma, 'ko:', label='VMA', alpha=0.1)
+            ax2.plot(cdays_times, cdays_vevo, 'ko:', label='vevo', alpha=0.1)
             ax2.set_ylabel('RSI')
             ax2.legend(loc=4)
 
