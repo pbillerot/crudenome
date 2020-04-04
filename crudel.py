@@ -1128,6 +1128,14 @@ class CrudelUrl(Crudel):
         self.crud.remove_all_selection()
         self.crud.add_selection(key_id, key_display)
         self.crud.set_key_value(key_id)
+        # Chargement des éléments de la ligne courante
+        rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_VIEW)
+        for row in rows:
+            for element in self.crud.get_view_elements():
+                crudel = self.crud.get_element_prop(element, "crudel")
+                if row.get(element, False):
+                    crudel.set_value_sql(row[element])
+
         url = self.get_param_replace("url", "params.url not define")
         Gtk.show_uri_on_window(None, url, datetime.datetime.now().timestamp())
 

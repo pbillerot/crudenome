@@ -7,6 +7,7 @@ import shutil
 import os
 import datetime, time
 import argparse
+import sys
 
 from crud import Crud
 from crudel import Crudel
@@ -44,6 +45,11 @@ class PicsouBatch():
     def display(self, msg):
         """ docstring """
         print(msg)
+        # self.crud.logger.info(msg)
+    def pout(self, msg):
+        """ docstring """
+        sys.stdout.write(msg)
+        sys.stdout.flush()
         # self.crud.logger.info(msg)
 
     def day_repeat(self):

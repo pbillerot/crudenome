@@ -35,7 +35,7 @@ class PicsouLoader():
             while Gtk.events_pending():
                 Gtk.main_iteration()
             # Chargement de l'historique
-            self.parent.display("Quote of {}...".format(ptf["ptf_id"]))
+            self.display("Quote of {}...".format(ptf["ptf_id"]))
 
             self.csv_to_quotes(ptf, 14)
             
@@ -86,8 +86,9 @@ class PicsouLoader():
         fstake = self.crud.get_application_prop("trade")["stake"] # mise ou enjeu
         fday = 0.0
         journal = []
+        self.pout("Trade...")
         for ptf in ptfs:
-            self.parent.display(ptf["ptf_id"] + " trade... ")
+            self.pout(" " + ptf["ptf_id"])
             while Gtk.events_pending():
                 Gtk.main_iteration() # libération des messages UI
             # Boucle sur les COURS du PTF
@@ -128,6 +129,7 @@ class PicsouLoader():
             fgain = 0.0
             fgainp = 0.0
             trade = ""
+            cas = ""
             # Gestion des volumes
             vol = 0
             vol1 = 0 # vol - 1 pour calculer le delta dvol
@@ -149,13 +151,18 @@ class PicsouLoader():
                     vol1 = vol
 
                     # Calcul du timestamp du cours courant
-                    cday_time = datetime.datetime.strptime(cday["cdays_time"], '%Y-%m-%d %H:%M:%S').timestamp()
+                    cday_time_str = datetime.datetime.strptime(cday["cdays_time"], '%Y-%m-%d %H:%M:%S')
+                    cday_time = cday_time_str.timestamp()
+                    # Calcul du timestamp du jour à 17 heures 20 (heure limite d'achat)
+                    time_limit = cday_time_str.replace(hour=17, minute=25, second=0, microsecond=0).timestamp()
 
                     quote = cday["cdays_close"]
                     quotes.append(quote)
                     vol = cday["cdays_volume"]
                     dvol = vol - vol1
                     dvols.append(dvol)
+
+                    # vevo = (dvol/max(dvols))*100
                     vevo = (dvol/max(dvols))*100
 
                     sma = self.sma(quotes, 14)
@@ -173,51 +180,47 @@ class PicsouLoader():
                     # VENTE
                     if trade in ("BUY","..."):
                         if rsi > rsimax : trade = "SELL"
-                    # fin de journée, on vend tout avant la cloture
-                    if cday_time > time_limit and trade in ("BUY","...") : 
-                        trade = "SELL"
+                        if self.is_macd_sell(ema1, sma1, ema, sma) : trade = "SELL"
 
-                    # ACHAT si dans la période du marché 
-                    # et si pas de trade en cours pour l'action
+                    # ACHAT 
                     if trade == "WAIT" : 
-                        if rsi > rsi1 : trade = "BUY"
+                        if rsi > rsi1 : trade = "BUY" 
 
-                    if cday_time < time_limit and trade == "":
-                        # if rsi < rsimin : trade = "WAIT"
-                        if rsi < rsimin : trade = "WAIT"
-                        # if rsi < 30 and vevo > 60 : trade = "BUY"
-                        # if nbc > 3 and nbc < 12 and sma > sma0 and sma > sma1 and sma1 > sma2 and sma2 > sma3 : trade = "BUY"
-                        # if rsi < 30 :
-                            # if dvol > vevo :
-                            #     if ema1 < sma1 and ema1 < sma and ema > sma :
-                            #         trade = "BUY"
+                    cas = "! wait , macd_sell"
 
+                    if trade == "":
+                        if rsi < rsimin : trade = "BUY"
+                        # if self.is_macd_buy(ema1, sma1, ema, sma) and rsi < 35 : trade = "BUY"
+
+                    # FIN DE JOURNEE, on vend tout avant la cloture
+                    if cday_time > time_limit : 
+                        if trade == "BUY" : trade = ""
+                        if trade == "..." : trade = "SELL"
+
+                    # TRAITEMENT DU BUY ET SELL
                     if trade == "BUY":
-                        if cday_time > time_limit : 
-                            trade = ""
-                        else:
-                            cday_time_buy = cday["cdays_time"]
-                            fbuy = quote
-                            iquantity = fstake//fbuy
-                            # On augmente la banque si pas assez de cash
-                            fcost_buy = fbuy*iquantity*fcostp
-                            fachat = fbuy*iquantity + fcost_buy
-                            journal.append({"time": cday["cdays_time"], "ope": -fachat
-                            ,"message": "{} ...ACHAT {} \tde {:3.0f} actions à {:7.2f} € soit {:7.2f} € net (frais {:5.2f} €)"
-                            .format(cday["cdays_time"], cday["cdays_ptf_id"], iquantity, fbuy, fachat, fcost_buy)
-                            })
+                        cday_time_buy = cday["cdays_time"]
+                        fbuy = quote
+                        iquantity = fstake//fbuy
+                        # On augmente la banque si pas assez de cash
+                        fcost_buy = fbuy*iquantity*fcostp
+                        fachat = fbuy*iquantity + fcost_buy
+                        journal.append({"time": cday["cdays_time"], "ope": -fachat
+                        ,"message": "{} ...ACHAT {} \tde {:3.0f} actions à {:7.2f} € soit {:7.2f} € net (frais {:5.2f} €)"
+                        .format(cday["cdays_time"], cday["cdays_ptf_id"], iquantity, fbuy, fachat, fcost_buy)
+                        })
 
-                            # Enregistrement du trade
-                            self.crud.exec_sql(self.crud.get_basename(), """
-                            insert into trades (trades_ptf_id, trades_date, trades_time, trades_order, trades_buy, trades_sell
-                            ,trades_quantity, trades_cost, trades_gain, trades_gainp)
-                            select :ptf_id, :cdays_date, :cdays_time, 'ACHAT', :fbuy, :fsell, :iquantity, :fcost, :fgain, :fgainp
-                            where not exists (select 1 from trades where trades_ptf_id = :ptf_id and trades_time = :cdays_time)
-                            """, {"ptf_id": ptf["ptf_id"], "cdays_date": cday["cdays_date"], "cdays_time": cday["cdays_time"]
-                            ,"fbuy": fbuy, "fsell": None, "iquantity": iquantity
-                            ,"fcost": fcost_buy
-                            , "fgain":None, "fgainp": None
-                            })
+                        # Enregistrement du trade
+                        self.crud.exec_sql(self.crud.get_basename(), """
+                        insert into trades (trades_ptf_id, trades_date, trades_time, trades_order, trades_buy, trades_sell
+                        ,trades_quantity, trades_cost, trades_gain, trades_gainp)
+                        select :ptf_id, :cdays_date, :cdays_time, 'ACHAT', :fbuy, :fsell, :iquantity, :fcost, :fgain, :fgainp
+                        where not exists (select 1 from trades where trades_ptf_id = :ptf_id and trades_time = :cdays_time)
+                        """, {"ptf_id": ptf["ptf_id"], "cdays_date": cday["cdays_date"], "cdays_time": cday["cdays_time"]
+                        ,"fbuy": fbuy, "fsell": None, "iquantity": iquantity
+                        ,"fcost": fcost_buy
+                        , "fgain":None, "fgainp": None
+                        })
 
                     if trade == "SELL":
                         fsell = quote
@@ -312,7 +315,8 @@ class PicsouLoader():
         # fin ptfs
         # Compte-rendu dans TRADES de fday, fcash, fdayp
         # Calcul du cash nécessaire pour réaliser les opérations
-        self.parent.display("--- OPERATIONS DU JOUR ---")
+        self.display("")
+        self.display("--- OPERATIONS DU JOUR ---")
         fcash = 0.0
         fbank = 0.0
         # tri du journal sur time
@@ -325,8 +329,8 @@ class PicsouLoader():
                 fbank = fbank + j["ope"]
             else:
                 fbank = fbank + j["ope"]
-            self.parent.display(j["message"])
-            # self.parent.display("{} ope: {:+7.2f} € \tcash: {:+7.2f} € \tbank: {:+7.2f} €".format(j["time"], j["ope"], fcash, fbank))
+            self.display(j["message"])
+            # self.display("{} ope: {:+7.2f} € \tcash: {:+7.2f} € \tbank: {:+7.2f} €".format(j["time"], j["ope"], fcash, fbank))
 
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE trades
@@ -335,14 +339,26 @@ class PicsouLoader():
         WHERE trades_date = date('now')
         """, {"fcash": fcash, "fday": fday})
         # Info sur console
-        self.parent.display("--- BILAN DU JOUR : gain {:7.2f} € Cash {:7.2f} € "
-        .format(fday, fcash))
+        self.display("--- BILAN DU JOUR {} : {}-{} ({}) gain {:7.2f} € Cash {:7.2f} €"
+        .format(cday["cdays_date"], rsimin, rsimax, cas, fday, fcash))
 
         # Report des gain dans PTF
         self.crud.exec_sql(self.crud.get_basename(), """
         UPDATE ptf 
         SET ptf_gain = (select sum(trades_gain) as gain from trades where trades_ptf_id = ptf_id group by trades_ptf_id)
         """, {})
+
+    def display(self, msg):
+        self.parent.display(msg)
+    def pout(self, msg):
+        self.parent.pout(msg)
+
+    def is_macd_buy(self, ema1, sma1, ema, sma):
+        # Croisement ema sma par le bas avec montée importante du ema
+        return True if sma1 > ema1 and ema > sma and sma > ema1 else False
+
+    def is_macd_sell(self, ema1, sma1, ema, sma):
+        return True if ema1 > sma1 and sma > ema else False
 
     def split_crumb_store(self, v):
         return v.split(':')[2].strip('"')
@@ -394,7 +410,7 @@ class PicsouLoader():
         # self.cookie, self.crumb = self.get_cookie_crumb(ptf["ptf_id"])
         url = "https://query1.finance.yahoo.com/v7/finance/download/{}?period1={}&period2={}&interval=1d&events=history&crumb={}"\
         .format(ptf["ptf_id"], start_date, end_date, self.crumb)
-        # self.parent.display(url)
+        # self.display(url)
 
         with requests.Session() as req:
             conn = None
