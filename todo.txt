@@ -5,3 +5,4 @@ TODO rubrique tags
 TODO sql_ctrl
 TODO post_sql à tester
 TODO bug clic sur check qui remet sur la 1ère page
+TODO problème de scroll_window qui n'est pas toujours active

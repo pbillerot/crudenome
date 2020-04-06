@@ -3,8 +3,7 @@
     "info": "Analyse les cours de la bourse et propose des ordres d'achat et de vente de valeurs",
     "menu_orientation": "horizontal",
     "icon_file": "picsou.jpg",
-    "basename": "/mnt/nas/data/picsou/png/2020-04-03/picsou.sqlite",
-    "basename3": "/mnt/nas/data/picsou/picsou.sqlite",
+    "basename": "/mnt/nas/data/picsou/picsou.sqlite",
     "basename1": "/mnt/nas/data/picsou/png/2020-04-02/picsou.sqlite",
     "basename2": "/mnt/nas/data/picsou/png/2020-04-03/picsou.sqlite",
     "basehost": "~/data/picsou/picsou.sqlite",
@@ -225,6 +224,7 @@
                     "label_long": "Valeur",
                     "label_short": "Valeur",
                     "type": "text",
+                    "sortable": true,
                     "searchable": true
                 },
                 "cdays_name": {

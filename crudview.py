@@ -62,6 +62,10 @@ class CrudView(GObject.GObject):
         self.label_select = None
         self.treeiter_selected = None
 
+        # Suppression de la frame gérée par par la scroll_window
+        for widget in self.scroll_window.get_children():
+            Gtk.Widget.destroy(widget)
+
         self.create_view_toolbar()
         self.create_liststore()
         self.create_treeview()
@@ -78,6 +82,8 @@ class CrudView(GObject.GObject):
         self.label_select.hide()
         self.button_edit.hide()
         self.button_delete.hide()
+
+        self.treeview.grab_focus()
 
     def get_widget(self):
         """ retourne le container de la vue toolbar + list """
@@ -550,11 +556,17 @@ class CrudView(GObject.GObject):
         # print "on_tree_selection_changed"
         model, self.treeiter_selected = selection.get_selected()
         if self.treeiter_selected:
-            # key_id = self.store_filter_sort[self.treeiter_selected][self.crud.get_view_prop("key_id")]
+            key_id = self.store_filter_sort[self.treeiter_selected][self.crud.get_view_prop("key_id")]
             row_id = model[self.treeiter_selected][0]
-            # TODO self.treeview.gtk_tree_view_scroll_to_cell(Gtk.TreePath(row_id), None)
-            self.treeview.grab_focus()
-            # print "Select", key_id, row_id
+            # self.treeview.collapse_all()
+            # self.treeview.expand_to_path(Gtk.TreePath(row_id))
+            # self.treeview.set_cursor(Gtk.TreePath(row_id), None)
+            # adjustment = self.scroll_window.get_vadjustment()
+            # rect = self.treeview.get_cell_area(Gtk.TreePath(row_id), None)
+            # # self.treeview.scroll_to_cell(Gtk.TreePath(row_id), None)
+            # # self.treeview.grab_focus()
+            # adjustment.set_value(rect.y)
+            # print ("Select", key_id, row_id)
             self.crud.set_row_id(row_id)
 
     def on_row_actived(self, widget, row, col):

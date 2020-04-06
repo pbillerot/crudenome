@@ -82,7 +82,7 @@ class PicsouBatch():
 
         if self.args.trade:
             loader = PicsouLoader(self, self.crud)
-            loader.trade()
+            loader.trade(with_sms=self.args.sms)
 
         self.display(datetime.datetime.now().strftime("%Y/%m/%d, %H:%M:%S") + " : Picsou se repose" )
 
@@ -118,6 +118,7 @@ if __name__ == '__main__':
     parser.add_argument('-restore', action='store_true', default=False, help="Restauration de la base locale à partir de la base sur la box")
     parser.add_argument('-day', action='store_true', default=False, help="Requête des cours du jour")
     parser.add_argument('-dayrepeat', action='store_true', default=False, help="Requête des cours du jour toutes les 5 minutes")
+    parser.add_argument('-sms', action='store_true', default=False, help="Envoi de SMS de recommandation")
     # print parser.parse_args()
     if parser._get_args() == 0:
         parser.print_help()
