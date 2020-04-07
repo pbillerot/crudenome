@@ -277,7 +277,7 @@ class PicsouLoader():
                     # Envoi du SMS
                     if with_sms and ptf["ptf_top"] == 1 :
                         url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
-                        msg = "PICSOU VENTE {} : {} actions à {:7.2f} € (gain: {:7.2f} €) {}".format(ptf["ptf_id"], int(iquantity), fvente, fgain, url)
+                        msg = "PICSOU VENTE {} : {} actions à {:7.2f} € (gain: {:7.2f} €) {}".format(ptf["ptf_id"], int(iquantity), fsell, fgain, url)
                         self.crud.send_sms(msg)
 
                 if trade == "...":
@@ -363,10 +363,10 @@ class PicsouLoader():
 
     def is_macd_buy(self, ema1, sma1, ema, sma):
         # Croisement ema sma par le bas avec montée importante du ema
-        return True if sma1 > ema1 and ema >= sma else False
+        return True if sma1 > ema1 and ema >= sma and ema > ema1 else False
 
     def is_macd_sell(self, ema1, sma1, ema, sma):
-        return True if ema1 >= sma1 and sma > ema else False
+        return True if ema1 >= sma1 and sma > ema and ema < ema1 else False
 
     def split_crumb_store(self, v):
         return v.split(':')[2].strip('"')

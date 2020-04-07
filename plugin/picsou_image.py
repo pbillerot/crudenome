@@ -19,6 +19,7 @@ class PicsouImage(Gtk.Window):
         self.set_size_request(800, 600)
 
         self.create_widget()
+        self.set_title(self.args["path"])
 
     def create_widget(self):
         """ Construction du dessin et du toolbar """

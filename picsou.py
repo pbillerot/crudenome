@@ -58,8 +58,14 @@ class PicsouBatch():
         isStart = True
         while True:
             time2 = time.time()
-            if isStart and (time2-time1) > 5 * 60: # Un exec au début
-                self.run_day()
+            if isStart :
+                now = datetime.datetime.now()
+                today0910 = now.replace(hour=9, minute=12, second=0, microsecond=0)
+                today1750 = now.replace(hour=17, minute=50, second=0, microsecond=0)
+                if now > today0910 and now < today1750 :
+                    self.run_day()
+                else:
+                    self.display("Picsou en dehors de la plage autorisée".format())
             isStart = False
             if ( (time2-time1) > 5 * 60 ):
                 now = datetime.datetime.now()

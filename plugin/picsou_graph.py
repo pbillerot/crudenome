@@ -33,7 +33,7 @@ class PicsouGraphDay(Gtk.Window):
     def do_init_widget(self, str_from, str_arg=""):
         """ Initialisation du widget après __init__ """
         # print ("do_init_widget {}({}) -> {}".format(str_from, str_arg, self.__class__))
-        print("PicsouGraphDay.init... " + self.ptf_id)
+        # print("PicsouGraphDay.init... " + self.ptf_id)
         self.create_widget()
 
     def refresh_data(self):
@@ -51,7 +51,7 @@ class PicsouGraphDay(Gtk.Window):
         self.crud = crud
         self.ptf_id = args["ptf_id"]
         self.path = self.crud.get_application_prop("data_directory") + "/" + args["path"]
-
+        self.set_title(self.path)
         # à revoir car perpétuel jusqu'à l'arrêt de l'application
         # GObject.timeout_add(1000 * 60 * 5, self.refresh_data)
 

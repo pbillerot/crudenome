@@ -432,7 +432,6 @@ class CrudView(GObject.GObject):
         # print "do_refresh_data_view %s.%s" % (str_from, str_arg)
         self.update_liststore()
         self.refresh_footer()
-        self.treeview.grab_focus()
 
     def on_button_add_clicked(self, widget):
         """ Ajout d'un élément """

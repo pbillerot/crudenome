@@ -83,14 +83,27 @@
                         "icon_name": "applications-internet"
                     }
                 },
-                "_date": {
+                "date_du_jour": {
                     "label_long": "Date",
                     "label_short": "Date",
                     "type": "text",
-                    "text_sql": "select date('now') as _date",
+                    "text_sql": "select date('now') as date_du_jour",
                     "jointure": {
-                        "join": "left outer join (select date('now') as _date) as t",
-                        "display": "_date"
+                        "join": "left outer join (select date('now') as date_du_jour) as t",
+                        "display": "date_du_jour"
+                    }
+                },
+                "_fgraph": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "plugin",
+                    "params": {
+                        "plugin": "picsou_graph.PicsouGraphDay",
+                        "icon_name": "applications-office"
+                    },
+                    "args": {
+                        "ptf_id": "{ptf_id}",
+                        "path": "png/{date_du jour}/{ptf_id}.png"
                     }
                 },
                 "_image": {
@@ -102,7 +115,7 @@
                         "icon_name": "insert-image"
                     },
                     "args": {
-                        "path": "png/{_date}/{ptf_id}.png"
+                        "path": "png/{date_du jour}/{ptf_id}.png"
                     }
                 },
                 "_batch": {
@@ -148,8 +161,8 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
-                        "_date": {},
-                        "_image": {},
+                        "date_du_jour": {},
+                        "_fgraph": {},
                         "ptf_top": {},
                         "ptf_gain": {},
                         "ptf_note": {},
@@ -170,7 +183,8 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
-                        "_image": {},
+                        "date_du_jour": {},
+                        "_fgraph": {},
                         "ptf_gain": {},
                         "ptf_note": {},
                         "_yahoo": {}
@@ -436,7 +450,7 @@
                     "searchable": true,
                     "sortable": true
                 },
-                "_ptf_name": {
+                "ptf_name": {
                     "label_long": "Nom",
                     "label_short": "Nom",
                     "type": "text",
@@ -539,8 +553,8 @@
                     }
                 },
                 "_image": {
-                    "label_long": "Graph",
-                    "label_short": "Graph",
+                    "label_long": "Cours",
+                    "label_short": "Cours",
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
@@ -549,7 +563,21 @@
                     "args": {
                         "path": "png/{trades_date}/{trades_ptf_id}.png"
                     }
+                },
+                "_fgraph": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "plugin",
+                    "params": {
+                        "plugin": "picsou_graph.PicsouGraphDay",
+                        "icon_name": "applications-office"
+                    },
+                    "args": {
+                        "ptf_id": "{trades_ptf_id}",
+                        "path": "png/{trades_date}/{trades_ptf_id}.png"
+                    }
                 }
+
             },
             "views": {
                 "vday": {
@@ -561,7 +589,7 @@
                     "elements": {
                         "trades_id": {},
                         "trades_ptf_id": {},
-                        "_ptf_name": {},
+                        "ptf_name": {},
                         "trades_date": {"hide":true},
                         "trades_time": {},
                         "trades_order": {},
@@ -590,7 +618,8 @@
                     "elements": {
                         "trades_id": {},
                         "trades_ptf_id": {},
-                        "_ptf_name": {},
+                        "ptf_name": {},
+                        "trades_date": {"hide":true},
                         "trades_time": {},
                         "trades_order": {},
                         "trades_buy": {},
@@ -617,7 +646,7 @@
                     "elements": {
                         "trades_id": {"hide":true},
                         "trades_ptf_id": {"hide":true},
-                        "_ptf_name": {"hide":true},
+                        "ptf_name": {"hide":true},
                         "trades_date": {"hide":true},
                         "trades_time": {},
                         "trades_order": {},
