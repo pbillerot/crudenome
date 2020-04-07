@@ -11,6 +11,7 @@
     "trade": {
         "stake": 1200,
         "cost": 0.0048,
+        "macdbuy": 40,
         "rsimin": 20,
         "rsimax": 60
     },
@@ -396,6 +397,7 @@
                         "cdays_id": {},
                         "cdays_ptf_id": {},
                         "cdays_name": {},
+                        "cdays_date": {"hide":true},
                         "cdays_time": {},
                         "cdays_open": {},
                         "cdays_close": {},

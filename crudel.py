@@ -1195,11 +1195,11 @@ class CrudelView(Crudel):
 
         crud.set_crudel(self)
         args = self.get_args_replace()
-        self.widget_view = CrudView(crud, self.box_main, self.box_toolbar, self.scroll_window, args)
+        self.widget_view = CrudView(crud, self.box_main, self.box_toolbar, self.box_content, args)
         self.widget = self.widget_view.get_widget()
         # arrangement
         hbox.pack_start(label, False, False, 5)
-        hbox.pack_start(self.widget, False, True, 5)
+        hbox.pack_start(self.widget, True, True, 5)
 
         return hbox
 

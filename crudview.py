@@ -23,7 +23,7 @@ class CrudView(GObject.GObject):
         'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str, str,)),
         'refresh_data_view': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
     }
-    def __init__(self, crud, box_main, box_toolbar, scroll_window, args=None):
+    def __init__(self, crud, box_main, box_toolbar, box_content, args=None):
 
         GObject.GObject.__init__(self)
 
@@ -34,7 +34,7 @@ class CrudView(GObject.GObject):
         self.crudel = crud.get_crudel()
         self.box_main = box_main
         self.box_toolbar = box_toolbar
-        self.scroll_window = scroll_window
+        self.box_content = box_content
         self.qligne_view = 0 # nbre de lignes de la vue
         if args:
             self.args = args
@@ -62,13 +62,18 @@ class CrudView(GObject.GObject):
         self.label_select = None
         self.treeiter_selected = None
 
-        # Suppression de la frame gérée par par la scroll_window
-        for widget in self.scroll_window.get_children():
-            Gtk.Widget.destroy(widget)
+        self.box_toolbar = self.create_view_toolbar()
+        self.liststore = self.create_liststore()
+        self.treeview = self.create_treeview()
 
-        self.create_view_toolbar()
-        self.create_liststore()
-        self.create_treeview()
+        self.frame = Gtk.Frame()
+        self.frame.add(self.treeview)
+        self.scroll_window = Gtk.ScrolledWindow()
+        self.scroll_window.set_hexpand(True)
+        self.scroll_window.set_vexpand(True)
+        self.scroll_window.add(self.frame)
+        self.scroll_window.show_all()
+        self.box_content.pack_end(self.scroll_window, True, True, 3)
 
         if len(self.crud.get_selection()) == 1 and not self.crudel:
             # au retour d'un formulaire, on remet la sélection sur la ligne
@@ -157,6 +162,8 @@ class CrudView(GObject.GObject):
 
         self.box_toolbar.pack_end(self.box_toolbar_select, False, True, 3)
 
+        return self.box_toolbar
+
     def create_treeview(self):
         """ Création/mise à jour de la treeview associée au liststore """
         # Treview sort and filter
@@ -213,10 +220,7 @@ class CrudView(GObject.GObject):
         # Connection au double-clic sur une ligne
         self.treeview.connect("row-activated", self.on_row_actived)
 
-        self.frame = Gtk.Frame()
-        self.frame.add(self.treeview)
-        self.scroll_window.add(self.frame)
-        self.scroll_window.show_all()
+        return self.treeview
 
     def create_liststore(self):
         """ Création de la structure du liststore à partir du dictionnaire des données """
@@ -251,6 +255,8 @@ class CrudView(GObject.GObject):
         self.liststore = Gtk.ListStore(*col_store_types)
         # print "col_store_types", col_store_types
         self.emit("refresh_data_view", "", "")
+
+        return self.liststore
 
     def update_liststore(self):
         """ Mise à jour du liststore en relisant la table """
@@ -426,6 +432,7 @@ class CrudView(GObject.GObject):
         # print "do_refresh_data_view %s.%s" % (str_from, str_arg)
         self.update_liststore()
         self.refresh_footer()
+        self.treeview.grab_focus()
 
     def on_button_add_clicked(self, widget):
         """ Ajout d'un élément """
@@ -484,6 +491,7 @@ class CrudView(GObject.GObject):
         # mémorisation du filtre dans la vue
         self.crud.set_view_prop("filter", self.current_filter)
         self.store_filter.refilter()
+        self.treeview.grab_focus()
 
     def on_search_entry_sql_activate(self, widget):
         """ CR dans le champ """

@@ -69,6 +69,7 @@ class PicsouLoader():
         """
         rsimin = self.crud.get_application_prop("trade")["rsimin"]
         rsimax = self.crud.get_application_prop("trade")["rsimax"]
+        macdbuy = self.crud.get_application_prop("trade")["macdbuy"]
         # Calcul du timestamp du jour à 17 heures 20 (heure limite d'achat)
         time_limit = datetime.datetime.now().replace(hour=17, minute=25, second=0, microsecond=0).timestamp()
 
@@ -190,12 +191,11 @@ class PicsouLoader():
                     if trade == "WAIT" : 
                         if rsi > rsi1 : trade = "BUY" 
 
-                    cas = "macd_buy < 35 , macd_sell"
+                    cas = "!rsi macd_buy < {} ,rsi macd_sell".format(macdbuy)
 
                     if trade == "":
-                        if rsi < rsimin : trade = "BUY"
-                    if trade == "":
-                        if self.is_macd_buy(ema1, sma1, ema, sma) and rsi < 35 : trade = "BUY"
+                        # if rsi < rsimin : trade = "BUY"
+                        if self.is_macd_buy(ema1, sma1, ema, sma) and rsi < macdbuy : trade = "BUY"
 
                     # FIN DE JOURNEE, on vend tout avant la cloture
                     if cday_time > time_limit : 
@@ -363,10 +363,10 @@ class PicsouLoader():
 
     def is_macd_buy(self, ema1, sma1, ema, sma):
         # Croisement ema sma par le bas avec montée importante du ema
-        return True if sma1 > ema1 and ema > sma else False
+        return True if sma1 > ema1 and ema >= sma else False
 
     def is_macd_sell(self, ema1, sma1, ema, sma):
-        return True if ema1 > sma1 and sma > ema else False
+        return True if ema1 >= sma1 and sma > ema else False
 
     def split_crumb_store(self, v):
         return v.split(':')[2].strip('"')

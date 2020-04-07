@@ -29,7 +29,6 @@ class CrudPortail(GObject.GObject):
             box_sidebar V box_main V
                             box_toolbar H
                             box_content V
-                                scroll_window
         footerbar H
             footer_label
     """
@@ -95,10 +94,6 @@ class CrudPortail(GObject.GObject):
         # box_content
         self.box_content = Gtk.VBox(spacing=0)
         self.box_main.pack_end(self.box_content, True, True, 3)
-        self.scroll_window = Gtk.ScrolledWindow()
-        self.scroll_window.set_hexpand(True)
-        self.scroll_window.set_vexpand(True)
-        self.box_content.pack_end(self.scroll_window, True, True, 3)
 
         self.create_toolbar()
         self.create_footerbar()
@@ -124,17 +119,13 @@ class CrudPortail(GObject.GObject):
                 Gtk.Widget.destroy(widget)
             for widget in self.box_toolbar.get_children():
                 Gtk.Widget.destroy(widget)
-            # for widget in self.box_content.get_children():
-            #     Gtk.Widget.destroy(widget)
-            for widget in self.scroll_window.get_children():
+            for widget in self.box_content.get_children():
                 Gtk.Widget.destroy(widget)
             self.headerbar.props.title = self.crud.config["title"]
         elif self.layout_type == CrudPortail.LAYOUT_VIEW:
             for widget in self.box_toolbar.get_children():
                 Gtk.Widget.destroy(widget)
-            # for widget in self.box_content.get_children():
-            #     Gtk.Widget.destroy(widget)
-            for widget in self.scroll_window.get_children():
+            for widget in self.box_content.get_children():
                 Gtk.Widget.destroy(widget)
             self.headerbar.props.title = self.crud.get_application_prop("title")
         elif self.layout_type == CrudPortail.LAYOUT_FORM:
@@ -144,9 +135,7 @@ class CrudPortail(GObject.GObject):
             #     Gtk.Widget.destroy(widget)
             for widget in self.box_toolbar.get_children():
                 Gtk.Widget.destroy(widget)
-            # for widget in self.box_content.get_children():
-            #     Gtk.Widget.destroy(widget)
-            for widget in self.scroll_window.get_children():
+            for widget in self.box_content.get_children():
                 Gtk.Widget.destroy(widget)
             self.headerbar.props.title = self.crud.get_application_prop("title")
 
@@ -314,7 +303,7 @@ class CrudPortail(GObject.GObject):
         self.crud.set_portail(self)
 
         self.crud.set_crudel(None)
-        self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.scroll_window, None)
+        self.crud_view = CrudView(self.crud, self.box_main, self.box_toolbar, self.box_content, None)
 
     def on_button_application_clicked(self, widget, application_file):
         """ Activation d'une application """

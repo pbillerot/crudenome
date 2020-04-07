@@ -70,7 +70,11 @@ class CrudForm(GObject.GObject):
         self.box_form.set_border_width(6)
         self.frame = Gtk.Frame()
         self.frame.add(self.box_form)
-        self.crud_portail.scroll_window.add(self.frame)
+
+        self.scroll_window = Gtk.ScrolledWindow()
+        self.scroll_window.add(self.frame)
+        self.scroll_window.show_all()
+        self.crud_portail.box_content.pack_end(self.scroll_window, True, True, 3)
 
         self.label_error = Gtk.Label()
         self.box_form.pack_end(self.label_error, False, False, 3)

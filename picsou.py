@@ -54,14 +54,13 @@ class PicsouBatch():
 
     def day_repeat(self):
         """ Lancement toutes les 5 minutes de day """
-        # TODO pas de iSTart si en dehors de la plage
         time1 = time.time()
         isStart = True
         while True:
             time2 = time.time()
-            if isStart: # Un exec au début
+            if isStart and (time2-time1) > 5 * 60: # Un exec au début
                 self.run_day()
-                isStart = False
+            isStart = False
             if ( (time2-time1) > 5 * 60 ):
                 now = datetime.datetime.now()
                 today0910 = now.replace(hour=9, minute=12, second=0, microsecond=0)
