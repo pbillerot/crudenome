@@ -8,7 +8,6 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject, GdkPixbuf
 
-
 class CrudForm(GObject.GObject):
     """ Gestion des Formulaires du CRUD """
     __gsignals__ = {

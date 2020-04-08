@@ -1188,11 +1188,6 @@ class CrudelView(Crudel):
         self.box_content = Gtk.HBox(spacing=0)
         self.box_main.pack_end(self.box_content, True, True, 3)
 
-        self.scroll_window = Gtk.ScrolledWindow()
-        self.scroll_window.set_hexpand(True)
-        self.scroll_window.set_vexpand(False)
-        self.box_content.pack_end(self.scroll_window, True, True, 3)
-
         crud.set_crudel(self)
         args = self.get_args_replace()
         self.widget_view = CrudView(crud, self.box_main, self.box_toolbar, self.box_content, args)

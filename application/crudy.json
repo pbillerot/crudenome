@@ -1,0 +1,59 @@
+{
+    "title": "CRUDENOME par l'exemple",
+    "info": "Exemple d'application réalisée avec Crudenome",
+    "menu_orientation": "vertical",
+    "icon_name": "x-office-address-book",
+    "icon_name_info": "https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names",
+    "basename": "./data/crudy.sqlite",
+    "tables": {
+        "CRUDY": {
+            "key": "crud_id",
+            "key_display": "crud_name",
+            "elements": {
+                "crud_id": {
+                    "label_long": "ID",
+                    "label_short": "ID",
+                    "type": "counter"
+                },
+                "crud_name": {
+                    "label_long": "Name",
+                    "label_short": "Name",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true,
+                    "required": true
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "ALL",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "icon_name": "folder-publicshare",
+                    "deletable": true,
+                    "elements": {
+                        "crud_id": {},
+                        "crud_name": {}
+                    },
+                    "order_by": "crud_id"
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Add",
+                    "elements": {
+                        "crud_id": {},
+                        "crud_name": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Edit",
+                    "elements": {
+                        "crud_id": {},
+                        "crud_name": {}
+                    }
+                }
+            }
+        }
+    }
+}

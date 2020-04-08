@@ -93,7 +93,7 @@
                         "display": "date_du_jour"
                     }
                 },
-                "_fgraph": {
+                "_graph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
                     "type": "plugin",
@@ -103,7 +103,7 @@
                     },
                     "args": {
                         "ptf_id": "{ptf_id}",
-                        "path": "png/{date_du jour}/{ptf_id}.png"
+                        "path": "png/{date_du_jour}/{ptf_id}.png"
                     }
                 },
                 "_image": {
@@ -115,7 +115,7 @@
                         "icon_name": "insert-image"
                     },
                     "args": {
-                        "path": "png/{date_du jour}/{ptf_id}.png"
+                        "path": "png/{date_du_jour}/{ptf_id}.png"
                     }
                 },
                 "_batch": {
@@ -162,7 +162,7 @@
                         "ptf_name": {},
                         "ptf_enabled": {},
                         "date_du_jour": {},
-                        "_fgraph": {},
+                        "_graph": {},
                         "ptf_top": {},
                         "ptf_gain": {},
                         "ptf_note": {},
@@ -184,7 +184,7 @@
                         "ptf_name": {},
                         "ptf_enabled": {},
                         "date_du_jour": {},
-                        "_fgraph": {},
+                        "_graph": {},
                         "ptf_gain": {},
                         "ptf_note": {},
                         "_yahoo": {}
@@ -386,7 +386,7 @@
                         "path": "png/{cdays_date}/{cdays_ptf_id}.png"
                     }
                 },
-                "_fgraph": {
+                "_graph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
                     "type": "plugin",
@@ -421,7 +421,7 @@
                         "cdays_ema": {},
                         "cdays_sma": {},
                         "cdays_trade": {},
-                        "_fgraph": {},
+                        "_graph": {},
                         "cdays_gain": {},
                         "cdays_gainp": {},
                         "_yahoo": {},
@@ -564,7 +564,7 @@
                         "path": "png/{trades_date}/{trades_ptf_id}.png"
                     }
                 },
-                "_fgraph": {
+                "_graph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
                     "type": "plugin",
@@ -602,7 +602,7 @@
                         "_yahoo": {},
                         "trades_cash": {},
                         "trades_day": {},
-                        "_image": {},
+                        "_graph": {},
                         "_batch": {}
                     },
                     "sql_where": "trades_date = date('now')",
