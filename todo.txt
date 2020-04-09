@@ -5,6 +5,5 @@ TODO rubrique tags
 TODO sql_ctrl
 TODO post_sql à tester
 TODO treeview mémoriser la dernière key_id sélectionnée
-TODO Formulaire sur toute la largeur de la box parente
 
 

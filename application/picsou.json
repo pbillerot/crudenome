@@ -225,6 +225,183 @@
                 }
             }
         },
+        "orders": {
+            "key": "orders_id",
+            "key_display": "orders_id",
+            "elements": {
+                "orders_id": {
+                    "label_long": "id",
+                    "label_short": "id",
+                    "type": "counter",
+                    "hide": false
+                },
+                "orders_name": {
+                    "label_long": "Ordre",
+                    "label_short": "Ordre",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true
+                },
+                "orders_ptf_id": {
+                    "label_long": "Valeur",
+                    "label_short": "Valeur",
+                    "type": "combo",
+                    "sql_items": "SELECT quotes.id, quotes.name as 'orders_ptf_name' From quotes",
+                    "searchable": true,
+                    "sortable": true
+                },
+                "orders_ptf_name": {
+                    "label_long": "Valeur",
+                    "label_short": "Valeur",
+                    "type": "jointure",
+                    "searchable": true,
+                    "sortable": true,
+                    "jointure": {
+                        "join": "LEFT OUTER JOIN quotes ON quotes.id = orders_ptf_id AND quotes.date = orders_date",
+                        "display": "quotes.name"
+                    }
+                },
+                "orders_order": {
+                    "label_long": "Ordre",
+                    "label_short": "Ordre",
+                    "sortable": true,
+                    "searchable": true,
+                    "type": "radio",
+                    "items": {
+                        "ACHAT": "Achat",
+                        "VENTE": "Vente"
+                    }
+                },
+                "orders_date": {
+                    "label_long": "Jour",
+                    "label_short": "Jour",
+                    "type": "calendar",
+                    "sortable": true,
+                    "searchable": true
+                },
+                "orders_time": {
+                    "label_long": "Jour Heure",
+                    "label_short": "Jour Heure",
+                    "type": "text",
+                    "readonly": true,
+                    "sortable": true,
+                    "searchable": true
+                },
+                "orders_close": {
+                    "label_long": "Quote",
+                    "label_short": "Quote",
+                    "type": "float",
+                    "display": "%3.2f €",
+                    "sql_text": "SELECT quotes.close FROM quotes WHERE id = '{orders_ptf_id}' AND date = '{orders_date}'",
+                    "jointure": {
+                        "join": "",
+                        "display": "quotes.close"
+                    }
+                },
+                "orders_buy": {
+                    "label_long": "Prix Achat",
+                    "label_short": "Achat",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "orders_sell": {
+                    "label_long": "Prix Vente",
+                    "label_short": "Vente",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "orders_quantity": {
+                    "label_long": "Quantité",
+                    "label_short": "Qt",
+                    "type": "int"
+                },
+                "orders_cost": {
+                    "label_long": "Frais",
+                    "label_short": "Frais",
+                    "type": "float",
+                    "display": "%3.2f €"
+                }
+            },
+            "views": {
+                "vall": {
+                    "title": "Historique",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "searchable": true,
+                    "deletable": true,
+                    "icon_name": "go-jump",
+                    "limit": 100,
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {},
+                        "orders_ptf_name": {},
+                        "orders_date": {"hide":true},
+                        "orders_time": {},
+                        "orders_order": {},
+                        "orders_close": {},
+                        "orders_buy": {},
+                        "orders_sell": {},
+                        "orders_quantity": {},
+                        "orders_cost": {}
+                    },
+                    "order_by": "orders.orders_time"
+                },
+                "vptf": {
+                    "title": "Historique",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "searchable": true,
+                    "deletable": true,
+                    "icon_name": "go-jump",
+                    "limit": 100,
+                    "hide": true,
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {"hide":true},
+                        "orders_ptf_name": {"hide":true},
+                        "orders_date": {"hide":true},
+                        "orders_time": {},
+                        "orders_order": {},
+                        "orders_close": {},
+                        "orders_buy": {},
+                        "orders_sell": {},
+                        "orders_quantity": {},
+                        "orders_cost": {}
+                    },
+                    "order_by": "orders.orders_time"
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Ajout d'un ordre",
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {},
+                        "orders_date": {},
+                        "orders_order": {},
+                        "orders_buy": {},
+                        "orders_sell": {},
+                        "orders_quantity": {},
+                        "orders_cost": {}
+                    },
+                    "sql_post": "update orders set orders_time = datetime('now','localtime') where orders_id = (select seq from sqlite_sequence where name='orders') and orders_time is null"
+                },
+                "fedit": {
+                    "title": "Mise à jour d'un ordre",
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {},
+                        "orders_date": {},
+                        "orders_time": {},
+                        "orders_order": {},
+                        "orders_buy": {},
+                        "orders_sell": {},
+                        "orders_quantity": {},
+                        "orders_cost": {}
+                    }
+                }
+            }
+         },
         "cdays": {
             "key": "cdays_id",
             "key_display": "cdays_id",
@@ -663,6 +840,5 @@
             },
             "forms": {}
         }
-
     }
 }
