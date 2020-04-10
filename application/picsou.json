@@ -90,7 +90,7 @@
                     "text_sql": "select date('now') as date_du_jour",
                     "jointure": {
                         "join": "left outer join (select date('now') as date_du_jour) as t",
-                        "display": "date_du_jour"
+                        "column": "date_du_jour"
                     }
                 },
                 "_graph": {
@@ -246,7 +246,7 @@
                     "label_long": "Valeur",
                     "label_short": "Valeur",
                     "type": "combo",
-                    "sql_items": "SELECT quotes.id, quotes.name as 'orders_ptf_name' From quotes",
+                    "sql_items": "SELECT distinct quotes.id, quotes.name as 'orders_ptf_name' From quotes",
                     "searchable": true,
                     "sortable": true
                 },
@@ -258,7 +258,7 @@
                     "sortable": true,
                     "jointure": {
                         "join": "LEFT OUTER JOIN quotes ON quotes.id = orders_ptf_id AND quotes.date = orders_date",
-                        "display": "quotes.name"
+                        "column": "quotes.name"
                     }
                 },
                 "orders_order": {
@@ -267,10 +267,7 @@
                     "sortable": true,
                     "searchable": true,
                     "type": "radio",
-                    "items": {
-                        "ACHAT": "Achat",
-                        "VENTE": "Vente"
-                    }
+                    "items": {"Achat":"Achat","Vente":"Vente"}
                 },
                 "orders_date": {
                     "label_long": "Jour",
@@ -282,33 +279,21 @@
                 "orders_time": {
                     "label_long": "Jour Heure",
                     "label_short": "Jour Heure",
-                    "type": "text",
-                    "readonly": true,
+                    "type": "combo",
                     "sortable": true,
-                    "searchable": true
+                    "searchable": true,
+                    "sql_items": "SELECT cdays_time FROM cdays WHERE cdays_ptf_id = '{orders_ptf_id}' order by cdays_time"
                 },
-                "orders_close": {
+                "orders_quote": {
                     "label_long": "Quote",
                     "label_short": "Quote",
                     "type": "float",
                     "display": "%3.2f €",
-                    "sql_text": "SELECT quotes.close FROM quotes WHERE id = '{orders_ptf_id}' AND date = '{orders_date}'",
+                    "sql_geti": "SELECT cdays_close as orders_quote FROM cdays WHERE cdays_ptf_id = '{orders_ptf_id}' AND cdays_time = '{orders_time}'",
                     "jointure": {
-                        "join": "",
-                        "display": "quotes.close"
+                        "join": "LEFT OUTER JOIN cdays on cdays_ptf_id = orders_ptf_id and cdays_time = orders_time",
+                        "column": "cdays_close"
                     }
-                },
-                "orders_buy": {
-                    "label_long": "Prix Achat",
-                    "label_short": "Achat",
-                    "type": "float",
-                    "display": "%3.2f €"
-                },
-                "orders_sell": {
-                    "label_long": "Prix Vente",
-                    "label_short": "Vente",
-                    "type": "float",
-                    "display": "%3.2f €"
                 },
                 "orders_quantity": {
                     "label_long": "Quantité",
@@ -338,9 +323,7 @@
                         "orders_date": {"hide":true},
                         "orders_time": {},
                         "orders_order": {},
-                        "orders_close": {},
-                        "orders_buy": {},
-                        "orders_sell": {},
+                        "orders_quote": {},
                         "orders_quantity": {},
                         "orders_cost": {}
                     },
@@ -362,9 +345,7 @@
                         "orders_date": {"hide":true},
                         "orders_time": {},
                         "orders_order": {},
-                        "orders_close": {},
-                        "orders_buy": {},
-                        "orders_sell": {},
+                        "orders_quote": {},
                         "orders_quantity": {},
                         "orders_cost": {}
                     },
@@ -379,8 +360,7 @@
                         "orders_ptf_id": {},
                         "orders_date": {},
                         "orders_order": {},
-                        "orders_buy": {},
-                        "orders_sell": {},
+                        "orders_quote": {},
                         "orders_quantity": {},
                         "orders_cost": {}
                     },
@@ -394,8 +374,7 @@
                         "orders_date": {},
                         "orders_time": {},
                         "orders_order": {},
-                        "orders_buy": {},
-                        "orders_sell": {},
+                        "orders_quote": {},
                         "orders_quantity": {},
                         "orders_cost": {}
                     }
@@ -636,7 +615,7 @@
                     "sql_text": "SELECT ptf_name From ptf where ptf_id = '{trades_ptf_id}'",
                     "jointure": {
                         "join": "LEFT OUTER JOIN ptf on ptf.ptf_id = trades.trades_ptf_id",
-                        "display": "ptf_name"
+                        "column": "ptf_name"
                     }
                 },
                 "trades_date": {

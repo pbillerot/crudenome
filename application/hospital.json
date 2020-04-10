@@ -29,7 +29,7 @@
                     "sql_items": "select EmployeeId, Name from Physician order by Name",
                     "jointure": {
                         "join": "LEFT OUTER JOIN Physician ON Physician.EmployeeId = Department.Head",
-                        "display": "Physician.Name"
+                        "column": "Physician.Name"
                     }
                 }
             },

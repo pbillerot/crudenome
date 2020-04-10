@@ -692,7 +692,7 @@ class Crud:
                 continue
             if crudel.with_jointure()\
             and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
-                sql += ", " + crudel.get_jointure("display") + " as " + element
+                sql += ", " + crudel.get_jointure("column") + " as " + element
 
         sql += " FROM " + self.get_table_id()
 
@@ -753,7 +753,7 @@ class Crud:
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
             if crudel.with_jointure():
-                sql += ", " + crudel.get_jointure("display") + " as " + element
+                sql += ", " + crudel.get_jointure("column") + " as " + element
 
         sql += " FROM " + self.get_table_id()
 

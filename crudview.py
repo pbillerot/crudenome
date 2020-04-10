@@ -288,7 +288,7 @@ class CrudView(GObject.GObject):
         for element in self.crud.get_view_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
             if crudel.with_jointure():
-                sql += ", " + crudel.get_jointure("display") + " as " + element
+                sql += ", " + crudel.get_jointure("column") + " as " + element
 
         sql += " FROM " + self.crud.get_table_id()
 
@@ -312,7 +312,7 @@ class CrudView(GObject.GObject):
                     if crudel.with_jointure():
                         if sql_where != "":
                             sql_where += " or "
-                        sql_where += crudel.get_jointure("display") + " like '%" + self.search_sql + "%'"
+                        sql_where += crudel.get_jointure("column") + " like '%" + self.search_sql + "%'"
                     else:
                         if sql_where != "":
                             sql_where += " or "

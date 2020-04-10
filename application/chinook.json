@@ -95,7 +95,7 @@
                     "sql_items": "SELECT artists.ArtistId, artists.Name From artists",
                     "jointure": {
                         "join": "LEFT OUTER JOIN artists on artists.ArtistId = albums.ArtistId",
-                        "display": "artists.Name"
+                        "column": "artists.Name"
                     },
                     "searchable": true,
                     "sortable": true,
@@ -108,7 +108,7 @@
                     "sql_text": "SELECT artists.Name From artists where artists.ArtistId = '{ArtistId}'",
                     "jointure": {
                         "join": "LEFT OUTER JOIN artists on artists.ArtistId = albums.ArtistId",
-                        "display": "artists.Name"
+                        "column": "artists.Name"
                     },
                     "searchable": true,
                     "sortable": true,
@@ -301,7 +301,7 @@
                     "sql_items": "SELECT albums.AlbumId, albums.Title From albums",
                     "jointure": {
                         "join": "LEFT OUTER JOIN albums on albums.AlbumId = tracks.AlbumId",
-                        "display": "albums.Title"
+                        "column": "albums.Title"
                     },
                     "required": true
                 },
@@ -312,7 +312,7 @@
                     "sql_text": "SELECT albums.Title From albums WHERE albums.AlbumId = '{AlbumId}'",
                     "jointure": {
                         "join": "LEFT OUTER JOIN albums on albums.AlbumId = tracks.AlbumId",
-                        "display": "albums.Title"
+                        "column": "albums.Title"
                     },
                     "required": true
                 },
@@ -323,7 +323,7 @@
                     "sql_items": "SELECT MediaTypeId, Name From media_types",
                     "jointure": {
                         "join": "LEFT OUTER JOIN media_types on media_types.MediaTypeId = tracks.MediaTypeId",
-                        "display": "media_types.Name"
+                        "column": "media_types.Name"
                     }
                 },
                 "GenreId": {
@@ -333,7 +333,7 @@
                     "sql_items": "SELECT GenreId, Name From genres",
                     "jointure": {
                         "join": "LEFT OUTER JOIN genres on genres.GenreId = tracks.GenreId",
-                        "display": "genres.Name"
+                        "column": "genres.Name"
                     }
                 },
                 "Composer": {
@@ -378,7 +378,7 @@
                     "sql_text": "SELECT artists.Name from artists LEFT OUTER JOIN albums ON albums.ArtistId = artists.ArtistId WHERE albums.AlbumId = '{AlbumId}'",
                     "jointure": {
                         "join": "LEFT OUTER JOIN albums as alb ON alb.AlbumId = tracks.AlbumId LEFT OUTER JOIN artists on artists.ArtistId = alb.ArtistId",
-                        "display": "artists.Name"
+                        "column": "artists.Name"
                     }
                 }
             },

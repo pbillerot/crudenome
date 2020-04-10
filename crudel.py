@@ -84,12 +84,20 @@ class Crudel(GObject.GObject):
         """ initialisation de la valeur """
         if self.crud.get_element_prop(self.element, "items", None):
             self.items = self.crud.get_element_prop(self.element, "items")
+            # for item in items:
+            #     values = list(item.values())
+            #     if len(values) == 1:
+            #         self.items[values[0]] = values[0]
+            #     else:
+            #         self.items[values[0]] = values[1]
         self.params = self.crud.get_element_prop(self.element, "params", None)
 
     def init_items_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
         if not self.is_read_only() and self.get_sql_items():
-            items = self.crud.sql_to_dict(self.crud.get_basename(), self.get_sql_items(), {})
+            values = self.crud.get_table_values()
+            sql = self.crud.replace_from_dict(self.get_sql_items(), values)
+            items = self.crud.sql_to_dict(self.crud.get_basename(), sql, {})
             for item in items:
                 values = list(item.values())
                 if len(values) == 1:
@@ -982,11 +990,9 @@ class CrudelPlugin(Crudel):
 
 class CrudelRadio(Crudel):
     """ Gestion des colonnes et champs de type Radio """
-    items = {}
 
     def __init__(self, crud, element, type_parent):
         Crudel.__init__(self, crud, element, type_parent)
-        self.items = self.crud.get_element_prop(element, "items")
 
     def get_type_gdk(self):
         return GObject.TYPE_STRING
