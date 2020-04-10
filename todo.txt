@@ -1,9 +1,7 @@
 A FAIRE
 
-TODO bug default sql
 TODO rubrique tags
 TODO sql_ctrl
-TODO post_sql à tester
 TODO treeview mémoriser la dernière key_id sélectionnée
 
 

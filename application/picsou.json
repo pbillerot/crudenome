@@ -87,7 +87,6 @@
                     "label_long": "Date",
                     "label_short": "Date",
                     "type": "text",
-                    "text_sql": "select date('now') as date_du_jour",
                     "jointure": {
                         "join": "left outer join (select date('now') as date_du_jour) as t",
                         "column": "date_du_jour"
@@ -235,30 +234,23 @@
                     "type": "counter",
                     "hide": false
                 },
-                "orders_name": {
-                    "label_long": "Ordre",
-                    "label_short": "Ordre",
-                    "type": "text",
-                    "searchable": true,
-                    "sortable": true
-                },
                 "orders_ptf_id": {
                     "label_long": "Valeur",
                     "label_short": "Valeur",
                     "type": "combo",
-                    "sql_items": "SELECT distinct quotes.id, quotes.name as 'orders_ptf_name' From quotes",
+                    "sql_items": "SELECT distinct quotes.id, quotes.name FROM quotes",
                     "searchable": true,
                     "sortable": true
                 },
-                "orders_ptf_name": {
+                "_ptf_name": {
                     "label_long": "Valeur",
                     "label_short": "Valeur",
-                    "type": "jointure",
+                    "type": "text",
                     "searchable": true,
                     "sortable": true,
                     "jointure": {
-                        "join": "LEFT OUTER JOIN quotes ON quotes.id = orders_ptf_id AND quotes.date = orders_date",
-                        "column": "quotes.name"
+                        "join": "LEFT OUTER JOIN ptf ON ptf_id = orders_ptf_id",
+                        "column": "ptf_name"
                     }
                 },
                 "orders_order": {
@@ -269,31 +261,20 @@
                     "type": "radio",
                     "items": {"Achat":"Achat","Vente":"Vente"}
                 },
-                "orders_date": {
-                    "label_long": "Jour",
-                    "label_short": "Jour",
-                    "type": "calendar",
-                    "sortable": true,
-                    "searchable": true
-                },
                 "orders_time": {
                     "label_long": "Jour Heure",
                     "label_short": "Jour Heure",
-                    "type": "combo",
+                    "type": "text",
                     "sortable": true,
                     "searchable": true,
-                    "sql_items": "SELECT cdays_time FROM cdays WHERE cdays_ptf_id = '{orders_ptf_id}' order by cdays_time"
+                    "default_sql": "select datetime('now', 'localtime')"
                 },
                 "orders_quote": {
                     "label_long": "Quote",
                     "label_short": "Quote",
                     "type": "float",
                     "display": "%3.2f €",
-                    "sql_geti": "SELECT cdays_close as orders_quote FROM cdays WHERE cdays_ptf_id = '{orders_ptf_id}' AND cdays_time = '{orders_time}'",
-                    "jointure": {
-                        "join": "LEFT OUTER JOIN cdays on cdays_ptf_id = orders_ptf_id and cdays_time = orders_time",
-                        "column": "cdays_close"
-                    }
+                    "default_sql": "select close from quotes where id = '{orders_ptf_id}' and date = (select max(date) from quotes where id = '{orders_ptf_id}')"
                 },
                 "orders_quantity": {
                     "label_long": "Quantité",
@@ -319,15 +300,14 @@
                     "elements": {
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {},
-                        "orders_ptf_name": {},
-                        "orders_date": {"hide":true},
+                        "_ptf_name": {},
                         "orders_time": {},
                         "orders_order": {},
                         "orders_quote": {},
                         "orders_quantity": {},
                         "orders_cost": {}
                     },
-                    "order_by": "orders.orders_time"
+                    "order_by": "orders.orders_time desc"
                 },
                 "vptf": {
                     "title": "Historique",
@@ -341,15 +321,14 @@
                     "elements": {
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {"hide":true},
-                        "orders_ptf_name": {"hide":true},
-                        "orders_date": {"hide":true},
+                        "_ptf_name": {},
                         "orders_time": {},
                         "orders_order": {},
                         "orders_quote": {},
                         "orders_quantity": {},
                         "orders_cost": {}
                     },
-                    "order_by": "orders.orders_time"
+                    "order_by": "orders.orders_time desc"
                 }
             },
             "forms": {
@@ -358,7 +337,7 @@
                     "elements": {
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {},
-                        "orders_date": {},
+                        "_date": {},
                         "orders_order": {},
                         "orders_quote": {},
                         "orders_quantity": {},
@@ -371,7 +350,6 @@
                     "elements": {
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {},
-                        "orders_date": {},
                         "orders_time": {},
                         "orders_order": {},
                         "orders_quote": {},

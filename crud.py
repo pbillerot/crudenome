@@ -196,7 +196,8 @@ class Crud:
             cursor = conn.cursor()
             self.logger.info("SQL [%s]", sql)
             cursor.execute(sql, {})
-            data = cursor[0][0]
+            data = cursor.fetchone()[0]
+            # data = cursor[0][0]
         except sqlite3.Error as exc:
             print("Error", exc.args[0], sql)
             self.add_error("%s %s" % (exc.args[0], sql))
@@ -668,8 +669,9 @@ class Crud:
             self.set_element_prop(element, "crudel", crudel)
             if crudel.is_virtual():
                 continue
-            if crudel.with_jointure()\
-            and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
+            # if crudel.with_jointure()\
+            # and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
+            if crudel.with_jointure():
                 continue
             if b_first:
                 b_first = False
@@ -690,8 +692,9 @@ class Crud:
             crudel = self.get_element_prop(element, "crudel")
             if crudel.is_virtual():
                 continue
-            if crudel.with_jointure()\
-            and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
+            # if crudel.with_jointure()\
+            # and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
+            if crudel.with_jointure():
                 sql += ", " + crudel.get_jointure("column") + " as " + element
 
         sql += " FROM " + self.get_table_id()
@@ -702,8 +705,9 @@ class Crud:
             crudel = self.get_element_prop(element, "crudel")
             if crudel.is_virtual():
                 continue
-            if crudel.with_jointure()\
-            and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
+            # if crudel.with_jointure()\
+            # and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
+            if crudel.with_jointure():
                 if crudel.get_jointure("join"):
                     join += " " + crudel.get_jointure("join")
         if join:
