@@ -9,7 +9,7 @@ from crudel import Crudel
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, Gdk
 
 class CrudView(GObject.GObject):
     """ Gestion des vues du CRUD
@@ -69,17 +69,32 @@ class CrudView(GObject.GObject):
         self.frame = Gtk.Frame()
         self.frame.add(self.treeview)
         self.scroll_window = Gtk.ScrolledWindow()
-        self.scroll_window.set_hexpand(True)
-        self.scroll_window.set_vexpand(True)
-        self.scroll_window.add(self.frame)
+        self.scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+        # self.scroll_window.set_hexpand(True)
+        # self.scroll_window.set_vexpand(True)
+        self.scroll_window.add_with_viewport(self.frame)
         self.scroll_window.show_all()
         self.box_content.pack_end(self.scroll_window, True, True, 3)
 
-        if len(self.crud.get_selection()) == 1 and not self.crudel:
+        # if len(self.crud.get_selection()) == 1 and not self.crudel:
             # au retour d'un formulaire, on remet la sélection sur la ligne
-            row_id = self.crud.get_row_id()
+        if self.crud.get_view_prop("select_id"):
+            row_id = self.crud.get_view_prop("select_id")
             self.treeview.set_cursor(Gtk.TreePath(row_id), None)
-            self.treeview.grab_focus()
+            # vadjustment = self.scroll_window.get_vadjustment()
+            # adj = Gtk.Adjustment(value=14,
+            #                  lower=2,
+            #                  upper=17,
+            #                  step_incr=1,
+            #                  page_incr=3)
+            # self.scroll_window.set_vadjustment(adj)
+            # rect = self.treeview.get_cell_area(Gtk.TreePath(row_id), None)
+            # vadjustment.set_value(pos)
+            # self.scroll_window.set_vadjustment(vadjustment)
+            # self.treeview.scroll_to_cell(Gtk.TreePath(row_id), None)
+
+        self.treeview.connect('size-allocate', self.treeview_changed)
+        self.treeview.connect('key_press_event', self.key_press_event)
 
         self.app_window.show_all()
 
@@ -89,6 +104,41 @@ class CrudView(GObject.GObject):
         self.button_delete.hide()
 
         self.treeview.grab_focus()
+
+    def key_press_event(self, widget, event):
+        # print("          Modifiers: ", event.state)
+        # print("      Key val, name: ", event.keyval, Gdk.keyval_name(event.keyval))
+        if Gdk.keyval_name(event.keyval) == "End" :
+            row_id = self.qligne_view - 1
+            self.crud.set_view_prop("select_id", row_id)
+            rect = self.treeview.get_cell_area(Gtk.TreePath(row_id), None)
+            adj = self.scroll_window.get_vadjustment()
+            adj.set_value(rect.y)
+        elif Gdk.keyval_name(event.keyval) == "Home" :
+            row_id = 0
+            self.crud.set_view_prop("select_id", row_id)
+            rect = self.treeview.get_cell_area(Gtk.TreePath(row_id), None)
+            adj = self.scroll_window.get_vadjustment()
+            adj.set_value(rect.y)
+        return False
+
+    def treeview_changed(self, widget, event, data=None):
+        adj = self.scroll_window.get_vadjustment()
+        # print("treeview_changed", adj.get_upper(), adj.get_page_size(), adj.get_value())
+        if self.crud.get_view_prop("select_id"):
+            row_id = self.crud.get_view_prop("select_id")
+            # pos_row = row_id // self.qligne_view
+            # self.treeview.set_cursor(Gtk.TreePath(row_id), None)
+            # adj.set_value( adj.get_upper() - adj.get_page_size() )
+            # pos = adj.get_upper() - adj.get_upper() * pos_row #- adj.get_page_size() // 2
+            # if pos < adj.get_page_size() : pos = 0
+            # adj.set_value( adj.get_upper() - adj.get_page_size())
+            rect = self.treeview.get_cell_area(Gtk.TreePath(row_id), None)
+            print("<<<", adj.get_upper(), adj.get_page_size(), adj.get_value(), rect.y)
+            pos = 0 if rect.y < adj.get_upper() - adj.get_page_size() else rect.y
+            adj.set_value(rect.y)
+            # print(">>>", adj.get_upper(), adj.get_page_size(), adj.get_value(), pos)
+
 
     def get_widget(self):
         """ retourne le container de la vue toolbar + list """
@@ -576,6 +626,7 @@ class CrudView(GObject.GObject):
             # adjustment.set_value(rect.y)
             # print ("Select", key_id, row_id)
             self.crud.set_row_id(row_id)
+            self.crud.set_view_prop("select_id", row_id)
 
     def on_row_actived(self, widget, row, col):
         """ Double clic sur une ligne """
