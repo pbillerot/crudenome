@@ -7,7 +7,6 @@ import importlib
 import datetime
 from collections import OrderedDict
 import uuid
-
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
@@ -81,7 +80,7 @@ class Crudel(GObject.GObject):
         self.init_crudel()
 
     def init_crudel(self):
-        """ initialisation de la valeur """
+        """ initialisation de l'élément """
         if self.crud.get_element_prop(self.element, "items", None):
             self.items = self.crud.get_element_prop(self.element, "items")
             # for item in items:
@@ -91,10 +90,14 @@ class Crudel(GObject.GObject):
             #     else:
             #         self.items[values[0]] = values[1]
         self.params = self.crud.get_element_prop(self.element, "params", None)
+        if self.crud.get_element_prop(self.element, "sql_put", False):
+            self.set_protected(True)
+        if self.crud.get_element_prop(self.element, "jointure", False):
+            self.set_protected(True)
 
     def init_items_sql(self):
         """ Initialisation calcul, remplissage des items de liste """
-        if not self.is_read_only() and self.get_sql_items():
+        if not self.is_read_only() and not self.is_protected() and self.get_sql_items():
             values = self.crud.get_table_values()
             sql = self.crud.replace_from_dict(self.get_sql_items(), values)
             items = self.crud.sql_to_dict(self.crud.get_basename(), sql, {})
@@ -106,13 +109,11 @@ class Crudel(GObject.GObject):
                     self.items[values[0]] = values[1]
 
     def init_text_sql(self):
-        """ Initialisation calcul, remplissage des items de liste """
+        """ Initialisation calcul, remplissage du champs avec le résultat de la requête """
         if self.get_sql_text():
             values = self.crud.get_table_values()
             sql = self.crud.replace_from_dict(self.get_sql_text(), values)
-            rows = self.crud.sql_to_dict(self.crud.get_basename(), sql , {})
-            for row in rows:
-                self.set_value(row.values()[0])
+            self.value = self.crud.get_sql(self.crud.get_basename(), sql)
 
     def init_value(self):
         """ Initialisation de la valeur """
@@ -213,7 +214,7 @@ class Crudel(GObject.GObject):
         else:
             display = self.crud.get_field_prop(self.element, "display", None)
         if display:
-            if not self.is_read_only() and self.type_parent == Crudel.TYPE_PARENT_FORM:
+            if not self.is_read_only() and not self.is_protected() and self.type_parent == Crudel.TYPE_PARENT_FORM:
                 pass
             else:
                 value = display % (value)
@@ -335,6 +336,19 @@ class Crudel(GObject.GObject):
         else:
             return self.crud.get_field_prop(self.element, "read_only", False)
 
+    def set_protected(self, bool):
+        """ élément en mise à jour pour la base mais protégé pour l'utilisateur """
+        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
+            return self.crud.set_column_prop(self.element, "protected", bool)
+        else:
+            return self.crud.set_field_prop(self.element, "protected", bool)
+    def is_protected(self):
+        """ élément en mise à jour pour la base mais protégé pour l'utilisateur """
+        if self.type_parent == Crudel.TYPE_PARENT_VIEW:
+            return self.crud.get_column_prop(self.element, "protected", False)
+        else:
+            return self.crud.get_field_prop(self.element, "protected", False)
+
     def is_searchable(self):
         """ le contenu de la colonne sera lue par le moteur de recharche """
         return self.crud.get_column_prop(self.element, "searchable", False)
@@ -357,6 +371,8 @@ class Crudel(GObject.GObject):
         """ La saisie du champ est obligatoire """
         if self.is_read_only():
             return False
+        if self.is_protected():
+            return False
         return self.crud.get_field_prop(self.element, "required", False)
 
     def _get_widget_entry(self):
@@ -365,6 +381,8 @@ class Crudel(GObject.GObject):
         widget.set_text(self.get_display())
         widget.set_width_chars(40)
         if self.is_read_only():
+            widget.set_sensitive(False)
+        if self.is_protected():
             widget.set_sensitive(False)
 
         return widget
@@ -382,13 +400,6 @@ class Crudel(GObject.GObject):
         """ Cellule de la colonne dans la vue 
         """
         renderer = self._get_renderer(treeview)
-        if self.get_col_align() == "left":
-            renderer.set_property('xalign', 0.1)
-        elif self.get_col_align() == "right":
-            renderer.set_property('xalign', 1.0)
-        elif self.get_col_align() == "center":
-            renderer.set_property('xalign', 0.5)
-
         tvc = self._get_tvc(renderer, col_id)
 
         if self.get_sql_color() != "":
@@ -427,13 +438,20 @@ class Crudel(GObject.GObject):
     def _get_tvc(self, renderer, col_id):
         """ TreeViewColumn de la cellule """
         tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, text=col_id)
+        if self.get_col_align() == "left":
+            tvc.set_alignment(0.1)
+        elif self.get_col_align() == "right":
+            tvc.set_alignment(1.0)
+        elif self.get_col_align() == "center":
+            tvc.set_alignment(0.5)
+
         return tvc
 
     def check(self):
         """ Contrôle de la saisie """
         if self.is_hide():
             return True
-        if self.is_read_only():
+        if self.is_read_only() or self.is_protected():
             return True
         self.get_widget().get_style_context().remove_class('field_invalid')
         if self.is_required() and self.get_value() == "":
@@ -571,7 +589,7 @@ class CrudelCheck(Crudel):
         label.set_label("")
 
         self.widget = Gtk.CheckButton()
-        if self.is_read_only():
+        if self.is_read_only() or self.is_protected():
             self.widget.set_sensitive(False)
 
         self.widget.set_label(self.get_label_long())
@@ -672,12 +690,10 @@ class CrudelCombo(Crudel):
 
         label = self._get_widget_label()
 
-        if self.is_read_only():
+        if self.is_read_only() or self.is_protected():
             self.widget = self._get_widget_entry()
         else:
             self.widget = Gtk.ComboBoxText()
-            if self.is_read_only():
-                self.widget.set_sensitive(False)
 
             # remplissage du combo
             self.widget.set_entry_text_column(0)
@@ -810,7 +826,7 @@ class CrudelForm(Crudel):
         label.set_label("")
 
         self.widget = Gtk.CheckButton()
-        if self.is_read_only():
+        if self.is_read_only() or self.is_protected():
             self.widget.set_sensitive(False)
 
         self.widget.set_label(self.get_label_long())
@@ -944,7 +960,7 @@ class CrudelPlugin(Crudel):
         label.set_label("")
 
         self.widget = Gtk.CheckButton()
-        if self.is_read_only():
+        if self.is_read_only() or self.is_protected():
             self.widget.set_sensitive(False)
 
         self.widget.set_label(self.get_label_long())
@@ -1014,12 +1030,15 @@ class CrudelRadio(Crudel):
         label = self._get_widget_label()
 
         self.widget = Gtk.HBox()
-        if self.is_read_only():
+        if self.is_read_only()or self.is_protected():
             self.widget.set_sensitive(False)
         button_group = None
+        bStart = True
         for item in self.items:
             button = Gtk.RadioButton.new_with_label_from_widget(button_group, self.items[item])
             button.connect("toggled", self.on_button_toggled, item)
+            if bStart : self.set_value(item)
+            bStart = False
             if item == self.get_value():
                 button.set_active(True)
             self.widget.pack_start(button, False, False, 0)

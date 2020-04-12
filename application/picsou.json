@@ -15,6 +15,9 @@
         "rsimin": 20,
         "rsimax": 60
     },
+    "constants": {
+        "cost": 0.0048
+    },
     "scheduler": {
         "batch": "./picsou_batch.py -day",
         "periode_mn": 10
@@ -243,8 +246,8 @@
                     "sortable": true
                 },
                 "_ptf_name": {
-                    "label_long": "Valeur",
-                    "label_short": "Valeur",
+                    "label_long": "Nom de la valeur",
+                    "label_short": "Nom",
                     "type": "text",
                     "searchable": true,
                     "sortable": true,
@@ -258,7 +261,8 @@
                     "label_short": "Ordre",
                     "sortable": true,
                     "searchable": true,
-                    "type": "radio",
+                    "type": "combo",
+                    "col_align": "center",
                     "items": {"Achat":"Achat","Vente":"Vente"}
                 },
                 "orders_time": {
@@ -270,22 +274,70 @@
                     "default_sql": "select datetime('now', 'localtime')"
                 },
                 "orders_quote": {
-                    "label_long": "Quote",
-                    "label_short": "Quote",
+                    "label_long": "Cours actuel",
+                    "label_short": "Cours actuel",
                     "type": "float",
                     "display": "%3.2f €",
-                    "default_sql": "select close from quotes where id = '{orders_ptf_id}' and date = (select max(date) from quotes where id = '{orders_ptf_id}')"
+                    "protected": true,
+                    "sql_text": "select close from quotes where id = '{orders_ptf_id}' and date = (select max(date) from quotes where id = '{orders_ptf_id}')",
+                    "jointurexx": {
+                        "join": "left outer join (select qq.id, close from quotes as qq join (select id, max(date) as datemax from quotes group by id) as dd on dd.id = qq.id and datemax = qq.date) as tt on tt.id = orders_ptf_id",
+                        "column": "close"
+                    }
                 },
                 "orders_quantity": {
                     "label_long": "Quantité",
-                    "label_short": "Qt",
+                    "label_short": "Quantité",
+                    "col_align": "center",
                     "type": "int"
+                },
+                "orders_quoter": {
+                    "label_long": "Cours d'exécution",
+                    "label_short": "Cours exec",
+                    "type": "float",
+                    "display": "%3.2f €"
+                },
+                "orders_cost_price": {
+                    "label_long": "Prix de revient",
+                    "label_short": "Revient à",
+                    "type": "float",
+                    "display": "%3.2f €",
+                    "col_width": 80,
+                    "sql_put": "({orders_quoter} * {orders_quantity} + {orders_quoter} * {orders_quantity} * (0.0048*2))/{orders_quantity}"
                 },
                 "orders_cost": {
                     "label_long": "Frais",
                     "label_short": "Frais",
                     "type": "float",
-                    "display": "%3.2f €"
+                    "display": "%3.2f €",
+                    "col_width": 60,
+                    "sql_put": "{orders_quoter} * {orders_quantity} * 0.0048"
+                },
+                "orders_amount": {
+                    "label_long": "Mvt Banque",
+                    "label_short": "Mont. TTC",
+                    "type": "float",
+                    "display": "%3.2f €",
+                    "col_width": 80,
+                    "sql_put": "{orders_quoter} * {orders_quantity} + {orders_quoter} * {orders_quantity} * 0.0048"
+                },
+                "orders_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "col_width": 80,
+                    "display": "%3.2f €",
+                    "sql_put": "({orders_quote} * {orders_quantity}) - ({orders_quoter} * {orders_quantity} - {orders_quoter} * {orders_quantity} * 0.0048)",
+                    "sql_color": "case when orders_gain < 0 then '#FF0000' else '#006600' end"
+                },
+                "orders_gainp": {
+                    "label_long": "Gain en %",
+                    "label_short": "en %",
+                    "type": "float",
+                    "col_width": 80,
+                    "display": "%3.2f %%",
+                    "sql_put": "((({orders_quote} * {orders_quantity}) - ({orders_quoter} * {orders_quantity} - {orders_quoter} * {orders_quantity} * 0.0048)) / ({orders_quoter} * {orders_quantity}))*100",
+                    "sql_color": "case when orders_gainp < 0 then '#FF0000' else '#006600' end"
                 }
             },
             "views": {
@@ -301,11 +353,16 @@
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {},
                         "_ptf_name": {},
+                        "orders_quote": {},
                         "orders_time": {},
                         "orders_order": {},
-                        "orders_quote": {},
+                        "orders_quoter": {},
+                        "orders_cost_price": {},
                         "orders_quantity": {},
-                        "orders_cost": {}
+                        "orders_cost": {},
+                        "orders_amount": {},
+                        "orders_gain": {},
+                        "orders_gainp": {}
                     },
                     "order_by": "orders.orders_time desc"
                 },
@@ -342,19 +399,24 @@
                         "orders_quote": {},
                         "orders_quantity": {},
                         "orders_cost": {}
-                    },
-                    "sql_post": "update orders set orders_time = datetime('now','localtime') where orders_id = (select seq from sqlite_sequence where name='orders') and orders_time is null"
+                    }
                 },
                 "fedit": {
                     "title": "Mise à jour d'un ordre",
                     "elements": {
                         "orders_id": {"hide":true},
-                        "orders_ptf_id": {},
+                        "orders_ptf_id": {"read_only": true},
+                        "_ptf_name": {},
+                        "orders_quote": {},
                         "orders_time": {},
                         "orders_order": {},
-                        "orders_quote": {},
+                        "orders_quoter": {},
                         "orders_quantity": {},
-                        "orders_cost": {}
+                        "orders_cost_price": {},
+                        "orders_cost": {},
+                        "orders_amount": {},
+                        "orders_gain": {},
+                        "orders_gainp": {}
                     }
                 }
             }

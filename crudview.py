@@ -134,7 +134,7 @@ class CrudView(GObject.GObject):
             # if pos < adj.get_page_size() : pos = 0
             # adj.set_value( adj.get_upper() - adj.get_page_size())
             rect = self.treeview.get_cell_area(Gtk.TreePath(row_id), None)
-            print("<<<", adj.get_upper(), adj.get_page_size(), adj.get_value(), rect.y)
+            # print("<<<", adj.get_upper(), adj.get_page_size(), adj.get_value(), rect.y)
             pos = 0 if rect.y < adj.get_upper() - adj.get_page_size() else rect.y
             adj.set_value(rect.y)
             # print(">>>", adj.get_upper(), adj.get_page_size(), adj.get_value(), pos)

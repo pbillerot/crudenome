@@ -557,7 +557,8 @@ class Crud:
             else:
                 sql += ", "
             if self.get_field_prop(element, "sql_put", None):
-                sql += element + " = " + self.get_field_prop(element, "sql_put")
+                sql_put = self.replace_from_dict(self.get_field_prop(element, "sql_put"), self.get_table_values())
+                sql += element + " = " + sql_put
             else:
                 sql += element + " = :" + element
             params[element] = self.get_element_prop(element, "crudel").get_value()
@@ -669,8 +670,6 @@ class Crud:
             self.set_element_prop(element, "crudel", crudel)
             if crudel.is_virtual():
                 continue
-            # if crudel.with_jointure()\
-            # and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
             if crudel.with_jointure():
                 continue
             if b_first:
@@ -683,17 +682,16 @@ class Crud:
             else:
                 sql += crudel.get_sql_get() + " as " + element
             # colonnes techniques
-            if crudel.get_sql_color() != "":
-                sql += ", "
-                sql += crudel.get_sql_color() + " as " + element + "_color"
+            # TODO sql_color pourrait être utilisée par les rubriques de formulaire
+            # if crudel.get_sql_color() != "":
+            #     sql += ", "
+            #     sql += crudel.get_sql_color() + " as " + element + "_color"
 
         # ajout des colonnes de jointure
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
-            if crudel.is_virtual():
-                continue
-            # if crudel.with_jointure()\
-            # and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
+            # if crudel.is_virtual():
+            #     continue
             if crudel.with_jointure():
                 sql += ", " + crudel.get_jointure("column") + " as " + element
 
@@ -703,10 +701,8 @@ class Crud:
         join = ""
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
-            if crudel.is_virtual():
-                continue
-            # if crudel.with_jointure()\
-            # and (crudel.is_read_only() or type_parent == Crudel.TYPE_PARENT_VIEW):
+            # if crudel.is_virtual():
+            #     continue
             if crudel.with_jointure():
                 if crudel.get_jointure("join"):
                     join += " " + crudel.get_jointure("join")
