@@ -337,6 +337,17 @@
                     "display": "%3.2f %%",
                     "sql_put": "((({orders_quote} * {orders_quantity}) - ({orders_quoter} * {orders_quantity} - {orders_quoter} * {orders_quantity} * {__cost})) / ({orders_quoter} * {orders_quantity}))*100",
                     "sql_color": "case when orders_gainp < 0 then '#FF0000' else '#006600' end"
+                },
+                "_fsell": {
+                    "label_long": "Vendre",
+                    "label_short": "Vendre",
+                    "type": "form",
+                    "params": {
+                        "form": "fsell",
+                        "icon_name": "media-playback-stop"
+                    },
+                    "args": {
+                    }
                 }
             },
             "views": {
@@ -361,7 +372,8 @@
                         "orders_cost": {},
                         "orders_amount": {},
                         "orders_gain": {},
-                        "orders_gainp": {}
+                        "orders_gainp": {},
+                        "_fsell": {}
                     },
                     "sql_where": "orders.orders_order = 'buy'",
                     "order_by": "orders.orders_time desc"

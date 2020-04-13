@@ -797,12 +797,12 @@ class CrudelFloat(Crudel):
             renderer.connect('edited', self.on_cell_edited)
         return renderer
 
-    # def set_value_widget(self):
-    #     value = self.widget.get_text()
-    #     if not self.is_protected:
-    #         if value == '':
-    #             value = 0
-    #         self.value = float(value)
+    def set_value_widget(self):
+        value = self.widget.get_text()
+        if not self.is_protected():
+            if value == '':
+                value = 0
+            self.value = float(value)
 
     def get_value(self):
         return float(self.value)
