@@ -263,7 +263,7 @@
                     "searchable": true,
                     "type": "combo",
                     "col_align": "center",
-                    "items": {"Achat":"Achat","Vente":"Vente"}
+                    "items": {"buy":"Achat","sell":"Vente"}
                 },
                 "orders_time": {
                     "label_long": "Jour Heure",
@@ -278,7 +278,6 @@
                     "label_short": "Cours actuel",
                     "type": "float",
                     "display": "%3.2f €",
-                    "protected": true,
                     "sql_text": "select close from quotes where id = '{orders_ptf_id}' and date = (select max(date) from quotes where id = '{orders_ptf_id}')",
                     "jointurexx": {
                         "join": "left outer join (select qq.id, close from quotes as qq join (select id, max(date) as datemax from quotes group by id) as dd on dd.id = qq.id and datemax = qq.date) as tt on tt.id = orders_ptf_id",
@@ -303,7 +302,7 @@
                     "type": "float",
                     "display": "%3.2f €",
                     "col_width": 80,
-                    "sql_put": "({orders_quoter} * {orders_quantity} + {orders_quoter} * {orders_quantity} * (0.0048*2))/{orders_quantity}"
+                    "sql_put": "({orders_quoter} * {orders_quantity} + {orders_quoter} * {orders_quantity} * ({__cost}*2))/{orders_quantity}"
                 },
                 "orders_cost": {
                     "label_long": "Frais",
@@ -311,7 +310,7 @@
                     "type": "float",
                     "display": "%3.2f €",
                     "col_width": 60,
-                    "sql_put": "{orders_quoter} * {orders_quantity} * 0.0048"
+                    "sql_put": "{orders_quoter} * {orders_quantity} * {__cost}"
                 },
                 "orders_amount": {
                     "label_long": "Mvt Banque",
@@ -319,7 +318,7 @@
                     "type": "float",
                     "display": "%3.2f €",
                     "col_width": 80,
-                    "sql_put": "{orders_quoter} * {orders_quantity} + {orders_quoter} * {orders_quantity} * 0.0048"
+                    "sql_put": "{orders_quoter} * {orders_quantity} + {orders_quoter} * {orders_quantity} * {__cost}"
                 },
                 "orders_gain": {
                     "label_long": "Gain",
@@ -327,7 +326,7 @@
                     "type": "float",
                     "col_width": 80,
                     "display": "%3.2f €",
-                    "sql_put": "({orders_quote} * {orders_quantity}) - ({orders_quoter} * {orders_quantity} - {orders_quoter} * {orders_quantity} * 0.0048)",
+                    "sql_put": "({orders_quote} * {orders_quantity}) - ({orders_quoter} * {orders_quantity} - {orders_quoter} * {orders_quantity} * {__cost})",
                     "sql_color": "case when orders_gain < 0 then '#FF0000' else '#006600' end"
                 },
                 "orders_gainp": {
@@ -336,18 +335,18 @@
                     "type": "float",
                     "col_width": 80,
                     "display": "%3.2f %%",
-                    "sql_put": "((({orders_quote} * {orders_quantity}) - ({orders_quoter} * {orders_quantity} - {orders_quoter} * {orders_quantity} * 0.0048)) / ({orders_quoter} * {orders_quantity}))*100",
+                    "sql_put": "((({orders_quote} * {orders_quantity}) - ({orders_quoter} * {orders_quantity} - {orders_quoter} * {orders_quantity} * {__cost})) / ({orders_quoter} * {orders_quantity}))*100",
                     "sql_color": "case when orders_gainp < 0 then '#FF0000' else '#006600' end"
                 }
             },
             "views": {
-                "vall": {
-                    "title": "Historique",
-                    "form_add": "fadd",
-                    "form_edit": "fedit",
+                "vbuy": {
+                    "title": "Achat",
+                    "form_add": "faddbuy",
+                    "form_edit": "feditbuy",
                     "searchable": true,
                     "deletable": true,
-                    "icon_name": "go-jump",
+                    "icon_name": "go-up",
                     "limit": 100,
                     "elements": {
                         "orders_id": {"hide":true},
@@ -364,6 +363,32 @@
                         "orders_gain": {},
                         "orders_gainp": {}
                     },
+                    "sql_where": "orders.orders_order = 'buy'",
+                    "order_by": "orders.orders_time desc"
+                },
+                "vsell": {
+                    "title": "Vente",
+                    "form_edit": "feditsell",
+                    "searchable": true,
+                    "deletable": true,
+                    "icon_name": "go-down",
+                    "limit": 100,
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {},
+                        "_ptf_name": {},
+                        "orders_quote": {},
+                        "orders_time": {},
+                        "orders_order": {},
+                        "orders_quoter": {},
+                        "orders_cost_price": {},
+                        "orders_quantity": {},
+                        "orders_cost": {},
+                        "orders_amount": {},
+                        "orders_gain": {},
+                        "orders_gainp": {}
+                    },
+                    "sql_where": "orders.orders_order = 'sell'",
                     "order_by": "orders.orders_time desc"
                 },
                 "vptf": {
@@ -389,27 +414,60 @@
                 }
             },
             "forms": {
-                "fadd": {
-                    "title": "Ajout d'un ordre",
+                "faddbuy": {
+                    "title": "Ajout d'un ordre d'Achat",
                     "elements": {
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {},
-                        "_date": {},
-                        "orders_order": {},
-                        "orders_quote": {},
-                        "orders_quantity": {},
-                        "orders_cost": {}
+                        "orders_order": {"protected": true, "default": "buy"},
+                        "orders_time": {}
                     }
                 },
-                "fedit": {
-                    "title": "Mise à jour d'un ordre",
+                "feditbuy": {
+                    "title": "Mise à jour d'un ordre d'Achat",
                     "elements": {
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {"read_only": true},
                         "_ptf_name": {},
                         "orders_quote": {},
                         "orders_time": {},
-                        "orders_order": {},
+                        "orders_order": {"protected": true},
+                        "orders_quoter": {},
+                        "orders_quantity": {},
+                        "orders_cost_price": {},
+                        "orders_cost": {},
+                        "orders_amount": {},
+                        "orders_gain": {},
+                        "orders_gainp": {}
+                    }
+                },
+                "feditsell": {
+                    "title": "Mise à jour d'un ordre de Vente",
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {"read_only": true},
+                        "_ptf_name": {},
+                        "orders_quote": {},
+                        "orders_time": {},
+                        "orders_order": {"protected": true},
+                        "orders_quoter": {},
+                        "orders_quantity": {},
+                        "orders_cost_price": {},
+                        "orders_cost": {},
+                        "orders_amount": {},
+                        "orders_gain": {},
+                        "orders_gainp": {}
+                    }
+                },
+                "fsell": {
+                    "title": "Ordre de Vente",
+                    "info1": "Appelé via la vue fbuy par le bouton _bsell",
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {"read_only": true},
+                        "_ptf_name": {},
+                        "orders_order": {"protected": true, "default": "sell"},
+                        "orders_time": {},
                         "orders_quoter": {},
                         "orders_quantity": {},
                         "orders_cost_price": {},
@@ -601,7 +659,7 @@
                     "title": "Cours du jour",
                     "searchable_sql": true,
                     "deletable": true,
-                    "icon_name": "go-jump",
+                    "icon_name": "battery-good-charging",
                     "limit": 400,
                     "elements": {
                         "cdays_id": {},

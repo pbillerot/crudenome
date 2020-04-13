@@ -4,3 +4,4 @@ TODO rubrique tags
 TODO sql_ctrl
 TODO {__constante} défini dans constantes
 TODO header colonne centrée si col_align center
+TODO onChange dans formulaire sur une rubrique

@@ -195,9 +195,8 @@ class Crud:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             self.logger.info("SQL [%s]", sql)
-            cursor.execute(sql, {})
-            data = cursor.fetchone()[0]
-            # data = cursor[0][0]
+            for row in cursor.execute(sql):
+                data = row[0]
         except sqlite3.Error as exc:
             print("Error", exc.args[0], sql)
             self.add_error("%s %s" % (exc.args[0], sql))
@@ -524,7 +523,20 @@ class Crud:
         self.application["tables"][self.ctx["table_id"]]["forms"][self.ctx["form_id"]]["elements"][element][prop] = value
 
     def replace_from_dict(self, text, word_dict):
-        """ Remplace par leur valeur les mots entre accolades {mot} trouvés dans le dictionnaire """
+        """ 
+        Remplace par leur valeur les mots entre accolades {mot} trouvés dans le dictionnaire
+        Ajout de la recherche des constante {__constant}
+        """
+        constants = self.application.get("constants")
+        for key in constants:
+            if isinstance(constants[key], int):
+                text = text.replace("{__" + key + "}", str(constants[key]))
+            elif isinstance(constants[key], float):
+                text = text.replace("{__" + key + "}", str(constants[key]))
+            elif isinstance(constants[key], bool):
+                text = text.replace("{__" + key + "}", str(constants[key]))
+            else:
+                text = text.replace("{__" + key + "}", (constants[key]))
         for key in word_dict:
             # print key, word_dict[key], type(word_dict[key])
             if word_dict.get(key, None) is None:

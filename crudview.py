@@ -476,7 +476,6 @@ class CrudView(GObject.GObject):
         self.button_edit.hide()
         self.button_delete.hide()
         self.qligne_label.set_text(str(self.qligne_view) + " ligne(s)")
-        # TODO trouver une autre solution self.treeview.grab_focus()
 
     def do_refresh_data_view(self, str_from, str_arg=""):
         """ Les données ont été modifiées -> refresh """
