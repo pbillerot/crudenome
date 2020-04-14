@@ -22,6 +22,10 @@ pip3 install requests
 - Utilisation de DB Browser for SQLite http://sqlitebrowser.org/
 - Création des tables SQLite
 
+## Icones
+- sudo apt install gtk-3-examples
+- puis lancer gtk3-icon-browser
+
 ## Démarche
 
 ## Dessins

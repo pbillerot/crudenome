@@ -149,12 +149,12 @@ class PicsouGraphDay(Gtk.Window):
             ax2 = ax1.twinx()
             ax2.plot(cdays_times, cdays_rsi, 'mo:', label='RSI')
             ax2.bar(cdays_times, cdays_dvol, label='Volume', color='k', alpha=0.1)
-            ax2.plot(cdays_times, cdays_vevo, 'ko:', label='vevo', alpha=0.1)
+            # ax2.plot(cdays_times, cdays_vevo, 'ko:', label='vevo', alpha=0.1)
             ax2.set_ylabel('RSI')
             ax2.legend(loc=4)
 
             fig.autofmt_xdate()
-            plt.suptitle("{} {} du {} ".format(self.ptf_id, ptf["ptf_name"], cday["cdays_date"]))
+            plt.suptitle("{} {} du {}".format(self.ptf_id, ptf["ptf_name"], cday["cdays_date"]))
             plt.subplots_adjust(left=0.08, bottom=0.1, right=0.93, top=0.93, wspace=None, hspace=None)
             plt.grid()
             

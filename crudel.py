@@ -90,6 +90,8 @@ class Crudel(GObject.GObject):
             #     else:
             #         self.items[values[0]] = values[1]
         self.params = self.crud.get_element_prop(self.element, "params", None)
+        if self.crud.get_element_prop(self.element, "formulas", False):
+            self.set_protected(True)
         if self.crud.get_element_prop(self.element, "sql_put", False):
             self.set_protected(True)
         if self.crud.get_element_prop(self.element, "jointure", False):
@@ -268,6 +270,17 @@ class Crudel(GObject.GObject):
         else:
             return self.crud.get_field_prop(self.element, "height", default)
 
+    # formule
+    def with_formulas(self):
+        """ élément avec formule """
+        return self.crud.get_element_prop(self.element, "formulas", False)
+    def get_formulas(self):
+        """ Retourne la formule avec replace et appel sql pour calculer la formule """
+        formule = self.crud.get_element_prop(self.element, "formulas", "")
+        sql = "SELECT " + self.crud.replace_from_dict(formule, self.crud.get_table_values())
+        result = self.crud.get_sql(self.crud.get_basename(), sql)
+        return result
+
     # jointure
     def with_jointure(self):
         """ élément avec jointure """
@@ -375,6 +388,11 @@ class Crudel(GObject.GObject):
             return False
         return self.crud.get_field_prop(self.element, "required", False)
 
+    def with_refresh(self):
+        """ Ajout d'un bouton refresh derrière le champ """
+        if self.type_parent == Crudel.TYPE_PARENT_FORM:
+            return self.crud.get_field_prop(self.element, "refresh", False)
+
     def _get_widget_entry(self):
         """ champ de saisie """
         widget = Gtk.Entry()
@@ -414,6 +432,12 @@ class Crudel(GObject.GObject):
             tvc.add_attribute(renderer, "background", 1) # 2ème colonne
         if self.get_col_width():
             tvc.set_fixed_width(self.get_col_width())
+        if self.get_col_align() == "left":
+            renderer.set_property('xalign', 0.1)
+        elif self.get_col_align() == "right":
+            renderer.set_property('xalign', 1.0)
+        elif self.get_col_align() == "center":
+            renderer.set_property('xalign', 0.5)
 
         if self.is_hide():
             tvc.set_visible(False)
@@ -438,13 +462,6 @@ class Crudel(GObject.GObject):
     def _get_tvc(self, renderer, col_id):
         """ TreeViewColumn de la cellule """
         tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, text=col_id)
-        if self.get_col_align() == "left":
-            tvc.set_alignment(0.1)
-        elif self.get_col_align() == "right":
-            tvc.set_alignment(1.0)
-        elif self.get_col_align() == "center":
-            tvc.set_alignment(0.5)
-
         return tvc
 
     def check(self):
@@ -499,6 +516,10 @@ class Crudel(GObject.GObject):
         + self.element + " = :text WHERE " + self.crud.get_key_id() + " = :key_value"
         self.crud.exec_sql(self.crud.get_basename()\
             , sql, {"key_value": key_value, "text": text})
+
+    def on_refresh_button_clicked(self, widget):
+        """ actualisation du formulaire """
+        self.crud.get_form().emit("refresh", self)
 
 ########################################################
 ### Classes des crudel en fonction dy type d'élément ###
@@ -560,6 +581,10 @@ class CrudelCalendar(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
+        if self.with_refresh() :
+            button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
+            button_refresh.connect("clicked", self.on_refresh_button_clicked)
+            hbox.pack_start(button_refresh, False, False, 5)
         return hbox
 
     def calendar_day_selected(self, widget):
@@ -597,6 +622,10 @@ class CrudelCheck(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
+        if self.with_refresh() :
+            button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
+            button_refresh.connect("clicked", self.on_refresh_button_clicked)
+            hbox.pack_start(button_refresh, False, False, 5)
         return hbox
 
     def _get_renderer(self, treeview):
@@ -610,6 +639,7 @@ class CrudelCheck(Crudel):
         else:
             renderer.set_active(True)
         tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, active=col_id)
+        tvc.set_alignment(0.5)
         return tvc
 
     def set_value_widget(self):
@@ -715,6 +745,10 @@ class CrudelCombo(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
+        if self.with_refresh() :
+            button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
+            button_refresh.connect("clicked", self.on_refresh_button_clicked)
+            hbox.pack_start(button_refresh, False, False, 5)
         return hbox
 
     def on_changed_combo(self, widget, element):
@@ -786,6 +820,10 @@ class CrudelFloat(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
+        if self.with_refresh() :
+            button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
+            button_refresh.connect("clicked", self.on_refresh_button_clicked)
+            hbox.pack_start(button_refresh, False, False, 5)
         return hbox
 
     def _get_renderer(self, treeview):
@@ -909,6 +947,10 @@ class CrudelInt(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
+        if self.with_refresh() :
+            button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
+            button_refresh.connect("clicked", self.on_refresh_button_clicked)
+            hbox.pack_start(button_refresh, False, False, 5)
         return hbox
 
     def _get_renderer(self, treeview):
@@ -1049,6 +1091,10 @@ class CrudelRadio(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
+        if self.with_refresh() :
+            button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
+            button_refresh.connect("clicked", self.on_refresh_button_clicked)
+            hbox.pack_start(button_refresh, False, False, 5)
         return hbox
 
     def on_button_toggled(self, button, name):
@@ -1075,9 +1121,14 @@ class CrudelText(Crudel):
         hbox = Gtk.HBox()
         label = self._get_widget_label()
         self.widget = self._get_widget_entry()
+
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
+        if self.with_refresh() :
+            button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
+            button_refresh.connect("clicked", self.on_refresh_button_clicked)
+            hbox.pack_start(button_refresh, False, False, 5)
         return hbox
 
     def get_value(self):

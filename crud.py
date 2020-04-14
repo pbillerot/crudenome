@@ -671,6 +671,15 @@ class Crud:
         # Finally, we retrieve the Class
         return getattr(module, class_str)
 
+    def compute_formulas(self, type_parent):
+        """ Calcul des formules des éléments """
+        elements = self.get_view_elements() if type_parent == Crudel.TYPE_PARENT_VIEW else self.get_form_elements()
+        for element in elements:
+            crudel = self.get_element_prop(element, "crudel")
+            if crudel.with_formulas() :
+                formulas = crudel.get_formulas()
+                crudel.set_value_sql(formulas)
+
     def get_sql_row(self, type_parent):
         """ Charger les colonnes de l'enregistreement courant """
         sql = "SELECT "
@@ -683,6 +692,8 @@ class Crud:
             if crudel.is_virtual():
                 continue
             if crudel.with_jointure():
+                continue
+            if crudel.with_formulas():
                 continue
             if b_first:
                 b_first = False
@@ -699,11 +710,9 @@ class Crud:
             #     sql += ", "
             #     sql += crudel.get_sql_color() + " as " + element + "_color"
 
-        # ajout des colonnes de jointure
+        # ajout des colonnes de formule et de jointure
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
-            # if crudel.is_virtual():
-            #     continue
             if crudel.with_jointure():
                 sql += ", " + crudel.get_jointure("column") + " as " + element
 

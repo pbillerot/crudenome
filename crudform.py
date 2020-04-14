@@ -11,7 +11,8 @@ from gi.repository import Gtk, GObject, GdkPixbuf
 class CrudForm(GObject.GObject):
     """ Gestion des Formulaires du CRUD """
     __gsignals__ = {
-        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str,str,))
+        'init_widget': (GObject.SIGNAL_RUN_FIRST, None, (str,str,)),
+        'refresh': (GObject.SIGNAL_RUN_FIRST, None, (Crudel,))
     }
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
@@ -26,11 +27,38 @@ class CrudForm(GObject.GObject):
                 widget.grab_focus()
                 break
 
+    def do_refresh(self, widget):
+        """ Rafraichissement du formulaire """
+        # remplissage des champs avec les valeurs saisies
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_element_prop(element, "crudel")
+            if crudel.is_hide() or crudel.is_read_only():
+                continue
+            crudel.set_value_widget()
+            crudel.set_value_default()
+        # Application des formules
+        self.crud.compute_formulas(Crudel.TYPE_PARENT_FORM)
+        # ReCréation des widget dans la box de la form
+        # Suppression
+        for widget in self.box_form.get_children():
+            Gtk.Widget.destroy(widget)
+        # Création
+        for element in self.crud.get_form_elements():
+            crudel = self.crud.get_element_prop(element, "crudel")
+            crudel.init_items_sql()
+            crudel.init_text_sql()
+            # crudel.dump()
+            if crudel.is_hide():
+                continue
+            self.box_form.pack_start(crudel.get_widget_box(), False, False, 5)
+        # Dessin
+        self.app_window.show_all()
+
     def __init__(self, crud, args=None):
         
         GObject.GObject.__init__(self)
 
-        self.crud = crud
+        self.crud = Crud(crud)
         self.app_window = crud.get_window()
         self.crud_portail = crud.get_portail()
         self.crud_view = crud.get_view()
@@ -50,20 +78,6 @@ class CrudForm(GObject.GObject):
         # image = Gtk.Image.new_from_pixbuf(pixbuf)
         # cancel_button = Gtk.Button(label="Cancel", image=image)
         # cancel_button.set_image_position(Gtk.PositionType.LEFT) # LEFT TOP RIGHT BOTTOM
-        cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
-        cancel_button.set_always_show_image(True)
-        cancel_button.connect("clicked", self.on_cancel_button_clicked)
-
-        ok_button = Gtk.Button(stock=Gtk.STOCK_OK)
-        ok_button.set_always_show_image(True)
-        ok_button.connect("clicked", self.on_ok_button_clicked)
-
-        form_title = Gtk.Label()
-        form_title.set_markup("<b>%s</b>" % self.crud.get_form_prop("title"))
-
-        self.crud_portail.box_toolbar.pack_start(form_title, True, True, 3)
-        self.crud_portail.box_toolbar.pack_end(ok_button, False, True, 3)
-        self.crud_portail.box_toolbar.pack_end(cancel_button, False, True, 3)
 
         self.box_form = Gtk.VBox()
         self.box_form.set_border_width(6)
@@ -79,6 +93,21 @@ class CrudForm(GObject.GObject):
         self.box_form.pack_end(self.label_error, False, False, 3)
 
         self.create_fields()
+
+        cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
+        cancel_button.set_always_show_image(True)
+        cancel_button.connect("clicked", self.on_cancel_button_clicked)
+
+        ok_button = Gtk.Button(stock=Gtk.STOCK_OK)
+        ok_button.set_always_show_image(True)
+        ok_button.connect("clicked", self.on_ok_button_clicked)
+
+        form_title = Gtk.Label()
+        form_title.set_markup("<b>%s</b>" % self.crud.get_form_prop("title"))
+
+        self.crud_portail.box_toolbar.pack_start(form_title, True, True, 3)
+        self.crud_portail.box_toolbar.pack_end(ok_button, False, True, 3)
+        self.crud_portail.box_toolbar.pack_end(cancel_button, False, True, 3)
 
         self.app_window.show_all()
 
@@ -99,6 +128,9 @@ class CrudForm(GObject.GObject):
                     if row.get(element, False):
                         crudel.set_value_sql(row[element])
 
+        # application des formulas
+        self.crud.compute_formulas(Crudel.TYPE_PARENT_FORM)
+
         # remplissage des champs avec les paramètres du formulaire
         for arg in self.args:
             if self.crud.get_form_elements().get(arg, None):
@@ -107,7 +139,7 @@ class CrudForm(GObject.GObject):
                     crudel.set_value(self.args.get(arg))
                 crudel.set_read_only(True)
 
-        # valeur par défaut
+        # valeur par défaut + vérif si on_change est à traiter
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
             crudel.set_value_default()
@@ -158,6 +190,9 @@ class CrudForm(GObject.GObject):
             self.crud.remove_all_errors()
             return
         else:
+            # OK pour mettre à jour la bd
+            # calcul des rubriques avec formule
+            self.crud.compute_formulas(Crudel.TYPE_PARENT_FORM)
             if self.crud.get_action() in ("create"):
                 if key_type != "counter" and self.crud.sql_exist_key():
                     self.crud.add_error("Cet enregistrement existe déjà")
