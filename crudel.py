@@ -581,7 +581,7 @@ class CrudelCalendar(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
-        if self.with_refresh() :
+        if self.with_refresh() and not self.is_protected() and not self.is_read_only():
             button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
             button_refresh.connect("clicked", self.on_refresh_button_clicked)
             hbox.pack_start(button_refresh, False, False, 5)
@@ -622,7 +622,7 @@ class CrudelCheck(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
-        if self.with_refresh() :
+        if self.with_refresh() and not self.is_protected() and not self.is_read_only():
             button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
             button_refresh.connect("clicked", self.on_refresh_button_clicked)
             hbox.pack_start(button_refresh, False, False, 5)
@@ -745,7 +745,7 @@ class CrudelCombo(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
-        if self.with_refresh() :
+        if self.with_refresh() and not self.is_protected() and not self.is_read_only():
             button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
             button_refresh.connect("clicked", self.on_refresh_button_clicked)
             hbox.pack_start(button_refresh, False, False, 5)
@@ -820,7 +820,7 @@ class CrudelFloat(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
-        if self.with_refresh() :
+        if self.with_refresh() and not self.is_protected() and not self.is_read_only():
             button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
             button_refresh.connect("clicked", self.on_refresh_button_clicked)
             hbox.pack_start(button_refresh, False, False, 5)
@@ -910,7 +910,7 @@ class CrudelForm(Crudel):
                 if row.get(element, False):
                     crudel.set_value_sql(row[element])
 
-        self.crud.set_action("update")
+        self.crud.set_action(self.get_param("action", "update"))
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         self.crud.set_form_id(self.get_param("form"))
         args = self.get_args_replace()
@@ -947,7 +947,7 @@ class CrudelInt(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
-        if self.with_refresh() :
+        if self.with_refresh() and not self.is_protected() and not self.is_read_only():
             button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
             button_refresh.connect("clicked", self.on_refresh_button_clicked)
             hbox.pack_start(button_refresh, False, False, 5)
@@ -1091,7 +1091,7 @@ class CrudelRadio(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
-        if self.with_refresh() :
+        if self.with_refresh() and not self.is_protected() and not self.is_read_only():
             button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
             button_refresh.connect("clicked", self.on_refresh_button_clicked)
             hbox.pack_start(button_refresh, False, False, 5)
@@ -1125,7 +1125,7 @@ class CrudelText(Crudel):
         # arrangement
         hbox.pack_start(label, False, False, 5)
         hbox.pack_start(self.widget, False, False, 5)
-        if self.with_refresh() :
+        if self.with_refresh() and not self.is_protected() and not self.is_read_only():
             button_refresh = Gtk.Button.new_from_icon_name("view-refresh", Gtk.IconSize.SMALL_TOOLBAR)
             button_refresh.connect("clicked", self.on_refresh_button_clicked)
             hbox.pack_start(button_refresh, False, False, 5)

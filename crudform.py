@@ -120,7 +120,7 @@ class CrudForm(GObject.GObject):
             self.crud.set_element_prop(element, "crudel", crudel)
 
         # remplissage des champs avec les colonnes de l'enregistrement
-        if self.crud.get_action() in ("read", "update", "delete"):
+        if self.crud.get_action() in ("read", "update", "delete","create"):
             rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_FORM)
             for row in rows:
                 for element in self.crud.get_form_elements():
@@ -135,9 +135,9 @@ class CrudForm(GObject.GObject):
         for arg in self.args:
             if self.crud.get_form_elements().get(arg, None):
                 crudel = self.crud.get_element_prop(arg, "crudel")
-                if crudel.crud.get_action() == "create":
-                    crudel.set_value(self.args.get(arg))
-                crudel.set_read_only(True)
+                # if crudel.crud.get_action() == "create":
+                crudel.set_value(self.args.get(arg))
+                crudel.set_protected(True)
 
         # valeur par défaut + vérif si on_change est à traiter
         for element in self.crud.get_form_elements():

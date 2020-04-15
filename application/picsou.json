@@ -358,7 +358,7 @@
                     "type": "float",
                     "col_width": 80,
                     "display": "%3.2f €",
-                    "formulas": "({orders_quote} * {orders_quantity}) - ({orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * ({__cost}*2))",
+                    "formulas": "{orders_quote} * {orders_quantity} - {orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * {__cost} - {orders_quote} * {orders_quantity} * {__cost}",
                     "sql_color": "case when orders_gain < 0 then '#FF0000' else '#006600' end"
                 },
                 "orders_gainp": {
@@ -367,7 +367,8 @@
                     "type": "float",
                     "col_width": 80,
                     "display": "%3.2f %%",
-                    "formulas": "((({orders_quote} * {orders_quantity}) - ({orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * ({__cost}*2))) / ({orders_buy} * {orders_quantity}))*100",
+                    "formulas": "( ({orders_quote} * {orders_quantity} - {orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * {__cost} - {orders_quote} * {orders_quantity} * {__cost}) / ({orders_buy} * {orders_quantity}) )*100",
+                    "formulasxx": "((({orders_quote} * {orders_quantity}) - ({orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * ({__cost}*2))) / ({orders_buy} * {orders_quantity}))*100",
                     "sql_color": "case when orders_gainp < 0 then '#FF0000' else '#006600' end"
                 },
                 "orders_sell_cost": {
@@ -376,7 +377,7 @@
                     "type": "float",
                     "display": "%3.2f €",
                     "col_width": 60,
-                    "formulas": "{orders_sell} * {orders_quantity} * {__cost}"
+                    "formulas": "{orders_buy} * {orders_quantity} * {__cost} + {orders_sell} * {orders_quantity} * {__cost}"
                 },
                 "orders_sell_gain": {
                     "label_long": "Gain",
@@ -384,7 +385,7 @@
                     "type": "float",
                     "col_width": 80,
                     "display": "%3.2f €",
-                    "formulas": "({orders_sell} * {orders_quantity}) - ({orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * ({__cost}*2))",
+                    "formulas": "{orders_sell} * {orders_quantity} - {orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * {__cost} - {orders_sell} * {orders_quantity} * {__cost}",
                     "sql_color": "case when orders_sell_gain < 0 then '#FF0000' else '#006600' end"
                 },
                 "orders_sell_gainp": {
@@ -393,7 +394,7 @@
                     "type": "float",
                     "col_width": 80,
                     "display": "%3.2f %%",
-                    "formulas": "((({orders_sell} * {orders_quantity}) - ({orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * ({__cost}*2))) / ({orders_buy} * {orders_quantity}))*100",
+                    "formulas": "( ({orders_sell} * {orders_quantity} - {orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * {__cost} - {orders_sell} * {orders_quantity} * {__cost}) / ({orders_buy} * {orders_quantity}) )*100",
                     "sql_color": "case when orders_sell_gainp < 0 then '#FF0000' else '#006600' end"
                 },
                 "_fsell": {
@@ -402,7 +403,8 @@
                     "type": "form",
                     "params": {
                         "form": "fsell",
-                        "icon_name": "media-playback-stop"
+                        "icon_name": "media-playback-stop",
+                        "action": "create"
                     },
                     "args": {
                         "orders_order": "sell"
@@ -424,7 +426,7 @@
                         "_ptf_name": {},
                         "orders_time": {},
                         "orders_date": {},
-                        "orders_order": {},
+                        "orders_order": {"hide":true},
                         "orders_buy": {},
                         "orders_quantity": {},
                         "orders_cost": {},
@@ -449,8 +451,9 @@
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {},
                         "_ptf_name": {},
+                        "orders_time": {},
                         "orders_sell_time": {},
-                        "orders_order": {},
+                        "orders_order": {"hide":true},
                         "orders_buy": {},
                         "orders_sell": {},
                         "orders_quantity": {},
@@ -503,9 +506,8 @@
                         "orders_quote": {},
                         "orders_time": {},
                         "orders_date": {},
-                        "orders_order": {"protected": true},
+                        "orders_order": {"hide": true},
                         "orders_buy": {},
-                        "orders_sell": {"hide": true},
                         "orders_quantity": {},
                         "orders_cost_price": {},
                         "orders_cost": {},
@@ -521,8 +523,10 @@
                         "orders_ptf_id": {"read_only": true},
                         "_ptf_name": {},
                         "orders_sell_time": {},
-                        "orders_order": {"protected": true},
-                        "orders_buy": {"hide": true},
+                        "orders_time": {"protected": true},
+                        "orders_order": {"hide": true},
+                        "orders_buy": {"protected": true},
+                        "orders_cost_price": {},
                         "orders_sell": {},
                         "orders_quantity": {},
                         "orders_sell_cost": {},
@@ -537,13 +541,15 @@
                     "info2": "orders_order = sell transmis dans args",
                     "elements": {
                         "orders_id": {"hide":true},
-                        "orders_ptf_id": {"read_only": true},
+                        "orders_ptf_id": {"protected": true},
                         "_ptf_name": {},
                         "orders_order": {"protected": true},
+                        "orders_time": {"protected": true},
+                        "orders_buy": {"protected": true},
+                        "orders_cost_price": {},
                         "orders_sell_time": {},
-                        "orders_buy": {"read_only": true},
                         "orders_sell": {},
-                        "orders_quantity": {"read_only": true},
+                        "orders_quantity": {"protected": true},
                         "orders_sell_cost": {},
                         "orders_credit": {},
                         "orders_sell_gain": {},
