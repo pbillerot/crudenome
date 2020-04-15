@@ -877,6 +877,7 @@ class CrudelForm(Crudel):
 
     def _get_renderer(self, treeview):
         renderer = CellRendererClickablePixbuf()
+        # renderer = Gtk.CellRendererPixbuf()
         renderer.connect('clicked', self.on_clicked_in_view)
         return renderer
 
@@ -910,14 +911,18 @@ class CrudelForm(Crudel):
                 if row.get(element, False):
                     crudel.set_value_sql(row[element])
 
+        args = self.get_args_replace()
+        # mémorisation table et vue pour gérer le retour du formulaire
+        self.crud.set_table_id_from(self.crud.get_table_id())
+        self.crud.set_view_id_from(self.crud.get_view_id())
+
         self.crud.set_action(self.get_param("action", "update"))
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         self.crud.set_form_id(self.get_param("form"))
-        args = self.get_args_replace()
+        self.crud.set_table_id(self.get_param("table", self.crud.get_table_id()))
         from crudform import CrudForm
         form = CrudForm(self.crud, args)
-        # self.app_window.show_all()
-        form.emit("init_widget", self.__class__, "on_button_edit_clicked")
+        # form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
 class CrudelGraph(CrudelCheck):
     """ Gestion des colonnes et champs de type boîte à cocher """

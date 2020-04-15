@@ -37,6 +37,8 @@ class Crud:
         "table_id": None,
         "view_id": None,
         "form_id": None,
+        "table_id_from": None, # pour gérer retour formulaire
+        "view_id_from": None,  # pour gérer retour formulaire
         "row_id": None,
         "key_value": None,
         "action": None, # create read update delete
@@ -325,6 +327,22 @@ class Crud:
     def set_form_id(self, val):
         """ set """
         self.ctx["form_id"] = val
+
+    # table_id
+    def get_table_id_from(self):
+        """ table_id_from """
+        return self.ctx["table_id_from"]
+    def set_table_id_from(self, val):
+        """ set """
+        self.ctx["table_id_from"] = val
+
+    # view_id
+    def get_view_id_from(self):
+        """ view_id_from """
+        return self.ctx["view_id_from"]
+    def set_view_id_from(self, val):
+        """ set """
+        self.ctx["view_id_from"] = val
 
     # row_id
     def get_row_id(self):

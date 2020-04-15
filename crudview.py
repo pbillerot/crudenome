@@ -139,7 +139,6 @@ class CrudView(GObject.GObject):
             adj.set_value(rect.y)
             # print(">>>", adj.get_upper(), adj.get_page_size(), adj.get_value(), pos)
 
-
     def get_widget(self):
         """ retourne le container de la vue toolbar + list """
         # print "get_widget"
@@ -489,7 +488,11 @@ class CrudView(GObject.GObject):
         self.crud.set_key_value(None)
         self.crud.set_action("create")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-        # self.crud.set_crudel(None)
+
+        # mémorisation table et vue pour gérer le retour du formulaire
+        self.crud.set_table_id_from(self.crud.get_table_id())
+        self.crud.set_view_id_from(self.crud.get_view_id())
+
         form = CrudForm(self.crud, self.args)
         form.emit("init_widget", self.__class__, "on_button_add_clicked")
 
@@ -498,6 +501,10 @@ class CrudView(GObject.GObject):
         # print "Edition de", self.crud.get_selection()[0]
         for key in self.crud.get_selection().keys():
             self.crud.set_key_value(key)
+        # mémorisation table et vue pour gérer le retour du formulaire
+        self.crud.set_table_id_from(self.crud.get_table_id())
+        self.crud.set_view_id_from(self.crud.get_view_id())
+
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
         self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
@@ -638,6 +645,8 @@ class CrudView(GObject.GObject):
         self.crud.add_selection(key_id, key_display)
         self.crud.set_key_value(key_id)
         if self.crud.get_view_prop("form_edit", None) is not None:
+            self.crud.set_table_id_from(self.crud.get_table_id())
+            self.crud.set_view_id_from(self.crud.get_view_id())
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
             self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)

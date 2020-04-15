@@ -4,4 +4,4 @@ TODO rubrique tags
 TODO sql_ctrl
 TODO combo dans view afficher le label/key
 TODO remplacer display par printf
-TODO form achat sur proposition trade
+TODO bug deuxième appel CrudelForm

@@ -286,7 +286,7 @@
                     "sortable": true,
                     "searchable": true,
                     "hide": true,
-                    "sql_put": "substr('{orders_time}', 1, 10)"
+                    "formulas": "substr('{orders_time}', 1, 10)"
                 },
                 "orders_quote": {
                     "label_long": "Cours actuel",
@@ -495,6 +495,25 @@
                         "orders_ptf_id": {},
                         "orders_order": {"protected": true, "default": "buy"},
                         "orders_time": {}
+                    }
+                },
+                "fbuy": {
+                    "title": "Ajout d'un ordre d'Achat",
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {},
+                        "_ptf_name": {},
+                        "orders_quote": {},
+                        "orders_time": {},
+                        "orders_date": {},
+                        "orders_order": {"hide": true},
+                        "orders_buy": {},
+                        "orders_quantity": {},
+                        "orders_cost_price": {},
+                        "orders_cost": {},
+                        "orders_debit": {},
+                        "orders_gain": {},
+                        "orders_gainp": {}
                     }
                 },
                 "feditbuy": {
@@ -909,8 +928,24 @@
                         "ptf_id": "{trades_ptf_id}",
                         "path": "png/{trades_date}/{trades_ptf_id}.png"
                     }
+                },
+                "_form_order_buy": {
+                    "label_long": "Acheter",
+                    "label_short": "Acheter",
+                    "type": "form",
+                    "params": {
+                        "table": "orders",
+                        "form": "fbuy",
+                        "icon_name": "media-playback-stop",
+                        "action": "create"
+                    },
+                    "args": {
+                        "orders_ptf_id": "{trades_ptf_id}",
+                        "orders_order": "buy",
+                        "orders_buy": "{trades_buy}",
+                        "orders_quantity": "{trades_quantity}"
+                    }
                 }
-
             },
             "views": {
                 "vday": {
@@ -936,6 +971,7 @@
                         "trades_cash": {},
                         "trades_day": {},
                         "_graph": {},
+                        "_form_order_buy": {},
                         "_batch": {}
                     },
                     "sql_where": "trades_date = date('now')",

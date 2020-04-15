@@ -17,15 +17,15 @@ class CrudForm(GObject.GObject):
     def do_init_widget(self, str_from, str_arg=""):
         """ Traitement du signal """
         # print "do_init_widget %s(%s) -> %s" % (str_from, str_arg, self.__class__)
-        for element in self.crud.get_form_elements():
-            crudel = self.crud.get_element_prop(element, "crudel")
-            crudel.emit("init_widget", self.__class__, "")
-        for element in self.crud.get_form_elements():
-            crudel = self.crud.get_element_prop(element, "crudel")
-            if not crudel.is_hide() and not crudel.is_read_only():
-                widget = crudel.get_widget()
-                widget.grab_focus()
-                break
+        # for element in self.crud.get_form_elements():
+        #     crudel = self.crud.get_element_prop(element, "crudel")
+        #     crudel.emit("init_widget", self.__class__, "")
+        # for element in self.crud.get_form_elements():
+        #     crudel = self.crud.get_element_prop(element, "crudel")
+        #     if not crudel.is_hide() and not crudel.is_read_only():
+        #         widget = crudel.get_widget()
+        #         widget.grab_focus()
+        #         break
 
     def do_refresh(self, widget):
         """ Rafraichissement du formulaire """
@@ -69,16 +69,6 @@ class CrudForm(GObject.GObject):
         else:
             self.args = {}
 
-        # print "Form", self.crud.get_table_id(), self.crud.get_view_id(), self.crud.get_form_id(), self.crud.get_key_value()
-        # if self.crudel:
-        #     print "Form Crudel", self.crudel.element
-        # print "Form Args", self.args
-
-        # pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale('crudenome.svg', 24, 24, True) # preserve ratio
-        # image = Gtk.Image.new_from_pixbuf(pixbuf)
-        # cancel_button = Gtk.Button(label="Cancel", image=image)
-        # cancel_button.set_image_position(Gtk.PositionType.LEFT) # LEFT TOP RIGHT BOTTOM
-
         self.box_form = Gtk.VBox()
         self.box_form.set_border_width(6)
         self.frame = Gtk.Frame()
@@ -114,30 +104,29 @@ class CrudForm(GObject.GObject):
     def create_fields(self):
         """ Création affichage des champs du formulaire """
         # Création des crudel
-        for element in self.crud.get_form_elements():
+        elements = self.crud.get_form_elements()
+        for element in elements:
             crudel = Crudel.instantiate(self.crud, element, Crudel.TYPE_PARENT_FORM)
             crudel.init_value()
             self.crud.set_element_prop(element, "crudel", crudel)
 
         # remplissage des champs avec les colonnes de l'enregistrement
-        if self.crud.get_action() in ("read", "update", "delete","create"):
+        if self.crud.get_action() in ("read", "update", "delete"):
             rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_FORM)
             for row in rows:
-                for element in self.crud.get_form_elements():
-                    crudel = self.crud.get_element_prop(element, "crudel")
+                for element in elements:
                     if row.get(element, False):
+                        crudel = self.crud.get_element_prop(element, "crudel")
                         crudel.set_value_sql(row[element])
-
-        # application des formulas
-        self.crud.compute_formulas(Crudel.TYPE_PARENT_FORM)
 
         # remplissage des champs avec les paramètres du formulaire
         for arg in self.args:
-            if self.crud.get_form_elements().get(arg, None):
-                crudel = self.crud.get_element_prop(arg, "crudel")
-                # if crudel.crud.get_action() == "create":
+            crudel = self.crud.get_element_prop(arg, "crudel", None)
+            if crudel != None : 
                 crudel.set_value(self.args.get(arg))
-                crudel.set_protected(True)
+
+        # application des formulas
+        self.crud.compute_formulas(Crudel.TYPE_PARENT_FORM)
 
         # valeur par défaut + vérif si on_change est à traiter
         for element in self.crud.get_form_elements():
@@ -160,7 +149,7 @@ class CrudForm(GObject.GObject):
         if self.crudel:
             self.crud_portail.do_form(self.crudel.crud_view, self.crudel.crud)
         else:
-            self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())
+            self.crud_portail.emit("select_view", self.crud.get_table_id_from(), self.crud.get_view_id_from())
 
     def on_ok_button_clicked(self, widget):
         """ Validation du formulaire """
@@ -214,4 +203,4 @@ class CrudForm(GObject.GObject):
         if self.crudel:
             self.crud_portail.do_form(self.crudel.crud_view, self.crudel.crud)
         else:
-            self.crud_portail.on_button_view_clicked(None, self.crud.get_table_id(), self.crud.get_view_id())
+            self.crud_portail.emit("select_view", self.crud.get_table_id_from(), self.crud.get_view_id_from())
