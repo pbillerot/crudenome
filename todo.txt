@@ -4,4 +4,5 @@ TODO rubrique tags
 TODO sql_ctrl
 TODO combo dans view afficher le label/key
 TODO remplacer display par printf
-TODO bug deuxième appel CrudelForm
+TODO bug appel CrudelForm après plusieurs appel
+TODO formulaire dans une fenêtre popup avec mémo dans la fenre de la view applelante

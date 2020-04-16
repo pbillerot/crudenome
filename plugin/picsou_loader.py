@@ -35,9 +35,9 @@ class PicsouLoader():
         for ptf in ptfs:
             while Gtk.events_pending():
                 Gtk.main_iteration()
-            # Chargement de l'historique
             self.pout(" {}".format(ptf["ptf_id"]))
 
+            # Chargement de l'historique
             self.csv_to_quotes(ptf, 14)
             
             # Suppression des cours des jours antérieurs
@@ -95,6 +95,14 @@ class PicsouLoader():
             self.pout(" " + ptf["ptf_id"])
             while Gtk.events_pending():
                 Gtk.main_iteration() # libération des messages UI
+
+            # Chargement des actions à suivres
+            is_in_orders = False 
+            orders = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM orders where orders_ptf_id = :id ORDER BY orders_ptf_id
+            """, {"id": ptf["ptf_id"]})
+            if len(orders) > 0 : is_in_orders = True 
+
             # Boucle sur les COURS du PTF
             sql = """SELECT * FROM cdays
             WHERE cdays_ptf_id = :ptf_id
@@ -181,6 +189,16 @@ class PicsouLoader():
 
                     if trade == "BUY" : trade = "..."
                     if trade == "SELL": trade = ""
+
+                    # SMS si macd et si is_in_orders
+                    if with_sms and is_in_orders :
+                        url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
+                        if self.is_macd_buy(ema1, sma1, ema, sma) :
+                            msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//fbuy), quote)
+                            self.crud.send_sms(msg)
+                        if self.is_macd_sell(ema1, sma1, ema, sma) : 
+                            msg = "PICSOU VENTE {} : actions à {:7.2f} €".format(ptf["ptf_id"], quote)
+                            self.crud.send_sms(msg)
 
                     # VENTE
                     if trade in ("BUY","..."):

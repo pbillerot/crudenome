@@ -336,3 +336,9 @@ class CrudPortail(GObject.GObject):
         self.set_layout(CrudPortail.LAYOUT_FORM)
         form = CrudForm(crud, None)
         form.emit("init_widget", self.__class__, "do_form")
+
+    def destroy_containers(self, container):
+        """ Destruction des tous les containers et widgets enfants """
+        for children in container.get_children():
+            self.destroy_containers(children) # récusivité
+            Gtk.Widget.destroy(children)
