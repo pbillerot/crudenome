@@ -191,6 +191,19 @@ class PicsouLoader():
                     if trade == "SELL": trade = ""
 
                     # SMS si macd et si is_in_orders
+                    if is_in_orders :
+                        url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
+                        if self.is_macd_buy(ema1, sma1, ema, sma) :
+                            trade = "..."
+                            if with_sms :
+                                msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//fbuy), quote)
+                                self.crud.send_sms(msg)
+                        if self.is_macd_sell(ema1, sma1, ema, sma) : 
+                            if trade in ("BUY","...") : trade = "SELL"
+                            if with_sms :
+                                msg = "PICSOU VENTE {} : actions à {:7.2f} €".format(ptf["ptf_id"], quote)
+                                self.crud.send_sms(msg)
+
                     if with_sms and is_in_orders :
                         url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
                         if self.is_macd_buy(ema1, sma1, ema, sma) :

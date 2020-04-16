@@ -113,35 +113,22 @@ class CrudPortail(GObject.GObject):
             self.layout_type = layout_type
 
         if self.layout_type == CrudPortail.LAYOUT_MENU:
-            for widget in self.box_view.get_children():
-                Gtk.Widget.destroy(widget)
-            for widget in self.box_sidebar.get_children():
-                Gtk.Widget.destroy(widget)
-            for widget in self.box_toolbar.get_children():
-                Gtk.Widget.destroy(widget)
-            for widget in self.box_content.get_children():
-                Gtk.Widget.destroy(widget)
+            self.destroy_containers(self.box_view)
+            self.destroy_containers(self.box_sidebar)
+            self.destroy_containers(self.box_toolbar)
+            self.destroy_containers(self.box_content)
             self.headerbar.props.title = self.crud.config["title"]
         elif self.layout_type == CrudPortail.LAYOUT_VIEW:
-            for widget in self.box_toolbar.get_children():
-                Gtk.Widget.destroy(widget)
-            for widget in self.box_content.get_children():
-                Gtk.Widget.destroy(widget)
+            self.destroy_containers(self.box_toolbar)
+            self.destroy_containers(self.box_content)
             self.headerbar.props.title = self.crud.get_application_prop("title")
         elif self.layout_type == CrudPortail.LAYOUT_FORM:
-            # for widget in self.box_view.get_children():
-            #     Gtk.Widget.destroy(widget)
-            # for widget in self.box_sidebar.get_children():
-            #     Gtk.Widget.destroy(widget)
-            for widget in self.box_toolbar.get_children():
-                Gtk.Widget.destroy(widget)
-            for widget in self.box_content.get_children():
-                Gtk.Widget.destroy(widget)
+            self.destroy_containers(self.box_toolbar)
+            self.destroy_containers(self.box_content)
             self.headerbar.props.title = self.crud.get_application_prop("title")
 
         if self.crud.get_application_prop("menu_orientation", "horizontal") == "horizontal":
-            for widget in self.box_sidebar.get_children():
-                Gtk.Widget.destroy(widget)
+            self.destroy_containers(self.box_sidebar)
 
     def display(self, msg):
         """ Affichage de message dans la fenêtre des traces """
@@ -150,8 +137,7 @@ class CrudPortail(GObject.GObject):
     def create_application_menu(self):
         """ menu des applications """
         # raz widgets
-        for widget in self.box_toolbar.get_children():
-            Gtk.Widget.destroy(widget)
+        self.destroy_containers(self.box_toolbar)
 
         file_list = self.crud.directory_list(self.crud.config["application_directory"])
         for application_file in file_list:
@@ -296,8 +282,7 @@ class CrudPortail(GObject.GObject):
         # self.crud.get_view_prop("button").get_style_context().add_class('button_selected')
         self.crud.get_view_prop("button").set_sensitive(False)
         # raz view_toolbar
-        for widget in self.box_toolbar.get_children():
-            Gtk.Widget.destroy(widget)
+        self.destroy_containers(self.box_toolbar)
 
         self.set_layout(CrudPortail.LAYOUT_VIEW)
         self.crud.set_portail(self)
@@ -331,8 +316,7 @@ class CrudPortail(GObject.GObject):
     def do_form(self, crud_view, crud):
         """ Demande d'activation d'un formulaire """
         # raz view_toolbar
-        for widget in self.box_toolbar.get_children():
-            Gtk.Widget.destroy(widget)
+        self.destroy_containers(self.box_toolbar)
         self.set_layout(CrudPortail.LAYOUT_FORM)
         form = CrudForm(crud, None)
         form.emit("init_widget", self.__class__, "do_form")
@@ -340,5 +324,5 @@ class CrudPortail(GObject.GObject):
     def destroy_containers(self, container):
         """ Destruction des tous les containers et widgets enfants """
         for children in container.get_children():
-            self.destroy_containers(children) # récusivité
+            # self.destroy_containers(children) # récusivité
             Gtk.Widget.destroy(children)

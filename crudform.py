@@ -40,8 +40,7 @@ class CrudForm(GObject.GObject):
         self.crud.compute_formulas(Crudel.TYPE_PARENT_FORM)
         # ReCréation des widget dans la box de la form
         # Suppression
-        for widget in self.box_form.get_children():
-            Gtk.Widget.destroy(widget)
+        self.crud.get_portail().destroy_containers(self.box_form)
         # Création
         for element in self.crud.get_form_elements():
             crudel = self.crud.get_element_prop(element, "crudel")
