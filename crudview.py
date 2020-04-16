@@ -41,11 +41,6 @@ class CrudView(GObject.GObject):
         else:
             self.args = {}
 
-        # print "View", self.crud.get_table_id(), self.crud.get_view_id()
-        # if self.crudel: 
-        #     print "View Crudel", self.crudel.element
-        # print "View Args", self.args
-
         # Déclaration des variables globales
         self.treeview = None
         self.liststore = None
@@ -76,22 +71,9 @@ class CrudView(GObject.GObject):
         self.scroll_window.show_all()
         self.box_content.pack_end(self.scroll_window, True, True, 3)
 
-        # if len(self.crud.get_selection()) == 1 and not self.crudel:
-            # au retour d'un formulaire, on remet la sélection sur la ligne
         if self.crud.get_view_prop("select_id"):
             row_id = self.crud.get_view_prop("select_id")
             self.treeview.set_cursor(Gtk.TreePath(row_id), None)
-            # vadjustment = self.scroll_window.get_vadjustment()
-            # adj = Gtk.Adjustment(value=14,
-            #                  lower=2,
-            #                  upper=17,
-            #                  step_incr=1,
-            #                  page_incr=3)
-            # self.scroll_window.set_vadjustment(adj)
-            # rect = self.treeview.get_cell_area(Gtk.TreePath(row_id), None)
-            # vadjustment.set_value(pos)
-            # self.scroll_window.set_vadjustment(vadjustment)
-            # self.treeview.scroll_to_cell(Gtk.TreePath(row_id), None)
 
         self.treeview.connect('size-allocate', self.treeview_changed)
         self.treeview.connect('key_press_event', self.key_press_event)
@@ -127,17 +109,9 @@ class CrudView(GObject.GObject):
         # print("treeview_changed", adj.get_upper(), adj.get_page_size(), adj.get_value())
         if self.crud.get_view_prop("select_id"):
             row_id = self.crud.get_view_prop("select_id")
-            # pos_row = row_id // self.qligne_view
-            # self.treeview.set_cursor(Gtk.TreePath(row_id), None)
-            # adj.set_value( adj.get_upper() - adj.get_page_size() )
-            # pos = adj.get_upper() - adj.get_upper() * pos_row #- adj.get_page_size() // 2
-            # if pos < adj.get_page_size() : pos = 0
-            # adj.set_value( adj.get_upper() - adj.get_page_size())
             rect = self.treeview.get_cell_area(Gtk.TreePath(row_id), None)
-            # print("<<<", adj.get_upper(), adj.get_page_size(), adj.get_value(), rect.y)
             pos = 0 if rect.y < adj.get_upper() - adj.get_page_size() else rect.y
             adj.set_value(rect.y)
-            # print(">>>", adj.get_upper(), adj.get_page_size(), adj.get_value(), pos)
 
     def get_widget(self):
         """ retourne le container de la vue toolbar + list """
@@ -398,7 +372,19 @@ class CrudView(GObject.GObject):
             crudel = self.crud.get_element_prop(element, "crudel")
             # crudel.init_crudel_sql()
         row_id = 0
+
         if rows:
+            # Chargement des crudel avec lec contenus sql
+            for row in rows:
+                for element in self.crud.get_view_elements():
+                    crudel = self.crud.get_element_prop(element, "crudel")
+                    # Valorisation du crudel avec la colonne sql
+                    crudel.init_value()
+                    if element in row:
+                        crudel.set_value_sql(row[element])
+            # Calcul des formules des colonnes _
+            self.crud.compute_formulas(Crudel.TYPE_PARENT_VIEW, virtual_only=True)
+            # Chargement du liststore
             for row in rows:
                 store = []
                 # print row
@@ -410,10 +396,6 @@ class CrudView(GObject.GObject):
                 store.append("#F0FFF0") 
                 for element in self.crud.get_view_elements():
                     crudel = self.crud.get_element_prop(element, "crudel")
-                    # Valorisation du crudel avec la colonne sql
-                    crudel.init_value()
-                    if element in row:
-                        crudel.set_value_sql(row[element])
                     # colonnes crudel
                     display = crudel.get_cell()
                     # print element, crudel.get_value(), display

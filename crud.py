@@ -689,14 +689,19 @@ class Crud:
         # Finally, we retrieve the Class
         return getattr(module, class_str)
 
-    def compute_formulas(self, type_parent):
+    def compute_formulas(self, type_parent, virtual_only=False):
         """ Calcul des formules des éléments """
         elements = self.get_view_elements() if type_parent == Crudel.TYPE_PARENT_VIEW else self.get_form_elements()
         for element in elements:
             crudel = self.get_element_prop(element, "crudel")
             if crudel.with_formulas() :
-                formulas = crudel.get_formulas()
-                crudel.set_value_sql(formulas)
+                if virtual_only : 
+                    if crudel.is_virtual :
+                        formulas = crudel.get_formulas()
+                        crudel.set_value_sql(formulas)
+                else:
+                    formulas = crudel.get_formulas()
+                    crudel.set_value_sql(formulas)
 
     def get_sql_row(self, type_parent):
         """ Charger les colonnes de l'enregistreement courant """

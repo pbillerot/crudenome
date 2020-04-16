@@ -276,13 +276,11 @@
                     "searchable": true,
                     "default_sql": "select datetime('now', 'localtime')"
                 },
-                "orders_date": {
+                "_date": {
                     "label_long": "Jour",
                     "label_short": "Jour",
                     "type": "text",
-                    "sortable": true,
-                    "searchable": true,
-                    "hide": true,
+                    "hide": false,
                     "formulas": "substr('{orders_time}', 1, 10)"
                 },
                 "orders_quote": {
@@ -391,6 +389,19 @@
                     "formulas": "( ({orders_sell} * {orders_quantity} - {orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * {__cost} - {orders_sell} * {orders_quantity} * {__cost}) / ({orders_buy} * {orders_quantity}) )*100",
                     "sql_color": "case when orders_sell_gainp < 0 then '#FF0000' else '#006600' end"
                 },
+                "_graph": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "plugin",
+                    "params": {
+                        "plugin": "picsou_graph.PicsouGraphDay",
+                        "icon_name": "applications-office"
+                    },
+                    "args": {
+                        "ptf_id": "{orders_ptf_id}",
+                        "path": "png/{_date}/{ptf_id}.png"
+                    }
+                },
                 "_fsell": {
                     "label_long": "Vendre",
                     "label_short": "Vendre",
@@ -426,7 +437,7 @@
                         "orders_ptf_id": {},
                         "_ptf_name": {},
                         "orders_time": {},
-                        "orders_date": {},
+                        "_date": {},
                         "orders_order": {"hide":true},
                         "orders_buy": {},
                         "orders_quantity": {},
@@ -436,6 +447,7 @@
                         "orders_quote": {},
                         "orders_gain": {},
                         "orders_gainp": {},
+                        "_graph": {},
                         "_fsell": {}
                     },
                     "sql_where": "orders.orders_order = 'buy'",
@@ -462,7 +474,8 @@
                         "orders_sell_cost": {},
                         "orders_credit": {},
                         "orders_sell_gain": {},
-                        "orders_sell_gainp": {}
+                        "orders_sell_gainp": {},
+                        "_graph": {}
                     },
                     "sql_where": "orders.orders_order = 'sell'",
                     "order_by": "orders.orders_time desc"
@@ -507,7 +520,7 @@
                         "_ptf_name": {},
                         "orders_quote": {},
                         "orders_time": {},
-                        "orders_date": {},
+                        "_date": {},
                         "orders_order": {"hide": true},
                         "orders_buy": {},
                         "orders_quantity": {},
@@ -526,7 +539,7 @@
                         "_ptf_name": {},
                         "orders_quote": {},
                         "orders_time": {},
-                        "orders_date": {},
+                        "_date": {},
                         "orders_order": {"hide": true},
                         "orders_buy": {},
                         "orders_quantity": {},
