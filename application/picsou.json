@@ -251,10 +251,7 @@
                     "type": "text",
                     "searchable": true,
                     "sortable": true,
-                    "jointure": {
-                        "join": "LEFT OUTER JOIN ptf ON ptf_id = orders_ptf_id",
-                        "column": "ptf_name"
-                    }
+                    "formulas": "ptf_name from ptf where ptf_id = '{orders_ptf_id}'"
                 },
                 "orders_order": {
                     "label_long": "Ordre",
@@ -293,11 +290,7 @@
                     "label_short": "Cours actuel",
                     "type": "float",
                     "display": "%3.2f €",
-                    "formulas": "close from quotes where id = '{orders_ptf_id}' and date = (select max(date) from quotes where id = '{orders_ptf_id}')",
-                    "jointurexx": {
-                        "join": "left outer join (select qq.id, close from quotes as qq join (select id, max(date) as datemax from quotes group by id) as dd on dd.id = qq.id and datemax = qq.date) as tt on tt.id = orders_ptf_id",
-                        "column": "close"
-                    }
+                    "formulas": "close from quotes where id = '{orders_ptf_id}' and date = (select max(date) from quotes where id = '{orders_ptf_id}')"
                 },
                 "orders_quantity": {
                     "label_long": "Quantité",
@@ -318,6 +311,7 @@
                     "label_short": "Cours de vente",
                     "type": "float",
                     "display": "%3.2f €",
+                    "default": "{orders_quote}",
                     "refresh": true
                 },
                 "orders_cost_price": {
@@ -407,6 +401,13 @@
                         "action": "create"
                     },
                     "args": {
+                        "orders_ptf_id": "{orders_ptf_id}",
+                        "orders_ptf_name": "{orders_ptf_name}",
+                        "orders_quantity": "{orders_quantity}",
+                        "orders_quote": "{orders_quote}",
+                        "orders_buy": "{orders_buy}",
+                        "orders_sell": "{orders_quote}",
+                        "orders_cost_price": "{orders_cost_price}",
                         "orders_order": "sell"
                     }
                 }
@@ -455,6 +456,7 @@
                         "orders_sell_time": {},
                         "orders_order": {"hide":true},
                         "orders_buy": {},
+                        "orders_quote": {},
                         "orders_sell": {},
                         "orders_quantity": {},
                         "orders_sell_cost": {},
@@ -546,6 +548,7 @@
                         "orders_order": {"hide": true},
                         "orders_buy": {"protected": true},
                         "orders_cost_price": {},
+                        "orders_quote": {},
                         "orders_sell": {},
                         "orders_quantity": {},
                         "orders_sell_cost": {},
@@ -566,6 +569,7 @@
                         "orders_time": {"protected": true},
                         "orders_buy": {"protected": true},
                         "orders_cost_price": {},
+                        "orders_quote": {},
                         "orders_sell_time": {},
                         "orders_sell": {},
                         "orders_quantity": {"protected": true},

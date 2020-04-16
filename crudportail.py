@@ -316,8 +316,8 @@ class CrudPortail(GObject.GObject):
     def do_form(self, crud_view, crud):
         """ Demande d'activation d'un formulaire """
         # raz view_toolbar
-        self.destroy_containers(self.box_toolbar)
-        self.set_layout(CrudPortail.LAYOUT_FORM)
+        # self.destroy_containers(self.box_toolbar)
+        # self.set_layout(CrudPortail.LAYOUT_FORM)
         form = CrudForm(crud, None)
         form.emit("init_widget", self.__class__, "do_form")
 

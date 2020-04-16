@@ -487,7 +487,7 @@ class CrudView(GObject.GObject):
         self.crud.set_form_id(self.crud.get_view_prop("form_add"))
         self.crud.set_key_value(None)
         self.crud.set_action("create")
-        self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
+        # self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
 
         # mémorisation table et vue pour gérer le retour du formulaire
         self.crud.set_table_id_from(self.crud.get_table_id())
@@ -507,7 +507,7 @@ class CrudView(GObject.GObject):
 
         self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
         self.crud.set_action("update")
-        self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
+        # self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         # self.crud.set_crudel(None)
         form = CrudForm(self.crud, self.args)
         form.emit("init_widget", self.__class__, "on_button_edit_clicked")
@@ -649,7 +649,5 @@ class CrudView(GObject.GObject):
             self.crud.set_view_id_from(self.crud.get_view_id())
             self.crud.set_form_id(self.crud.get_view_prop("form_edit"))
             self.crud.set_action("update")
-            self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
-            # self.crud.set_crudel(None)
+            self.crud.set_crudel(None)
             form = CrudForm(self.crud, self.args)
-            form.emit("init_widget", self.__class__, "on_row_actived")

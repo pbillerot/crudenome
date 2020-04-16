@@ -99,7 +99,7 @@ class PicsouLoader():
             # Chargement des actions à suivres
             is_in_orders = False 
             orders = self.crud.sql_to_dict(self.crud.get_basename(), """
-            SELECT * FROM orders where orders_ptf_id = :id ORDER BY orders_ptf_id
+            SELECT * FROM orders where orders_ptf_id = :id and orders_order = 'buy' ORDER BY orders_ptf_id
             """, {"id": ptf["ptf_id"]})
             if len(orders) > 0 : is_in_orders = True 
 
@@ -195,23 +195,15 @@ class PicsouLoader():
                         url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
                         if self.is_macd_buy(ema1, sma1, ema, sma) :
                             trade = "..."
+                            fachat = quote
                             if with_sms :
-                                msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//fbuy), quote)
+                                msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//quote), quote)
                                 self.crud.send_sms(msg)
                         if self.is_macd_sell(ema1, sma1, ema, sma) : 
-                            if trade in ("BUY","...") : trade = "SELL"
+                            # if trade in ("BUY","...") : trade = "SELL"
                             if with_sms :
                                 msg = "PICSOU VENTE {} : actions à {:7.2f} €".format(ptf["ptf_id"], quote)
                                 self.crud.send_sms(msg)
-
-                    if with_sms and is_in_orders :
-                        url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
-                        if self.is_macd_buy(ema1, sma1, ema, sma) :
-                            msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//fbuy), quote)
-                            self.crud.send_sms(msg)
-                        if self.is_macd_sell(ema1, sma1, ema, sma) : 
-                            msg = "PICSOU VENTE {} : actions à {:7.2f} €".format(ptf["ptf_id"], quote)
-                            self.crud.send_sms(msg)
 
                     # VENTE
                     if trade in ("BUY","..."):
@@ -297,19 +289,19 @@ class PicsouLoader():
                     WHERE cdays_id = :cdays_id
                     """, cday)
                 # fin cday du ptf en cours
-                if trade == "BUY":
-                    # Envoi du SMS
-                    if with_sms :
-                        url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
-                        msg = "PICSOU ACHAT {} : {} actions à {:7.2f} € {}".format(ptf["ptf_id"], int(iquantity), fbuy, url)
-                        self.crud.send_sms(msg)
+                # if trade == "BUY":
+                #     # Envoi du SMS
+                #     if with_sms:
+                #         url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
+                #         msg = "PICSOU ACHAT {} : {} actions à {:7.2f} € {}".format(ptf["ptf_id"], int(iquantity), fbuy, url)
+                #         self.crud.send_sms(msg)
 
-                if trade == "SELL":
-                    # Envoi du SMS
-                    if with_sms and ptf["ptf_top"] == 1 :
-                        url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
-                        msg = "PICSOU VENTE {} : {} actions à {:7.2f} € (gain: {:7.2f} €) {}".format(ptf["ptf_id"], int(iquantity), fsell, fgain, url)
-                        self.crud.send_sms(msg)
+                # if trade == "SELL":
+                #     # Envoi du SMS
+                #     if with_sms and ptf["ptf_top"] == 1:
+                #         url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
+                #         msg = "PICSOU VENTE {} : {} actions à {:7.2f} € (gain: {:7.2f} €) {}".format(ptf["ptf_id"], int(iquantity), fsell, fgain, url)
+                #         self.crud.send_sms(msg)
 
                 if trade == "...":
                     fsell = quote

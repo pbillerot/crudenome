@@ -74,7 +74,6 @@ class Crudel(GObject.GObject):
         self.widget = None
         self.type_parent = type_parent
         self.items = {} # items d'un combo
-        self.params = None 
         self.value = None
 
         self.init_crudel()
@@ -89,7 +88,6 @@ class Crudel(GObject.GObject):
             #         self.items[values[0]] = values[0]
             #     else:
             #         self.items[values[0]] = values[1]
-        self.params = self.crud.get_element_prop(self.element, "params", None)
         if self.crud.get_element_prop(self.element, "formulas", False):
             self.set_protected(True)
         if self.crud.get_element_prop(self.element, "sql_put", False):
@@ -145,7 +143,7 @@ class Crudel(GObject.GObject):
                     sql = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default_sql"), values)
                     self.value = self.crud.get_sql(self.crud.get_basename(), sql)
                 elif self.crud.get_field_prop(self.element, "default") != "":
-                    self.value = self.crud.get_field_prop(self.element, "default")
+                    self.value = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default"), self.crud.get_table_values())
         else:
             if self.get_value() == "":
                 if self.crud.get_field_prop(self.element, "default_sql") != "":
@@ -153,7 +151,7 @@ class Crudel(GObject.GObject):
                     sql = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default_sql"), values)
                     self.value = self.crud.get_sql(self.crud.get_basename(), sql)
                 elif self.crud.get_field_prop(self.element, "default") != "":
-                    self.value = self.crud.get_field_prop(self.element, "default")
+                    self.value = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default"), self.crud.get_table_values())
 
     def get_value(self):
         """ valeur interne de l'élément """
@@ -917,12 +915,10 @@ class CrudelForm(Crudel):
         self.crud.set_view_id_from(self.crud.get_view_id())
 
         self.crud.set_action(self.get_param("action", "update"))
-        self.crud_portail.set_layout(self.crud_portail.LAYOUT_FORM)
         self.crud.set_form_id(self.get_param("form"))
         self.crud.set_table_id(self.get_param("table", self.crud.get_table_id()))
         from crudform import CrudForm
         form = CrudForm(self.crud, args)
-        # form.emit("init_widget", self.__class__, "on_button_edit_clicked")
 
 class CrudelGraph(CrudelCheck):
     """ Gestion des colonnes et champs de type boîte à cocher """
