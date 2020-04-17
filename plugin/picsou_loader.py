@@ -372,10 +372,10 @@ class PicsouLoader():
             .format(cday["cdays_date"], rsimin, rsimax, cas, fday, fcash))
 
             # Report des gain dans PTF
-            self.crud.exec_sql(self.crud.get_basename(), """
-            UPDATE ptf 
-            SET ptf_gain = (select sum(trades_gain) as gain from trades where trades_ptf_id = ptf_id group by trades_ptf_id)
-            """, {})
+            # self.crud.exec_sql(self.crud.get_basename(), """
+            # UPDATE ptf 
+            # SET ptf_gain = (select sum(trades_gain) as gain from trades where trades_ptf_id = ptf_id group by trades_ptf_id)
+            # """, {})
         else:
             self.display("")
 

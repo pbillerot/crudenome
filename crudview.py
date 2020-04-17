@@ -58,8 +58,8 @@ class CrudView(GObject.GObject):
         self.treeiter_selected = None
 
         self.box_toolbar = self.create_view_toolbar()
-        self.liststore = self.create_liststore()
-        self.treeview = self.create_treeview()
+        self.liststore = self.create_liststore() # création de self.liststore et remplissage des données
+        self.treeview = self.create_treeview()   # création de self.treeview
 
         self.frame = Gtk.Frame()
         self.frame.add(self.treeview)
@@ -175,6 +175,18 @@ class CrudView(GObject.GObject):
                 batch_button.set_tooltip_text(crudel.get_label_long())
                 batch_button.connect("clicked", self.on_batch_button_clicked, crudel)
                 self.box_toolbar.pack_end(batch_button, False, True, 3)
+            if crudel.get_type() == "batch_sql":
+                # print crudel.get_label_short()
+                if crudel.get_param("icon_name", False):
+                    image = Gtk.Image.new_from_icon_name(crudel.get_param("icon_name", False), Gtk.IconSize.BUTTON)
+                else:
+                    image = Gtk.Image(stock=Gtk.STOCK_REFRESH)
+                batch_button = Gtk.Button(label=crudel.get_label_short(), image=image)
+                batch_button.set_image_position(Gtk.PositionType.LEFT) # LEFT TOP RIGHT BOTTOM
+                batch_button.set_always_show_image(True)
+                batch_button.set_tooltip_text(crudel.get_label_long())
+                batch_button.connect("clicked", self.on_batch_sql_button_clicked, crudel)
+                self.box_toolbar.pack_end(batch_button, False, True, 3)
 
         if self.crud.get_view_prop("form_add", "") != "":
             # Affichage du bouton d'ajout si formulaire d'ajout présent
@@ -284,7 +296,6 @@ class CrudView(GObject.GObject):
     def update_liststore(self):
         """ Mise à jour du liststore en relisant la table """
         # Génération du select de la table
-
         sql = "SELECT "
         b_first = True
         for element in self.crud.get_view_elements():
@@ -363,42 +374,35 @@ class CrudView(GObject.GObject):
         # print "VIEW", sql
 
         # EXECUTION SQL
-        rows = self.crud.sql_to_dict(self.crud.get_basename(), sql, self.crud.ctx)
+        rows = self.crud.sql_to_dict(self.crud.get_basename(), sql, self.crud.ctx, source="update_liststore")
 
-        # print len(rows)
+        # Nettoyage du liststore
         self.liststore.clear()
-        # remplissage des colonnes item_sql
-        for element in self.crud.get_view_elements():
-            crudel = self.crud.get_element_prop(element, "crudel")
-            # crudel.init_crudel_sql()
         row_id = 0
-
         if rows:
-            # Chargement des crudel avec lec contenus sql
-            for row in rows:
-                for element in self.crud.get_view_elements():
-                    crudel = self.crud.get_element_prop(element, "crudel")
-                    # Valorisation du crudel avec la colonne sql
-                    crudel.init_value()
-                    if element in row:
-                        crudel.set_value_sql(row[element])
-            # Calcul des formules des colonnes _
-            self.crud.compute_formulas(Crudel.TYPE_PARENT_VIEW, virtual_only=True)
             # Chargement du liststore
             for row in rows:
                 store = []
-                # print row
                 # 1ère colonne col_row_id
                 store.append(row_id)
                 # 2ème colonne col_searchable_id
                 store.append("#F0F8FF") 
                 # 3ème colonne col_editable_id
                 store.append("#F0FFF0") 
+                # Chargement des crudel avec les contenus sql
+                for element in self.crud.get_view_elements():
+                    crudel = self.crud.get_element_prop(element, "crudel")
+                    # Valorisation du crudel avec la colonne sql
+                    crudel.init_value()
+                    if element in row:
+                        crudel.set_value_sql(row[element])
+                # Calcul des formules des colonnes _ de la ligne
+                self.crud.compute_formulas(Crudel.TYPE_PARENT_VIEW, virtual_only=True)
+                # Remplissage des cellules de la ligne
                 for element in self.crud.get_view_elements():
                     crudel = self.crud.get_element_prop(element, "crudel")
                     # colonnes crudel
                     display = crudel.get_cell()
-                    # print element, crudel.get_value(), display
                     store.append(display)
                     # colonnes techniques
                     if crudel.get_sql_color() != "":
@@ -442,7 +446,7 @@ class CrudView(GObject.GObject):
         sql = self.crud.get_view_prop("sql_footer", False)
         if sql:
             rows = self.crud.sql_to_dict(self.crud.get_basename()\
-                , sql, self.crud.ctx)
+                , sql, self.crud.ctx, source="refresh_footer")
             for row in rows:
                 if "sql_footer" in row:
                     self.crud_portail.emit("refresh_footer"\
@@ -520,6 +524,12 @@ class CrudView(GObject.GObject):
         self.crud.set_crudel(crudel)
         plugin_class = self.crud.load_class("plugin." + plugin)
         form = plugin_class(self.crud)
+
+    def on_batch_sql_button_clicked(self, widget, crudel):
+        """ Action un bouton batch sql """
+        sql = crudel.get_param_replace("sql")
+        self.crud.exec_sql(self.crud.get_basename(), sql, {})
+        self.emit("refresh_data_view", "", "")
 
     def on_search_changed(self, widget):
         """ Recherche d'éléments dans la vue """

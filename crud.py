@@ -157,7 +157,7 @@ class Crud:
             if conn:
                 conn.close()
 
-    def sql_to_dict(self, db_path, sql, params):
+    def sql_to_dict(self, db_path, sql, params, source=""):
         """
         Chargement du résultat d'une requête sql dans dictionnaire
         """
@@ -167,24 +167,19 @@ class Crud:
         try:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
-            # print sql, params
-            self.logger.info("SQL DICT [%s]", sql )
-            self.logger.info("SQL DICT %s", self.get_params_display(params))
+            self.logger.info("SQL DICT %s [%s]", source, sql )
+            self.logger.info("SQL PARM %s [%s]", source, self.get_params_display(params))
             cursor.execute(sql, params)
             desc = cursor.description
             column_names = [col[0] for col in desc]
             data = [OrderedDict(zip(column_names, row)) for row in cursor]
         except sqlite3.Error as exc:
-            if conn:
-                conn.rollback()
-
+            if conn: conn.rollback()
             print("Error", exc.args[0], sql, params)
             self.add_error("%s %s %s" % (exc.args[0], sql, params))
-            # sys.exit(1)
         finally:
             if conn:
                 conn.close()
-
         return data
 
     def get_sql(self, db_path, sql):

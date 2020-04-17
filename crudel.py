@@ -21,6 +21,8 @@ class Crudel(GObject.GObject):
         """ Instanciation de la classe correspondate au type d'élément """
         if crud.get_element_prop(element, "type", "text") == "batch":
             crudel = CrudelBatch(crud, element, type_parent)
+        if crud.get_element_prop(element, "type", "text") == "batch_sql":
+            crudel = CrudelBatchSql(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "button":
             crudel = CrudelButton(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "calendar":
@@ -530,6 +532,13 @@ class CrudelBatch(Crudel):
         Crudel.__init__(self, crud, element, type_parent)
         self.set_hide(True)
 
+class CrudelBatchSql(Crudel):
+    """ Plugin """
+
+    def __init__(self, crud, element, type_parent):
+        Crudel.__init__(self, crud, element, type_parent)
+        self.set_hide(True)
+
 class CrudelButton(Crudel):
     """ Gestion des colonnes et champs de type bouton """
 
@@ -712,6 +721,14 @@ class CrudelCombo(Crudel):
 
     def init_value(self):
         self.set_value("")
+
+    def get_cell(self):
+        """ retourne la cellule dans la vue """
+        value = self.get_value()
+        if self.items.get(value) : value = self.items.get(value)
+        if isinstance(value, (int, float)):
+            value = str(value)
+        return value
 
     def get_widget_box(self):
         hbox = Gtk.HBox()

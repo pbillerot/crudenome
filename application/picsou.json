@@ -10,7 +10,7 @@
     "data_directory": "/mnt/nas/data/picsou",
     "trade": {
         "stake": 1200,
-        "cost": 0.0048,
+        "cost": 0.0047,
         "macdbuy": 40,
         "rsimin": 20,
         "rsimax": 60
@@ -123,9 +123,9 @@
                 "_batch": {
                     "label_long": "Actualiation des données",
                     "label_short": "Actualiser...",
-                    "type": "batch",
+                    "type": "batch_sql",
                     "params": {
-                        "plugin": "picsou_batchui.PicsouBatchUi",
+                        "sql": "update ptf set ptf_gain = (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id  and orders_order = 'sell') where exists (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id)",
                         "icon_name": "view-refresh"
                     }
                 },
@@ -140,15 +140,6 @@
                     },
                     "args": {
                         "trades_ptf_id": "{ptf_id}"
-                    }
-                },
-                "_backup": {
-                    "label_long": "Backup des données",
-                    "label_short": "Backup...",
-                    "type": "batch",
-                    "params": {
-                        "plugin": "picsou_backup.PicsouBackup",
-                        "icon_name": "view-refresh"
                     }
                 }
             },
@@ -168,11 +159,12 @@
                         "ptf_top": {},
                         "ptf_gain": {},
                         "ptf_note": {},
-                        "_yahoo": {}
+                        "_yahoo": {},
+                        "_batch": {}
                     },
                     "sql_where": "ptf_enabled = '1'",
                     "order_by": "ptf_gain desc, ptf_id",
-                    "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(ptf_gain)) AS sql_footer FROM ptf where ptf_top = 1"
+                    "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(ptf_gain)) AS sql_footer FROM ptf where ptf_gain is not null and ptf_enabled = 1"
                 },
                 "vall": {
                     "title": "Toutes les valeurs",
@@ -221,6 +213,7 @@
                         "ptf_name": {},
                         "ptf_enabled": {},
                         "_yahoo": {},
+                        "ptf_gain": {"read_only": true},
                         "ptf_note": {},
                         "_vptf": {}
                     }
@@ -284,8 +277,8 @@
                     "formulas": "substr('{orders_time}', 1, 10)"
                 },
                 "orders_quote": {
-                    "label_long": "Cours actuel",
-                    "label_short": "Cours actuel",
+                    "label_long": "Cours du jour",
+                    "label_short": "Cours J",
                     "type": "float",
                     "display": "%3.2f €",
                     "formulas": "close from quotes where id = '{orders_ptf_id}' and date = (select max(date) from quotes where id = '{orders_ptf_id}')"
@@ -451,7 +444,8 @@
                         "_fsell": {}
                     },
                     "sql_where": "orders.orders_order = 'buy'",
-                    "order_by": "orders.orders_time desc"
+                    "order_by": "orders.orders_time desc",
+                    "sql_footer": "SELECT printf('+/- Value latente : <b>%.2f</b> €', sum(orders_gain)) AS sql_footer FROM orders WHERE orders_order = 'buy'"
                 },
                 "vsell": {
                     "title": "Vente",
@@ -478,7 +472,8 @@
                         "_graph": {}
                     },
                     "sql_where": "orders.orders_order = 'sell'",
-                    "order_by": "orders.orders_time desc"
+                    "order_by": "orders.orders_time desc",
+                    "sql_footer": "SELECT printf('Gain réalisé : <b>%.2f</b> €', sum(orders_sell_gain)) AS sql_footer FROM orders WHERE orders_order = 'sell'"
                 },
                 "vptf": {
                     "title": "Historique",
