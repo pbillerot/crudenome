@@ -12,6 +12,7 @@ import sys
 from crud import Crud
 from crudel import Crudel
 from plugin.picsou_loader import PicsouLoader
+import matplotlib.pyplot as plt
 
 class PicsouBatch():
     """ Actualisation des données """
@@ -41,6 +42,10 @@ class PicsouBatch():
 
         if self.args.dayrepeat:
            self.day_repeat()
+
+        if self.args.graph:
+           self.graphLastQuotes()
+
 
     def display(self, msg):
         """ docstring """
@@ -113,6 +118,40 @@ class PicsouBatch():
         else:
             self.display("Restore NA %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host)))
 
+    def graphLastQuotes(self):
+        """ """
+        quotes = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT * FROM quotes order by id ,date
+        """, {})
+
+        id_current = ""
+        path = ""
+        qdate = []
+        qpercent = []
+        if len(quotes) > 0:
+            for quote in quotes:
+                if id_current == "" :
+                   id_current = quote["id"]
+                # un graphe par ptf
+                if id_current == quote["id"] :
+                    # chargement des données
+                    qdate.append(quote["date"])
+                    qpercent.appent( ((quote["close"]-quote["open"]) / quote["open"])*100 )
+                    path = "{}/png/quotes/{}.png".format(self.crud.get_application_prop("data_directory"), id)
+ 
+                else:
+                    # Dessin du graphe
+                    id_current = quote["id"]
+
+                    plt.step(qdate, qpercent, label='Cours en %')
+                    plt.title(path)
+                    plt.show()
+
+                    # Création du PNG
+                    plt.savefig(path)
+                    plt.close()
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog='picsou_batch')
@@ -124,6 +163,7 @@ if __name__ == '__main__':
     parser.add_argument('-day', action='store_true', default=False, help="Requête des cours du jour")
     parser.add_argument('-dayrepeat', action='store_true', default=False, help="Requête des cours du jour toutes les 5 minutes")
     parser.add_argument('-sms', action='store_true', default=False, help="Envoi de SMS de recommandation")
+    parser.add_argument('-graph', action='store_true', default=False, help="Création graphique derniers cours")
     # print parser.parse_args()
     if parser._get_args() == 0:
         parser.print_help()

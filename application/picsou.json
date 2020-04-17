@@ -129,6 +129,15 @@
                         "icon_name": "view-refresh"
                     }
                 },
+                "_batch_quotes": {
+                    "label_long": "Charger les 5 derniers cours",
+                    "label_short": "Charger les 5 derniers cours",
+                    "type": "batch_sql",
+                    "params": {
+                        "sql": "update ptf set ptf_gain = (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id  and orders_order = 'sell') where exists (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id)",
+                        "icon_name": "view-refresh"
+                    }
+                },
                 "_vptf": {
                     "label_long": "Historique",
                     "label_short": "Historique",
@@ -154,13 +163,14 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
-                        "date_du_jour": {},
-                        "_graph": {},
-                        "ptf_top": {},
+                        "date_du_jour": {"hide":true},
                         "ptf_gain": {},
+                        "ptf_top": {},
                         "ptf_note": {},
+                        "_graph": {},
                         "_yahoo": {},
-                        "_batch": {}
+                        "_batch": {},
+                        "_batch_quotes": {}
                     },
                     "sql_where": "ptf_enabled = '1'",
                     "order_by": "ptf_gain desc, ptf_id",
@@ -177,10 +187,10 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
-                        "date_du_jour": {},
-                        "_graph": {},
+                        "date_du_jour": {"hide":true},
                         "ptf_gain": {},
                         "ptf_note": {},
+                        "_graph": {},
                         "_yahoo": {}
                     },
                     "order_by": "ptf_id"
@@ -461,6 +471,7 @@
                         "orders_time": {},
                         "orders_sell_time": {},
                         "orders_order": {"hide":true},
+                        "orders_cost_price": {"hide":true},
                         "orders_buy": {},
                         "orders_quote": {},
                         "orders_sell": {},

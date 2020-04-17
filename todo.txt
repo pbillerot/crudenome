@@ -4,3 +4,6 @@ TODO rubrique tags
 TODO sql_ctrl
 TODO combo dans view afficher le label/key
 TODO afficher les erreurs sql
+TODO trie sur check
+TODO sans ptf ajouter les 5 derniers cours
+TODO batch_shell

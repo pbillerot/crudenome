@@ -274,11 +274,16 @@ class Crudel(GObject.GObject):
     def with_formulas(self):
         """ élément avec formule """
         return self.crud.get_element_prop(self.element, "formulas", False)
-    def get_formulas(self):
+    def get_formulas(self, elements):
         """ Retourne la formule avec replace et appel sql pour calculer la formule """
         formule = self.crud.get_element_prop(self.element, "formulas", "")
-        sql = "SELECT " + self.crud.replace_from_dict(formule, self.crud.get_table_values())
-        result = self.crud.get_sql(self.crud.get_basename(), sql)
+        values =  self.crud.get_table_values(elements=elements)
+        if values :
+            sql = "SELECT " + self.crud.replace_from_dict(formule, values)
+            result = self.crud.get_sql(self.crud.get_basename(), sql)
+        else:
+            result = self.value
+            self.crud.add_error("crudel.get_formulas: Aucune valeur trouvée")
         return result
 
     # jointure
@@ -311,10 +316,10 @@ class Crudel(GObject.GObject):
         """ Retourne les arguments """
         return self.crud.get_element_prop(self.element, "args", None)
 
-    def get_args_replace(self):
+    def get_args_replace(self, elements=None):
         """ remplacement des variables des paramètres """
         args = self.get_args().copy()
-        values = self.crud.get_table_values()
+        values = self.crud.get_table_values(elements=elements)
         for arg in args:
             args[arg] = self.crud.replace_from_dict(args[arg], values)
         return args
@@ -994,7 +999,7 @@ class CrudelInt(Crudel):
     def set_value_sql(self, value_sql):
         """ Valorisation de l'élément avec le contenu de la colonne de la table """
         if value_sql is None:
-            self.set_value(0)
+            self.init_value()
         else:
             self.set_value(int(value_sql))
 
@@ -1067,7 +1072,7 @@ class CrudelPlugin(Crudel):
                     crudel.set_value_sql(row[element])
 
         plugin = self.get_param("plugin")
-        args = self.get_args_replace()
+        args = self.get_args_replace(elements=self.crud.get_view_elements())
         plugin_class = self.crud.load_class("plugin." + plugin)
         self.crud.set_crudel(self)
         form = plugin_class(self.crud, args)

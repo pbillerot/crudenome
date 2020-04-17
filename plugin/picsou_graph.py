@@ -15,7 +15,6 @@
 
 """
 from datetime import datetime
-from crudel import Crudel
 import os
 from gi.repository import Gtk, GObject
 

@@ -31,7 +31,7 @@ WITH recursive TT(id) AS
 	select cours_id, cours_ptf_id, cours_date  from cours
 	order by cours_date desc, cours_ptf_id 
 )
--- On ne gardre que les 14 derniers cours
+-- On ne garde que les 14 derniers cours
 delete from COURS where cours_id not in
 (
 	select A.cours_id  

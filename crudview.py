@@ -480,7 +480,7 @@ class CrudView(GObject.GObject):
         self.crud.set_view_id_from(self.crud.get_view_id())
 
         form = CrudForm(self.crud, self.args)
-        form.emit("init_widget", self.__class__, "on_button_add_clicked")
+        # form.emit("init_widget", self.__class__, "on_button_add_clicked")
 
     def on_button_edit_clicked(self, widget):
         """ Edition de l'élément sélectionné"""

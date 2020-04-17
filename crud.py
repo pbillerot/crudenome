@@ -446,14 +446,14 @@ class Crud:
     def get_table_elements(self):
         """ Obtenir la liste des rubriques de la table courante """
         return self.application["tables"][self.ctx["table_id"]]["elements"]
-    def get_table_values(self, dico=None):
+    def get_table_values(self, dico=None, elements=None):
         """ Remplir "dict" avec les valeurs des éléments de la table courante """
-        if dico is None:
-            dico = {}
-        for element in self.get_table_elements():
+        if dico is None : dico = {}
+        if elements is None : elements = self.get_table_elements()
+        for element in elements:
             crudel = self.get_element_prop(element, "crudel", None)
             if crudel is not None:
-                dico[element] = self.get_element_prop(element, "crudel").get_value()
+                dico[element] = crudel.get_value()
         return dico
 
     # view
@@ -692,10 +692,10 @@ class Crud:
             if crudel.with_formulas() :
                 if virtual_only : 
                     if crudel.is_virtual :
-                        formulas = crudel.get_formulas()
+                        formulas = crudel.get_formulas(elements)
                         crudel.set_value_sql(formulas)
                 else:
-                    formulas = crudel.get_formulas()
+                    formulas = crudel.get_formulas(elements)
                     crudel.set_value_sql(formulas)
 
     def get_sql_row(self, type_parent):
