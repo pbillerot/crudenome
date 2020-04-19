@@ -404,11 +404,15 @@
                     }
                 },
                 "_image": {
-                    "label_long": "Derniers cours",
-                    "label_short": "Derniers cours",
-                    "type": "image",
+                    "label_long": "Histo",
+                    "label_short": "Histo",
+                    "type": "plugin",
                     "params": {
-                        "path": "/mnt/sandisk/nas/data/picsou/png/quotes/{orders_ptf_id}.png"
+                        "plugin": "picsou_image.PicsouImage",
+                        "icon_name": "applications-science"
+                    },
+                    "args": {
+                        "path": "png/quotes/{orders_ptf_id}.png"
                     }
                 },
                 "_fsell": {

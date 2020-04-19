@@ -99,10 +99,10 @@ class Crudel(GObject.GObject):
         if self.crud.get_element_prop(self.element, "jointure", False):
             self.set_protected(True)
 
-    def init_items_sql(self):
+    def init_items_sql(self, elements=None):
         """ Initialisation calcul, remplissage des items de liste """
         if not self.is_read_only() and not self.is_protected() and self.get_sql_items():
-            values = self.crud.get_table_values()
+            values = self.crud.get_table_values(elements=elements)
             sql = self.crud.replace_from_dict(self.get_sql_items(), values)
             items = self.crud.sql_to_dict(self.crud.get_basename(), sql, {})
             for item in items:
@@ -112,10 +112,10 @@ class Crudel(GObject.GObject):
                 else:
                     self.items[values[0]] = values[1]
 
-    def init_text_sql(self):
+    def init_text_sql(self, elements=None):
         """ Initialisation calcul, remplissage du champs avec le résultat de la requête """
         if self.get_sql_text():
-            values = self.crud.get_table_values()
+            values = self.crud.get_table_values(elements=elements)
             sql = self.crud.replace_from_dict(self.get_sql_text(), values)
             self.value = self.crud.get_sql(self.crud.get_basename(), sql)
 
@@ -138,24 +138,24 @@ class Crudel(GObject.GObject):
         text = self.get_widget().get_text()
         self.value = text if isinstance(text, (int, float, bool)) else text
 
-    def set_value_default(self):
+    def set_value_default(self, elements=None):
         """ valorisation avec la valeur par défaut si valeur '' """
         if isinstance(self.get_value(), (int, float)):
             if self.get_value() == 0:
                 if self.crud.get_field_prop(self.element, "default_sql") != "":
-                    values = self.crud.get_table_values()
+                    values = self.crud.get_table_values(elements=elements)
                     sql = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default_sql"), values)
                     self.value = self.crud.get_sql(self.crud.get_basename(), sql)
                 elif self.crud.get_field_prop(self.element, "default") != "":
-                    self.value = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default"), self.crud.get_table_values())
+                    self.value = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default"), self.crud.get_table_values(elements=elements))
         else:
             if self.get_value() == "":
                 if self.crud.get_field_prop(self.element, "default_sql") != "":
-                    values = self.crud.get_table_values()
+                    values = self.crud.get_table_values(elements=elements)
                     sql = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default_sql"), values)
                     self.value = self.crud.get_sql(self.crud.get_basename(), sql)
                 elif self.crud.get_field_prop(self.element, "default") != "":
-                    self.value = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default"), self.crud.get_table_values())
+                    self.value = self.crud.replace_from_dict(self.crud.get_field_prop(self.element, "default"), self.crud.get_table_values(elements=elements))
 
     def get_value(self):
         """ valeur interne de l'élément """
@@ -295,12 +295,12 @@ class Crudel(GObject.GObject):
     def get_jointure(self, param, default=None):
         """ Retourne la valeur du paramètre d'une jointure """
         return self.crud.get_element_jointure(self.element, param, default)
-    def get_jointure_replace(self, param, default=None):
+    def get_jointure_replace(self, param, default=None, elements=None):
         """ Retourne la valeur du paramètre d'une jointure
             en remplaçant les rubriques {}
         """
         return self.crud.replace_from_dict(\
-            self.crud.get_element_jointure(self.element, param, default), self.crud.get_table_values())
+            self.crud.get_element_jointure(self.element, param, default), self.crud.get_table_values(elements))
 
     # params
     def get_param(self, param, default=None):

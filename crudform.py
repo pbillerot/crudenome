@@ -21,7 +21,7 @@ class CrudForm(GObject.GObject):
             if crudel.is_hide() or crudel.is_read_only():
                 continue
             crudel.set_value_widget()
-            crudel.set_value_default()
+            crudel.set_value_default(self.elements)
         # Application des formules
         self.crud.compute_formulas(Crudel.TYPE_PARENT_FORM)
         # ReCréation des widget dans la box de la form
@@ -32,7 +32,7 @@ class CrudForm(GObject.GObject):
         for element in self.elements:
             crudel = self.crud.get_element_prop(element, "crudel")
             crudel.init_items_sql()
-            crudel.init_text_sql()
+            crudel.init_text_sql(elements=self.elements)
             # crudel.dump()
             if crudel.is_hide():
                 continue
@@ -125,14 +125,14 @@ class CrudForm(GObject.GObject):
         # valeur par défaut + vérif si on_change est à traiter
         for element in self.elements:
             crudel = self.crud.get_element_prop(element, "crudel")
-            crudel.set_value_default()
+            crudel.set_value_default(elements=self.elements)
 
         # Calcul sql des crudels
         # Création des widget dans la box de la dialog
         for element in self.elements:
             crudel = self.crud.get_element_prop(element, "crudel")
-            crudel.init_items_sql()
-            crudel.init_text_sql()
+            crudel.init_items_sql(elements=self.elements)
+            crudel.init_text_sql(elements=self.elements)
             # crudel.dump()
             if crudel.is_hide():
                 continue
@@ -159,7 +159,7 @@ class CrudForm(GObject.GObject):
             if crudel.is_hide() or crudel.is_read_only():
                 continue
             crudel.set_value_widget()
-            crudel.set_value_default()
+            crudel.set_value_default(self.elements)
 
         # CONTROLE DE LA SAISIE
         for element in self.elements:

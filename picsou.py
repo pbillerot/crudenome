@@ -126,6 +126,10 @@ class PicsouBatch():
 
     def graphLastQuotes(self):
         """ """
+
+        def mini_date(sdate):
+            return sdate[8:10] + "-" + sdate[5:7]
+
         quotes = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT quotes.*, ptf_name FROM quotes left outer join ptf on ptf_id = id order by id ,date
         """, {})
@@ -151,7 +155,7 @@ class PicsouBatch():
                 # un graphe par ptf
                 if id_current == quote["id"] :
                     # chargement des données
-                    ddate.append(quote["date"]+" 09H")
+                    ddate.append(mini_date(quote["date"]) + " matin")
                     dzero.append(0)
 
                     percent = ((quote["open"]-qclose1) / qclose1)*100
@@ -173,7 +177,7 @@ class PicsouBatch():
                         dlow_p.append( 0 )
                         dlow_n.append( dlow )
 
-                    ddate.append(quote["date"]+" 18H")
+                    ddate.append(mini_date(quote["date"]) + " soir")
                     dzero.append(0)
                     percent = ((quote["close"]-qclose1) / qclose1)*100
                     dpercent.append( percent )
@@ -207,32 +211,26 @@ class PicsouBatch():
                         ax1.plot(ddate, dzero, 'k:', linewidth=2)
                         
                         ax1.plot(ddate, dpercent, 'o-')
-                        # ax1.plot(ddate, dope_n, 'o-')
-                        # ax1.plot(ddate, dclo_p, 'o-')
-                        # ax1.plot(ddate, dclo_n, 'o-')
                         ax1.bar(ddate, dhig_p, color='b', alpha=0.2)
                         ax1.bar(ddate, dhig_n, color='r', alpha=0.2)
                         ax1.bar(ddate, dlow_p, color='b', alpha=0.2)
                         ax1.bar(ddate, dlow_n, color='r', alpha=0.2)
 
 
-                        ax1.set_ylabel('Cours en %', fontsize=6)
-                        # ax1.set_xlabel('Date')
-                        ax1.tick_params(axis="x", labelsize=6)
-                        ax1.tick_params(axis="y", labelsize=6)
-                        # ax1.legend(loc=3)
+                        ax1.set_ylabel('Cours en %', fontsize=9)
+                        ax1.tick_params(axis="x", labelsize=8)
+                        ax1.tick_params(axis="y", labelsize=8)
 
                         fig.autofmt_xdate()
                         plt.suptitle("Cours de {} - {}".format(id_current, ptf_name), fontsize=11, fontweight='bold')
                         plt.subplots_adjust(left=0.06, bottom=0.1, right=0.96, top=0.93, wspace=None, hspace=None)
-                        # plt.subplots_adjust(left=0.1)
                         plt.grid()
                         # plt.show()
-                    draw()
+                        # Création du PNG
+                        plt.savefig(path)
+                        plt.close()
 
-                    # Création du PNG
-                    plt.savefig(path)
-                    plt.close()
+                    draw()
 
                     # ça repart pour un tour
                     self.pout(" " + quote["id"])
