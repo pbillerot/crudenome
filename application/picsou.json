@@ -16,7 +16,12 @@
         "rsimax": 60
     },
     "constants": {
-        "cost": 0.0048
+        "qlast_quotes": 19,
+        "stake": 1200,
+        "cost": 0.0047,
+        "macdbuy": 40,
+        "rsimin": 20,
+        "rsimax": 60
     },
     "scheduler": {
         "batch": "./picsou_batch.py -day",
@@ -108,30 +113,23 @@
                         "path": "png/{date_du_jour}/{ptf_id}.png"
                     }
                 },
-                "_image": {
-                    "label_long": "Graph",
-                    "label_short": "Graph",
-                    "type": "plugin",
+                "_histo": {
+                    "label_long": "Historique",
+                    "label_short": "Historique",
+                    "type": "batch",
                     "params": {
-                        "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "insert-image"
+                        "plugin": "picsou_diapo.PicsouDiapo",
+                        "icon_name": "applications-office"
                     },
                     "args": {
-                        "path": "png/{date_du_jour}/{ptf_id}.png"
+                        "directory": "png/quotes",
+                        "width": 1200,
+                        "height": 800
                     }
                 },
                 "_batch": {
                     "label_long": "Actualiation des données",
                     "label_short": "Actualiser...",
-                    "type": "batch_sql",
-                    "params": {
-                        "sql": "update ptf set ptf_gain = (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id  and orders_order = 'sell') where exists (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id)",
-                        "icon_name": "view-refresh"
-                    }
-                },
-                "_batch_quotes": {
-                    "label_long": "Charger les 5 derniers cours",
-                    "label_short": "Charger les 5 derniers cours",
                     "type": "batch_sql",
                     "params": {
                         "sql": "update ptf set ptf_gain = (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id  and orders_order = 'sell') where exists (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id)",
@@ -169,8 +167,8 @@
                         "ptf_note": {},
                         "_graph": {},
                         "_yahoo": {},
-                        "_batch": {},
-                        "_batch_quotes": {}
+                        "_histo": {},
+                        "_batch": {}
                     },
                     "sql_where": "ptf_enabled = '1'",
                     "order_by": "ptf_gain desc, ptf_id",

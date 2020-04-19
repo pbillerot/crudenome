@@ -521,9 +521,10 @@ class CrudView(GObject.GObject):
         """ Action un bouton plugin """
         # print "Action sur ", crudel, widget
         plugin = crudel.get_param("plugin")
+        args = crudel.get_args()
         self.crud.set_crudel(crudel)
         plugin_class = self.crud.load_class("plugin." + plugin)
-        form = plugin_class(self.crud)
+        form = plugin_class(self.crud, args)
 
     def on_batch_sql_button_clicked(self, widget, crudel):
         """ Action un bouton batch sql """

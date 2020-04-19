@@ -38,7 +38,8 @@ class PicsouLoader():
             self.pout(" {}".format(ptf["ptf_id"]))
 
             # Chargement de l'historique
-            self.csv_to_quotes(ptf, 14)
+            qlast = self.crud.get_application_prop("constants")["qlast_quotes"]
+            self.csv_to_quotes(ptf, qlast)
             
             # Suppression des cours des jours antérieurs
             self.crud.exec_sql(self.crud.get_basename(), """

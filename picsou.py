@@ -40,11 +40,13 @@ class PicsouBatch():
 
         if self.args.day:
            self.run_day()
+           return
 
         if self.args.dayrepeat:
            self.day_repeat()
+           return
 
-        if self.args.lastquotes:
+        if self.args.graph:
            self.graphLastQuotes()
 
 
@@ -91,6 +93,9 @@ class PicsouBatch():
             loader = PicsouLoader(self, self.crud)
             loader.quotes()
 
+        if self.args.graph:
+           self.graphLastQuotes()
+
         if self.args.trade:
             loader = PicsouLoader(self, self.crud)
             loader.trade(with_sms=self.args.sms)
@@ -122,7 +127,7 @@ class PicsouBatch():
     def graphLastQuotes(self):
         """ """
         quotes = self.crud.sql_to_dict(self.crud.get_basename(), """
-        SELECT * FROM quotes order by id ,date
+        SELECT quotes.*, ptf_name FROM quotes left outer join ptf on ptf_id = id order by id ,date
         """, {})
 
         id_current = ""
@@ -134,13 +139,14 @@ class PicsouBatch():
         dhig_n= []
         dlow_p= []
         dlow_n= []
-        
+        ptf_name = ""
         qclose1 = 0
         if len(quotes) > 0:
             for quote in quotes:
                 if id_current == "" : # la 1ère fois
                    id_current = quote["id"]
                    qclose1 = quote["open"]
+                   ptf_name = quote["ptf_name"]
                    self.pout("graphLastQuotes... " + quote["id"])
                 # un graphe par ptf
                 if id_current == quote["id"] :
@@ -192,36 +198,37 @@ class PicsouBatch():
                     qclose1 = quote["close"]
                 else:
                     # Dessin du graphe
+                    def draw():
+                        fig, ax1 = plt.subplots()
+                        fig.set_figwidth(10)
+                        fig.set_figheight(6)
 
-                    fig, ax1 = plt.subplots()
-                    fig.set_figwidth(5)
-                    fig.set_figheight(3)
-
-                    # width = 0.20 
-                    ax1.plot(ddate, dzero, 'k:', linewidth=2)
-                    
-                    ax1.plot(ddate, dpercent, 'o-')
-                    # ax1.plot(ddate, dope_n, 'o-')
-                    # ax1.plot(ddate, dclo_p, 'o-')
-                    # ax1.plot(ddate, dclo_n, 'o-')
-                    ax1.bar(ddate, dhig_p, color='b', alpha=0.2)
-                    ax1.bar(ddate, dhig_n, color='r', alpha=0.2)
-                    ax1.bar(ddate, dlow_p, color='b', alpha=0.2)
-                    ax1.bar(ddate, dlow_n, color='r', alpha=0.2)
+                        # width = 0.20 
+                        ax1.plot(ddate, dzero, 'k:', linewidth=2)
+                        
+                        ax1.plot(ddate, dpercent, 'o-')
+                        # ax1.plot(ddate, dope_n, 'o-')
+                        # ax1.plot(ddate, dclo_p, 'o-')
+                        # ax1.plot(ddate, dclo_n, 'o-')
+                        ax1.bar(ddate, dhig_p, color='b', alpha=0.2)
+                        ax1.bar(ddate, dhig_n, color='r', alpha=0.2)
+                        ax1.bar(ddate, dlow_p, color='b', alpha=0.2)
+                        ax1.bar(ddate, dlow_n, color='r', alpha=0.2)
 
 
-                    ax1.set_ylabel('Cours en %', fontsize=6)
-                    # ax1.set_xlabel('Date')
-                    ax1.tick_params(axis="x", labelsize=6)
-                    ax1.tick_params(axis="y", labelsize=6)
-                    # ax1.legend(loc=3)
+                        ax1.set_ylabel('Cours en %', fontsize=6)
+                        # ax1.set_xlabel('Date')
+                        ax1.tick_params(axis="x", labelsize=6)
+                        ax1.tick_params(axis="y", labelsize=6)
+                        # ax1.legend(loc=3)
 
-                    fig.autofmt_xdate()
-                    plt.suptitle("Cours de {}".format(id_current), fontsize=8)
-                    # plt.subplots_adjust(left=0.08, bottom=0.1, right=0.93, top=0.93, wspace=None, hspace=None)
-                    plt.subplots_adjust(left=0.1)
-                    plt.grid()
-                    # plt.show()
+                        fig.autofmt_xdate()
+                        plt.suptitle("Cours de {} - {}".format(id_current, ptf_name), fontsize=11, fontweight='bold')
+                        plt.subplots_adjust(left=0.06, bottom=0.1, right=0.96, top=0.93, wspace=None, hspace=None)
+                        # plt.subplots_adjust(left=0.1)
+                        plt.grid()
+                        # plt.show()
+                    draw()
 
                     # Création du PNG
                     plt.savefig(path)
@@ -238,6 +245,8 @@ class PicsouBatch():
                     dzero.clear()
                     id_current = quote["id"]
                     qclose1 = quote["open"]
+                    ptf_name = quote["ptf_name"]
+            draw()
             self.display("")
 
 if __name__ == '__main__':
@@ -251,7 +260,7 @@ if __name__ == '__main__':
     parser.add_argument('-day', action='store_true', default=False, help="Requête des cours du jour")
     parser.add_argument('-dayrepeat', action='store_true', default=False, help="Requête des cours du jour toutes les 5 minutes")
     parser.add_argument('-sms', action='store_true', default=False, help="Envoi de SMS de recommandation")
-    parser.add_argument('-lastquotes', action='store_true', default=False, help="Création graphique derniers cours")
+    parser.add_argument('-graph', action='store_true', default=False, help="Création graphique derniers cours")
     # print parser.parse_args()
     if parser._get_args() == 0:
         parser.print_help()
