@@ -13,6 +13,7 @@ from crud import Crud
 from crudel import Crudel
 from plugin.picsou_loader import PicsouLoader
 import matplotlib.pyplot as plt
+import pandas as pd
 
 class PicsouBatch():
     """ Actualisation des données """
@@ -43,7 +44,7 @@ class PicsouBatch():
         if self.args.dayrepeat:
            self.day_repeat()
 
-        if self.args.graph:
+        if self.args.lastquotes:
            self.graphLastQuotes()
 
 
@@ -126,31 +127,118 @@ class PicsouBatch():
 
         id_current = ""
         path = ""
-        qdate = []
-        qpercent = []
+        ddate = []
+        dzero = []
+        dpercent= []
+        dhig_p= []
+        dhig_n= []
+        dlow_p= []
+        dlow_n= []
+        
+        qclose1 = 0
         if len(quotes) > 0:
             for quote in quotes:
-                if id_current == "" :
+                if id_current == "" : # la 1ère fois
                    id_current = quote["id"]
+                   qclose1 = quote["open"]
+                   self.pout("graphLastQuotes... " + quote["id"])
                 # un graphe par ptf
                 if id_current == quote["id"] :
                     # chargement des données
-                    qdate.append(quote["date"])
-                    qpercent.appent( ((quote["close"]-quote["open"]) / quote["open"])*100 )
-                    path = "{}/png/quotes/{}.png".format(self.crud.get_application_prop("data_directory"), id)
- 
+                    ddate.append(quote["date"]+" 09H")
+                    dzero.append(0)
+
+                    percent = ((quote["open"]-qclose1) / qclose1)*100
+                    dpercent.append( percent )
+
+                    dhig = ((quote["high"]-qclose1) / qclose1)*100
+                    if dhig > 0 :
+                        dhig_p.append( dhig )
+                        dhig_n.append( 0 )
+                    else :
+                        dhig_p.append( 0 )
+                        dhig_n.append( dhig )
+
+                    dlow = ((quote["low"]-qclose1) / qclose1)*100
+                    if dlow > 0 :
+                        dlow_p.append( dlow )
+                        dlow_n.append( 0 )
+                    else :
+                        dlow_p.append( 0 )
+                        dlow_n.append( dlow )
+
+                    ddate.append(quote["date"]+" 18H")
+                    dzero.append(0)
+                    percent = ((quote["close"]-qclose1) / qclose1)*100
+                    dpercent.append( percent )
+
+                    dhig = ((quote["high"]-qclose1) / qclose1)*100
+                    if dhig > 0 :
+                        dhig_p.append( dhig )
+                        dhig_n.append( 0 )
+                    else :
+                        dhig_p.append( 0 )
+                        dhig_n.append( dhig )
+
+                    dlow = ((quote["low"]-qclose1) / qclose1)*100
+                    if dlow > 0 :
+                        dlow_p.append( dlow )
+                        dlow_n.append( 0 )
+                    else :
+                        dlow_p.append( 0 )
+                        dlow_n.append( dlow )
+
+                    path = "{}/png/quotes/{}.png".format(self.crud.get_application_prop("data_directory"), id_current)
+                    qclose1 = quote["close"]
                 else:
                     # Dessin du graphe
-                    id_current = quote["id"]
 
-                    plt.step(qdate, qpercent, label='Cours en %')
-                    plt.title(path)
-                    plt.show()
+                    fig, ax1 = plt.subplots()
+                    fig.set_figwidth(5)
+                    fig.set_figheight(3)
+
+                    # width = 0.20 
+                    ax1.plot(ddate, dzero, 'k:', linewidth=2)
+                    
+                    ax1.plot(ddate, dpercent, 'o-')
+                    # ax1.plot(ddate, dope_n, 'o-')
+                    # ax1.plot(ddate, dclo_p, 'o-')
+                    # ax1.plot(ddate, dclo_n, 'o-')
+                    ax1.bar(ddate, dhig_p, color='b', alpha=0.2)
+                    ax1.bar(ddate, dhig_n, color='r', alpha=0.2)
+                    ax1.bar(ddate, dlow_p, color='b', alpha=0.2)
+                    ax1.bar(ddate, dlow_n, color='r', alpha=0.2)
+
+
+                    ax1.set_ylabel('Cours en %', fontsize=6)
+                    # ax1.set_xlabel('Date')
+                    ax1.tick_params(axis="x", labelsize=6)
+                    ax1.tick_params(axis="y", labelsize=6)
+                    # ax1.legend(loc=3)
+
+                    fig.autofmt_xdate()
+                    plt.suptitle("Cours de {}".format(id_current), fontsize=8)
+                    # plt.subplots_adjust(left=0.08, bottom=0.1, right=0.93, top=0.93, wspace=None, hspace=None)
+                    plt.subplots_adjust(left=0.1)
+                    plt.grid()
+                    # plt.show()
 
                     # Création du PNG
                     plt.savefig(path)
                     plt.close()
 
+                    # ça repart pour un tour
+                    self.pout(" " + quote["id"])
+                    ddate.clear()
+                    dpercent.clear()
+                    dhig_p.clear()
+                    dhig_n.clear()
+                    dlow_p.clear()
+                    dlow_n.clear()
+                    dzero.clear()
+                    id_current = quote["id"]
+                    qclose1 = quote["open"]
+            self.display("")
 
 if __name__ == '__main__':
 
@@ -163,7 +251,7 @@ if __name__ == '__main__':
     parser.add_argument('-day', action='store_true', default=False, help="Requête des cours du jour")
     parser.add_argument('-dayrepeat', action='store_true', default=False, help="Requête des cours du jour toutes les 5 minutes")
     parser.add_argument('-sms', action='store_true', default=False, help="Envoi de SMS de recommandation")
-    parser.add_argument('-graph', action='store_true', default=False, help="Création graphique derniers cours")
+    parser.add_argument('-lastquotes', action='store_true', default=False, help="Création graphique derniers cours")
     # print parser.parse_args()
     if parser._get_args() == 0:
         parser.print_help()

@@ -9,7 +9,7 @@ from collections import OrderedDict
 import uuid
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, GdkPixbuf
 
 class Crudel(GObject.GObject):
     """ Gestion des Elements """
@@ -39,6 +39,8 @@ class Crudel(GObject.GObject):
             crudel = CrudelForm(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "graph":
             crudel = CrudelGraph(crud, element, type_parent)
+        elif crud.get_element_prop(element, "type", "text") == "image":
+            crudel = CrudelImage(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "int":
             crudel = CrudelInt(crud, element, type_parent)
         elif crud.get_element_prop(element, "type", "text") == "radio":
@@ -305,12 +307,12 @@ class Crudel(GObject.GObject):
         """ Retourne la valeur du paramètre """
         return self.crud.get_element_param(self.element, param, default)
 
-    def get_param_replace(self, param, default=None):
+    def get_param_replace(self, param, default=None, elements=None):
         """ Retourne la valeur du paramètre
             en remplaçant les rubriques {}
         """
         return self.crud.replace_from_dict(\
-            self.crud.get_element_param(self.element, param, default), self.crud.get_table_values())
+            self.crud.get_element_param(self.element, param, default), self.crud.get_table_values(elements=elements))
 
     def get_args(self):
         """ Retourne les arguments """
@@ -947,6 +949,80 @@ class CrudelGraph(CrudelCheck):
 
     def __init__(self, crud, element, type_parent):
         CrudelCheck.__init__(self, crud, element, type_parent)
+
+class CrudelImage(Crudel):
+    """ Affichage d'une image dans la cellule
+    """
+
+    def __init__(self, crud, element, type_parent):
+        Crudel.__init__(self, crud, element, type_parent)
+
+    def get_type_gdk(self):
+        # return GObject.TYPE_STRING
+        return GdkPixbuf.Pixbuf
+
+    def init_value(self):
+        self.set_value("")
+
+    def get_widget_box(self):
+        hbox = Gtk.HBox()
+        label = self._get_widget_label()
+
+        self.widget = Gtk.Image()
+        path = self.get_param_replace("path", self.crud.get_form_elements())
+        self.widget.set_from_file(path)
+
+        # arrangement
+        hbox.pack_start(label, False, False, 5)
+        hbox.pack_start(self.widget, False, False, 5)
+        return hbox
+
+    def _get_renderer(self, treeview):
+        self.widget = Gtk.Image()
+        # path = self.get_param_replace("path")
+        renderer =  Gtk.CellRendererPixbuf()
+        # renderer = GdkPixbuf.Pixbuf.new_from_file("/mnt/sandisk/nas/data/picsou/png/quotes/ACA.PA.png")
+        return renderer
+
+    def _get_tvc(self, renderer, col_id):
+        tvc = Gtk.TreeViewColumn(self.get_label_short(), renderer, icon_name=col_id)
+        return tvc
+
+    def set_value_widget(self):
+        self.value = self.get_widget().get_active()
+
+    def get_cell(self):
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file("/mnt/sandisk/nas/data/picsou/png/quotes/ACA.PA.png")
+        return pixbuf
+        # return "applications-office"
+
+    def on_clicked_in_view(self, cell, path):
+        """ Clic sur l'élément dans une vue """
+        key_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_id")]
+        key_display = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("key_display", key_id)]
+        row_id = self.crud_view.store_filter_sort[path][self.crud.get_view_prop("col_row_id")]
+        self.crud.set_row_id(row_id)
+        self.crud.remove_all_selection()
+        self.crud.add_selection(key_id, key_display)
+        self.crud.set_key_value(key_id)
+        # Chargement des éléments de la ligne courante
+        rows = self.crud.get_sql_row(Crudel.TYPE_PARENT_VIEW)
+        for row in rows:
+            for element in self.crud.get_view_elements():
+                crudel = self.crud.get_element_prop(element, "crudel")
+                if row.get(element, False):
+                    crudel.set_value_sql(row[element])
+
+        args = self.get_args_replace()
+        # mémorisation table et vue pour gérer le retour du formulaire
+        self.crud.set_table_id_from(self.crud.get_table_id())
+        self.crud.set_view_id_from(self.crud.get_view_id())
+
+        self.crud.set_action(self.get_param("action", "update"))
+        self.crud.set_form_id(self.get_param("form"))
+        self.crud.set_table_id(self.get_param("table", self.crud.get_table_id()))
+        from crudform import CrudForm
+        form = CrudForm(self.crud, args)
 
 class CrudelInt(Crudel):
     """ Gestion des colonnes et champs de type entier """

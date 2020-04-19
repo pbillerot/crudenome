@@ -14,6 +14,18 @@
             "envFile": "${workspaceRoot}/.env"
         },
         {
+            "name": "Batch GraphLastQuotes",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "picsou.py",
+            "cwd": "${workspaceRoot}",
+            "args": ["-lastquotes"],
+            "env": {},
+            "envFile": "${workspaceRoot}/.env"
+        },
+        {
             "name": "Batch Quote",
             "type": "python",
             "request": "launch",
