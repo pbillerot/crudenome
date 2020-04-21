@@ -139,7 +139,7 @@ class PicsouGraphDay(Gtk.Window):
             ax1.plot(cdays_times, cdays_trades, 'o-', label='Trade', linewidth=2)
             ax1.plot(cdays_times, cdays_ema, 'r:', label='EMA')
             ax1.plot(cdays_times, cdays_sma, 'g:', label='SMA')
-            ax1.plot(cdays_times, cdays_close1, 'k:', label='Open')
+            ax1.plot(cdays_times, cdays_close1, 'k:', label='Close j-1', linewidth=2)
             ax1.set_ylabel('Cours (Euro)')
             ax1.set_xlabel('Heure')
             ax1.tick_params(axis="x", labelsize=6)
