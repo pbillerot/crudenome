@@ -16,7 +16,8 @@
         "rsimin": 20,
         "rsimax": 70,
         "hours_limit": 17,
-        "minutes_limit": 15
+        "minutes_limit": 15,
+        "declench_percent": -4
     },
     "scheduler": {
         "batch": "./picsou_batch.py -day",

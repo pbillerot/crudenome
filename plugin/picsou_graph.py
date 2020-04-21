@@ -100,7 +100,7 @@ class PicsouGraphDay(Gtk.Window):
 
         cdays_times = []
         cdays_quotes = []
-        cdays_opens = []
+        cdays_close1 = []
         cdays_rsi = []
         cdays_ema = []
         cdays_sma = []
@@ -120,7 +120,7 @@ class PicsouGraphDay(Gtk.Window):
                 cdays_date = cday["cdays_date"]
                 cdays_times.append(cday["cdays_time"][11:16])
                 cdays_quotes.append(float(cday["cdays_close"]))
-                cdays_opens.append(float(cday["cdays_open"]))
+                cdays_close1.append(float(cday["cdays_close1"]))
                 cdays_rsi.append(float(cday["cdays_rsi"]))
                 cdays_ema.append(float(cday["cdays_ema"]))
                 cdays_sma.append(float(cday["cdays_sma"]))
@@ -139,7 +139,7 @@ class PicsouGraphDay(Gtk.Window):
             ax1.plot(cdays_times, cdays_trades, 'o-', label='Trade', linewidth=2)
             ax1.plot(cdays_times, cdays_ema, 'r:', label='EMA')
             ax1.plot(cdays_times, cdays_sma, 'g:', label='SMA')
-            ax1.plot(cdays_times, cdays_opens, 'k:', label='Open')
+            ax1.plot(cdays_times, cdays_close1, 'k:', label='Open')
             ax1.set_ylabel('Cours (Euro)')
             ax1.set_xlabel('Heure')
             ax1.tick_params(axis="x", labelsize=6)

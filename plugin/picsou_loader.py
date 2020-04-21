@@ -48,12 +48,12 @@ class PicsouLoader():
             if len(cours) > 0:
                 close1 = 0.0
                 for quote in cours:
-                    if close1 == 0 : close1 = quote["open"]
-                    percent = ((quote["low"] - close1) / close1) * 100
-                    close1 = quote["close"]
+                    if close1 == 0.0 : 
+                        close1 = quote["open"]
                     self.crud.exec_sql(self.crud.get_basename(), """
-                    update quotes set percent = :percent where id = :id and date = :date
-                    """, {"id": quote["id"], "percent": percent, "date": quote["date"]})
+                    update quotes set close1 = :close1 where id = :id and date = :date
+                    """, {"id": quote["id"], "close1": close1, "date": quote["date"]})
+                    close1 = quote["close"]
 
             # Suppression des cours des jours antérieurs
             self.crud.exec_sql(self.crud.get_basename(), """
@@ -64,15 +64,15 @@ class PicsouLoader():
             self.crud.exec_sql(self.crud.get_basename(), """
             insert into cdays
             (cdays_ptf_id, cdays_name, cdays_date, cdays_close
-            , cdays_open, cdays_volume, cdays_low, cdays_high, cdays_time, cdays_percent)
-            select id, name, date, close, open, volume, low, high, datetime('now', 'localtime'), percent
+            , cdays_open, cdays_volume, cdays_low, cdays_high, cdays_time, cdays_close1)
+            select id, name, date, close, open, volume, low, high, datetime('now', 'localtime'), close1
             from quotes
             where quotes.id = :id and quotes.date = date('now')
             """, {"id": ptf["ptf_id"]})
             # calcul cours_percent
             self.crud.exec_sql(self.crud.get_basename(), """
             UPDATE cdays
-            set cdays_percent = ( (cdays_close - cdays_open) / cdays_open) * 100 
+            set cdays_percent = ( (cdays_close - cdays_close1) / cdays_close1) * 100 
             """, {})
 
     def trade(self, with_sms=False):
@@ -87,6 +87,7 @@ class PicsouLoader():
         macdbuy = self.crud.get_application_prop("constants")["macdbuy"]
         hours_limit = self.crud.get_application_prop("constants")["hours_limit"]
         minutes_limit = self.crud.get_application_prop("constants")["minutes_limit"]
+        declench_percent = self.crud.get_application_prop("constants")["declench_percent"]
         # Calcul du timestamp du jour à 17 heures 20 (heure limite d'achat)
         time_limit = datetime.datetime.now().replace(hour=hours_limit, minute=minutes_limit, second=0, microsecond=0).timestamp()
 
@@ -218,7 +219,7 @@ class PicsouLoader():
                             if with_sms :
                                 msg = "PICSOU VENTE {} : actions à {:7.2f} €".format(ptf["ptf_id"], quote)
                                 self.crud.send_sms(msg)
-                        if trade == "" and cday_time > time_limit and cday["percent"] < -4:
+                        if trade == "" and cday_time > time_limit and cday["percent"] < declench_percent:
                             trade = "BUY"
                             if with_sms :
                                 msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//quote), quote)
