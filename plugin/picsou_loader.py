@@ -219,7 +219,7 @@ class PicsouLoader():
                             if with_sms :
                                 msg = "PICSOU VENTE {} : actions à {:7.2f} €".format(ptf["ptf_id"], quote)
                                 self.crud.send_sms(msg)
-                        if trade == "" and cday_time > time_limit and cday["percent"] < declench_percent:
+                        if trade == "" and cday_time > time_limit and cday["cdays_percent"] < declench_percent:
                             trade = "BUY"
                             if with_sms :
                                 msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//quote), quote)
