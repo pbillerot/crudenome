@@ -1,13 +1,17 @@
 # ABC Technique
 
+## Préalable
+- mkdir log
+- sudo apt install python3-virtualenv
+
 ## Installation du Virtualenv
 ```shell
-virtualenv --python=/usr/bin/python3.6 venv
+virtualenv --python=/usr/bin/python3 venv
 source venv/bin/activate
 
 sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
 pip3 install pycairo
-pip3 install pygObject
+pip3 install pygobject
 pip3 install matplotlib
 pip3 install requests
 ```
@@ -20,6 +24,7 @@ pip3 install requests
 
 ## SQL
 - Utilisation de DB Browser for SQLite http://sqlitebrowser.org/
+- sudo apt-get install sqlitebrowser
 - Création des tables SQLite
 
 ## Icones
