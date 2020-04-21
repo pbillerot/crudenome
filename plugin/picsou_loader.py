@@ -40,7 +40,21 @@ class PicsouLoader():
             # Chargement de l'historique
             qlast = self.crud.get_application_prop("constants")["qlast_quotes"]
             self.csv_to_quotes(ptf, qlast)
-            
+
+            # Calcul du percent par rapport à la veille
+            cours = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM quotes WHERE id = :id order by id ,date
+            """, {"id": ptf["ptf_id"]})
+            if len(cours) > 0:
+                close1 = 0.0
+                for quote in cours:
+                    if close1 == 0 : close1 = quote["open"]
+                    percent = ((quote["low"] - close1) / close1) * 100
+                    close1 = quote["close"]
+                    self.crud.exec_sql(self.crud.get_basename(), """
+                    update quotes set percent = :percent where id = :id and date = :date
+                    """, {"id": quote["id"], "percent": percent, "date": quote["date"]})
+
             # Suppression des cours des jours antérieurs
             self.crud.exec_sql(self.crud.get_basename(), """
             delete from cdays
@@ -50,8 +64,8 @@ class PicsouLoader():
             self.crud.exec_sql(self.crud.get_basename(), """
             insert into cdays
             (cdays_ptf_id, cdays_name, cdays_date, cdays_close
-            , cdays_open, cdays_volume, cdays_low, cdays_high, cdays_time)
-            select id, name, date, close, open, volume, low, high, datetime('now', 'localtime') 
+            , cdays_open, cdays_volume, cdays_low, cdays_high, cdays_time, cdays_percent)
+            select id, name, date, close, open, volume, low, high, datetime('now', 'localtime'), percent
             from quotes
             where quotes.id = :id and quotes.date = date('now')
             """, {"id": ptf["ptf_id"]})
@@ -68,11 +82,13 @@ class PicsouLoader():
         Voici ce qui fait le succès de la MACD: le signal arrive encore plus tôt que la détection par croisement des MMA20 et MMA50 de la dernière leçon. Mais cela en fait aussi le danger, car retenez bien que plus un indicateur signale tôt, plus il a tendance à se tromper. Il faut donc travailler la MACD avec d'autres artifices pour confirmer sa validité.
         Une règle de validation vient s'ajouter à cette règle de base. Lors du croisement de la MACD avec sa ligne de signal, on ne rentrera que si la MACD et le signal ont été du même côté pendant un minimum de 14 séances que l'on compte à l'envers en comptant le jour du croisement. Ce minimum permet de s'assurer que l'on était dans une situation suffisamment stable pour que le croisement de la MACD avec sa ligne de signal ait du sens.
         """
-        rsimin = self.crud.get_application_prop("trade")["rsimin"]
-        rsimax = self.crud.get_application_prop("trade")["rsimax"]
-        macdbuy = self.crud.get_application_prop("trade")["macdbuy"]
+        rsimin = self.crud.get_application_prop("constants")["rsimin"]
+        rsimax = self.crud.get_application_prop("constants")["rsimax"]
+        macdbuy = self.crud.get_application_prop("constants")["macdbuy"]
+        hours_limit = self.crud.get_application_prop("constants")["hours_limit"]
+        minutes_limit = self.crud.get_application_prop("constants")["minutes_limit"]
         # Calcul du timestamp du jour à 17 heures 20 (heure limite d'achat)
-        time_limit = datetime.datetime.now().replace(hour=17, minute=25, second=0, microsecond=0).timestamp()
+        time_limit = datetime.datetime.now().replace(hour=hours_limit, minute=minutes_limit, second=0, microsecond=0).timestamp()
 
         # Nettoyage de la simulation du jour
         datetoday = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -85,8 +101,8 @@ class PicsouLoader():
         SELECT * FROM ptf WHERE ptf_enabled = '1'
         ORDER BY ptf_id
         """, {})
-        fcostp = self.crud.get_application_prop("trade")["cost"] # coût de la transaction ex: 0.012 %
-        fstake = self.crud.get_application_prop("trade")["stake"] # mise ou enjeu
+        fcostp = self.crud.get_application_prop("constants")["cost"] # coût de la transaction ex: 0.012 %
+        fstake = self.crud.get_application_prop("constants")["stake"] # mise ou enjeu
         fday = 0.0
         journal = []
         self.display("")
@@ -168,7 +184,7 @@ class PicsouLoader():
                     cday_time_str = datetime.datetime.strptime(cday["cdays_time"], '%Y-%m-%d %H:%M:%S')
                     cday_time = cday_time_str.timestamp()
                     # Calcul du timestamp du jour à 17 heures 20 (heure limite d'achat)
-                    time_limit = cday_time_str.replace(hour=17, minute=25, second=0, microsecond=0).timestamp()
+                    time_limit = cday_time_str.replace(hour=hours_limit, minute=minutes_limit, second=0, microsecond=0).timestamp()
 
                     quote = cday["cdays_close"]
                     quotes.append(quote)
@@ -194,37 +210,42 @@ class PicsouLoader():
                     # SMS si macd et si is_in_orders
                     if is_in_orders :
                         url = "https://fr.finance.yahoo.com/chart/{}".format(ptf["ptf_id"])
-                        if self.is_macd_buy(ema1, sma1, ema, sma) :
-                            trade = "..."
-                            fachat = quote
-                            if with_sms :
-                                msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//quote), quote)
-                                self.crud.send_sms(msg)
-                        if self.is_macd_sell(ema1, sma1, ema, sma) : 
-                            # if trade in ("BUY","...") : trade = "SELL"
+                        if trade == "..." and self.is_macd_sell(ema1, sma1, ema, sma) : 
                             if with_sms :
                                 msg = "PICSOU VENTE {} : actions à {:7.2f} €".format(ptf["ptf_id"], quote)
                                 self.crud.send_sms(msg)
+                        if trade == "..." and rsi > rsimax : 
+                            if with_sms :
+                                msg = "PICSOU VENTE {} : actions à {:7.2f} €".format(ptf["ptf_id"], quote)
+                                self.crud.send_sms(msg)
+                        if trade == "" and cday_time > time_limit and cday["percent"] < -4:
+                            trade = "BUY"
+                            if with_sms :
+                                msg = "PICSOU ACHAT {} : {} actions à {:7.2f} €".format(ptf["ptf_id"], int(fstake//quote), quote)
+                                self.crud.send_sms(msg)
+                    else :
+                        if trade in ("BUY","...") : # l'action a été vendue car n'est plus présent dans orders
+                            trade = "SELL"
 
                     # VENTE
-                    if trade in ("BUY","..."):
-                        if rsi > rsimax : trade = "SELL"
-                        if self.is_macd_sell(ema1, sma1, ema, sma) : trade = "SELL"
+                    # if trade in ("BUY","..."):
+                    #     if rsi > rsimax : trade = "SELL"
+                    #     if self.is_macd_sell(ema1, sma1, ema, sma) : trade = "SELL"
 
                     # ACHAT 
-                    if trade == "WAIT" : 
-                        if rsi > rsi1 : trade = "BUY" 
+                    # if trade == "WAIT" : 
+                    #     if rsi > rsi1 : trade = "BUY" 
 
-                    cas = "!rsi macd_buy < {} ,rsi macd_sell".format(macdbuy)
+                    # cas = "!rsi macd_buy < {} ,rsi macd_sell".format(macdbuy)
 
-                    if trade == "":
-                        # if rsi < rsimin : trade = "BUY"
-                        if self.is_macd_buy(ema1, sma1, ema, sma) and rsi < macdbuy : trade = "BUY"
+                    # if trade == "":
+                    #     # if rsi < rsimin : trade = "BUY"
+                    #     if self.is_macd_buy(ema1, sma1, ema, sma) and rsi < macdbuy : trade = "BUY"
 
-                    # FIN DE JOURNEE, on vend tout avant la cloture
-                    if cday_time > time_limit : 
-                        if trade == "BUY" : trade = ""
-                        if trade == "..." : trade = "SELL"
+                    # # FIN DE JOURNEE, on vend tout avant la cloture
+                    # if cday_time > time_limit : 
+                    #     if trade == "BUY" : trade = ""
+                    #     if trade == "..." : trade = "SELL"
 
                     # TRAITEMENT DU BUY ET SELL
                     if trade == "BUY":

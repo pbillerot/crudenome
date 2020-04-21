@@ -8,20 +8,15 @@
     "basename2": "/mnt/nas/data/picsou/png/2020-04-03/picsou.sqlite",
     "basehost": "~/data/picsou/picsou.sqlite",
     "data_directory": "/mnt/nas/data/picsou",
-    "trade": {
-        "stake": 1200,
-        "cost": 0.0047,
-        "macdbuy": 40,
-        "rsimin": 20,
-        "rsimax": 60
-    },
     "constants": {
         "qlast_quotes": 19,
         "stake": 1200,
         "cost": 0.0047,
         "macdbuy": 40,
         "rsimin": 20,
-        "rsimax": 60
+        "rsimax": 70,
+        "hours_limit": 17,
+        "minutes_limit": 15
     },
     "scheduler": {
         "batch": "./picsou_batch.py -day",
