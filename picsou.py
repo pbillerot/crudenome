@@ -13,7 +13,6 @@ from crud import Crud
 from crudel import Crudel
 from plugin.picsou_loader import PicsouLoader
 import matplotlib.pyplot as plt
-import pandas as pd
 
 class PicsouBatch():
     """ Actualisation des données """

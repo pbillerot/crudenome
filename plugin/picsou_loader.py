@@ -9,7 +9,6 @@ import re
 import sys
 import requests
 import numpy as np
-import pandas as pd
 from gi.repository import Gtk
 from plugin.picsou_graph import PicsouGraphDay
 
