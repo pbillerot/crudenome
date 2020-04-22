@@ -21,7 +21,7 @@
             "pythonPath": "${config:python.pythonPath}",
             "program": "picsou.py",
             "cwd": "${workspaceRoot}",
-            "args": ["-lastquotes"],
+            "args": ["-graph"],
             "env": {},
             "envFile": "${workspaceRoot}/.env"
         },

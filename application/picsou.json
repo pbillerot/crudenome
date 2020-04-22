@@ -87,29 +87,31 @@
                         "icon_name": "applications-internet"
                     }
                 },
-                "date_du_jour": {
-                    "label_long": "Date",
-                    "label_short": "Date",
-                    "type": "text",
-                    "jointure": {
-                        "join": "left outer join (select date('now') as date_du_jour) as t",
-                        "column": "date_du_jour"
-                    }
-                },
                 "_graph": {
                     "label_long": "Graph",
                     "label_short": "Graph",
                     "type": "plugin",
                     "params": {
-                        "plugin": "picsou_graph.PicsouGraphDay",
+                        "plugin": "picsou_image.PicsouImage",
                         "icon_name": "applications-office"
                     },
                     "args": {
-                        "ptf_id": "{ptf_id}",
-                        "path": "png/{date_du_jour}/{ptf_id}.png"
+                        "path": "png/day/{ptf_id}.png"
                     }
                 },
                 "_histo": {
+                    "label_long": "Histo",
+                    "label_short": "Histo",
+                    "type": "plugin",
+                    "params": {
+                        "plugin": "picsou_image.PicsouImage",
+                        "icon_name": "applications-science"
+                    },
+                    "args": {
+                        "path": "png/quotes/{ptf_id}.png"
+                    }
+                },
+                "_histo_all": {
                     "label_long": "Historique",
                     "label_short": "Historique",
                     "type": "batch",
@@ -157,13 +159,13 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
-                        "date_du_jour": {"hide":true},
                         "ptf_gain": {},
                         "ptf_top": {},
                         "ptf_note": {},
                         "_graph": {},
-                        "_yahoo": {},
                         "_histo": {},
+                        "_yahoo": {},
+                        "_histo_all": {},
                         "_batch": {}
                     },
                     "sql_where": "ptf_enabled = '1'",
@@ -181,10 +183,10 @@
                         "ptf_id": {},
                         "ptf_name": {},
                         "ptf_enabled": {},
-                        "date_du_jour": {"hide":true},
                         "ptf_gain": {},
                         "ptf_note": {},
                         "_graph": {},
+                        "_histo": {},
                         "_yahoo": {}
                     },
                     "order_by": "ptf_id"
@@ -272,13 +274,6 @@
                     "sortable": true,
                     "searchable": true,
                     "default_sql": "select datetime('now', 'localtime')"
-                },
-                "_date": {
-                    "label_long": "Jour",
-                    "label_short": "Jour",
-                    "type": "text",
-                    "hide": false,
-                    "formulas": "substr('{orders_time}', 1, 10)"
                 },
                 "orders_quote": {
                     "label_long": "Cours du jour",
@@ -391,12 +386,11 @@
                     "label_short": "Graph",
                     "type": "plugin",
                     "params": {
-                        "plugin": "picsou_graph.PicsouGraphDay",
+                        "plugin": "picsou_image.PicsouImage",
                         "icon_name": "applications-office"
                     },
                     "args": {
-                        "ptf_id": "{orders_ptf_id}",
-                        "path": "png/{_date}/{ptf_id}.png"
+                        "path": "png/day/{orders_ptf_id}.png"
                     }
                 },
                 "_image": {
@@ -446,7 +440,6 @@
                         "orders_ptf_id": {},
                         "_ptf_name": {},
                         "orders_time": {},
-                        "_date": {},
                         "orders_order": {"hide":true},
                         "orders_buy": {},
                         "orders_quantity": {},
@@ -534,7 +527,6 @@
                         "_ptf_name": {},
                         "orders_quote": {},
                         "orders_time": {},
-                        "_date": {},
                         "orders_order": {"hide": true},
                         "orders_buy": {},
                         "orders_quantity": {},
@@ -553,7 +545,6 @@
                         "_ptf_name": {},
                         "orders_quote": {},
                         "orders_time": {},
-                        "_date": {},
                         "orders_order": {"hide": true},
                         "orders_buy": {},
                         "orders_quantity": {},
@@ -766,7 +757,7 @@
                         "icon_name": "insert-image"
                     },
                     "args": {
-                        "path": "png/{cdays_date}/{cdays_ptf_id}.png"
+                        "path": "png/day/{cdays_ptf_id}.png"
                     }
                 },
                 "_graph": {
@@ -779,7 +770,7 @@
                     },
                     "args": {
                         "ptf_id": "{cdays_ptf_id}",
-                        "path": "png/{cdays_date}/{cdays_ptf_id}.png"
+                        "path": "png/day/{cdays_ptf_id}.png"
                     }
                 }
             },
@@ -794,7 +785,6 @@
                         "cdays_id": {},
                         "cdays_ptf_id": {},
                         "cdays_name": {},
-                        "cdays_date": {"hide":true},
                         "cdays_time": {},
                         "cdays_open": {},
                         "cdays_close": {},
@@ -844,13 +834,6 @@
                         "join": "LEFT OUTER JOIN ptf on ptf.ptf_id = trades.trades_ptf_id",
                         "column": "ptf_name"
                     }
-                },
-                "trades_date": {
-                    "label_long": "Jour",
-                    "label_short": "Jour",
-                    "type": "text",
-                    "sortable": true,
-                    "searchable": true
                 },
                 "trades_time": {
                     "label_long": "Heure",
@@ -944,7 +927,7 @@
                         "icon_name": "insert-image"
                     },
                     "args": {
-                        "path": "png/{trades_date}/{trades_ptf_id}.png"
+                        "path": "png/day/{trades_ptf_id}.png"
                     }
                 },
                 "_graph": {
@@ -957,7 +940,7 @@
                     },
                     "args": {
                         "ptf_id": "{trades_ptf_id}",
-                        "path": "png/{trades_date}/{trades_ptf_id}.png"
+                        "path": "png/day/{trades_ptf_id}.png"
                     }
                 },
                 "_form_order_buy": {
@@ -985,11 +968,11 @@
                     "deletable": true,
                     "icon_name": "go-jump",
                     "limit": 100,
+                    "hide": true,
                     "elements": {
                         "trades_id": {},
                         "trades_ptf_id": {},
                         "ptf_name": {},
-                        "trades_date": {"hide":true},
                         "trades_time": {},
                         "trades_order": {},
                         "trades_buy": {},
@@ -1005,9 +988,8 @@
                         "_form_order_buy": {},
                         "_batch": {}
                     },
-                    "sql_where": "trades_date = date('now')",
                     "order_by": "trades.trades_time, trades.trades_ptf_id",
-                    "sql_footer": "SELECT printf('Le PICSOU du Jour : <b>%.2f</b> €', sum(trades_gain)) AS sql_footer FROM trades where trades_date = date('now')"
+                    "sql_footer": "SELECT printf('Le PICSOU du Jour : <b>%.2f</b> €', sum(trades_gain)) AS sql_footer FROM trades"
                 },
                 "vall": {
                     "title": "Trades Histo",
@@ -1015,11 +997,11 @@
                     "deletable": true,
                     "icon_name": "go-jump",
                     "limit": 100,
+                    "hide": true,
                     "elements": {
                         "trades_id": {},
                         "trades_ptf_id": {},
                         "ptf_name": {},
-                        "trades_date": {"hide":true},
                         "trades_time": {},
                         "trades_order": {},
                         "trades_buy": {},
@@ -1047,7 +1029,6 @@
                         "trades_id": {"hide":true},
                         "trades_ptf_id": {"hide":true},
                         "ptf_name": {"hide":true},
-                        "trades_date": {"hide":true},
                         "trades_time": {},
                         "trades_order": {},
                         "trades_buy": {},

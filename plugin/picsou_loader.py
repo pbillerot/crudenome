@@ -355,10 +355,7 @@ class PicsouLoader():
                 # Génération du graphique
                 graph = PicsouGraphDay(self.crud, {
                     "ptf_id": ptf["ptf_id"]
-                    ,"path": "png/{}/{}.png".format(
-                        cday["cdays_date"]
-                        ,cday["cdays_ptf_id"]
-                        )
+                    ,"path": "png/day/{}.png".format(cday["cdays_ptf_id"])
                     })
                 graph.create_graph()
 
