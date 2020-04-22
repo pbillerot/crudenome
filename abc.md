@@ -2,18 +2,15 @@
 
 ## Préalable
 - mkdir log
-- sudo apt install python3-virtualenv
 
 ## Installation du Virtualenv
 ```shell
+sudo apt install virtualenv
 virtualenv --python=/usr/bin/python3 venv
 source venv/bin/activate
 
 sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
-pip3 install pycairo
-pip3 install pygobject
-pip3 install matplotlib
-pip3 install requests
+pip3 install pycairo pygobject matplotlib requests
 ```
 ### Pour VSCodium
 - https://flathub.org/apps/details/com.visualstudio.code.oss
