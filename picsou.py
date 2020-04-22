@@ -93,7 +93,8 @@ class PicsouBatch():
             loader.quotes()
 
         if self.args.graph:
-           self.graphLastQuotes()
+            self.display("")
+            self.graphLastQuotes()
 
         if self.args.trade:
             loader = PicsouLoader(self, self.crud)
@@ -129,6 +130,8 @@ class PicsouBatch():
         def mini_date(sdate):
             return sdate[8:10] + "-" + sdate[5:7]
 
+        self.pout("graphLastQuotes... ")
+
         quotes = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT quotes.*, ptf_name FROM quotes left outer join ptf on ptf_id = id order by id ,date
         """, {})
@@ -150,7 +153,7 @@ class PicsouBatch():
                    id_current = quote["id"]
                    qclose1 = quote["open"]
                    ptf_name = quote["ptf_name"]
-                   self.pout("graphLastQuotes... " + quote["id"])
+                #    self.pout("graphLastQuotes... " + quote["id"])
                 # un graphe par ptf
                 if id_current == quote["id"] :
                     # chargement des données
@@ -215,7 +218,6 @@ class PicsouBatch():
                         ax1.bar(ddate, dlow_p, color='b', alpha=0.2)
                         ax1.bar(ddate, dlow_n, color='r', alpha=0.2)
 
-
                         ax1.set_ylabel('Cours en %', fontsize=9)
                         ax1.tick_params(axis="x", labelsize=8)
                         ax1.tick_params(axis="y", labelsize=8)
@@ -226,6 +228,7 @@ class PicsouBatch():
                         plt.grid()
                         # plt.show()
                         # Création du PNG
+                        self.pout(" " + quote["id"])
                         plt.savefig(path)
                         plt.close()
 

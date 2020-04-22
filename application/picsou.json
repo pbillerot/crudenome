@@ -134,17 +134,30 @@
                         "icon_name": "view-refresh"
                     }
                 },
-                "_vptf": {
-                    "label_long": "Historique",
-                    "label_short": "Historique",
+                "_vorders_buy": {
+                    "label_long": "Achat en cours",
+                    "label_short": "Achat en cours",
                     "type": "view",
-                    "height": 300,
+                    "height": 200,
                     "params": {
-                        "table": "trades",
-                        "view": "vptf"
+                        "table": "orders",
+                        "view": "vptf_buy"
                     },
                     "args": {
-                        "trades_ptf_id": "{ptf_id}"
+                        "orders_ptf_id": "{ptf_id}"
+                    }
+                },
+                "_vorders_sell": {
+                    "label_long": "Ventes réalisées",
+                    "label_short": "Ventes réalisées",
+                    "type": "view",
+                    "height": 200,
+                    "params": {
+                        "table": "orders",
+                        "view": "vptf_sell"
+                    },
+                    "args": {
+                        "orders_ptf_id": "{ptf_id}"
                     }
                 }
             },
@@ -221,7 +234,8 @@
                         "_yahoo": {},
                         "ptf_gain": {"read_only": true},
                         "ptf_note": {},
-                        "_vptf": {}
+                        "_vorders_buy": {},
+                        "_vorders_sell": {}
                     }
                 }
             }
@@ -487,25 +501,47 @@
                     "order_by": "orders.orders_time desc",
                     "sql_footer": "SELECT printf('Gain réalisé : <b>%.2f</b> €', sum(orders_sell_gain)) AS sql_footer FROM orders WHERE orders_order = 'sell'"
                 },
-                "vptf": {
-                    "title": "Historique",
-                    "form_add": "fadd",
-                    "form_edit": "fedit",
-                    "searchable": true,
-                    "deletable": true,
+                "vptf_buy": {
+                    "title": "Achats en cours",
                     "icon_name": "go-jump",
-                    "limit": 100,
+                    "limit": 20,
                     "hide": true,
                     "elements": {
                         "orders_id": {"hide":true},
                         "orders_ptf_id": {"hide":true},
-                        "_ptf_name": {},
                         "orders_time": {},
-                        "orders_order": {},
-                        "orders_quote": {},
+                        "orders_buy": {},
                         "orders_quantity": {},
-                        "orders_cost": {}
+                        "orders_cost": {},
+                        "orders_debit": {},
+                        "orders_cost_price": {},
+                        "orders_quote": {},
+                        "orders_gain": {},
+                        "orders_gainp": {}
                     },
+                    "sql_where": "orders.orders_order = 'buy'",
+                    "order_by": "orders.orders_time desc"
+                },
+                "vptf_sell": {
+                    "title": "Ventes réalisées",
+                    "icon_name": "go-jump",
+                    "limit": 20,
+                    "hide": true,
+                    "elements": {
+                        "orders_id": {"hide":true},
+                        "orders_ptf_id": {"hide":true},
+                        "orders_time": {},
+                        "orders_cost_price": {"hide":true},
+                        "orders_buy": {},
+                        "orders_quote": {"hide":true},
+                        "orders_sell": {},
+                        "orders_quantity": {},
+                        "orders_sell_cost": {},
+                        "orders_credit": {},
+                        "orders_sell_gain": {},
+                        "orders_sell_gainp": {}
+                    },
+                    "sql_where": "orders.orders_order = 'sell'",
                     "order_by": "orders.orders_time desc"
                 }
             },

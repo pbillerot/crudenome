@@ -11,8 +11,9 @@ class PicsouDiapo(Gtk.Window):
         self.crud = crud
         self.args = args
 
-        self.width = self.args["width"] if self.args["width"] is not None else 800
-        self.heigth = self.args["height"] if self.args["height"] is not None else 600
+        self.width = self.args["width"] if self.args.get("width") is not None else 800
+        self.heigth = self.args["height"] if self.args.get("height") is not None else 600
+        self.nb_cols = self.args["nb_cols"] if self.args.get("nb_cols") is not None else 3
         self.set_size_request(self.width, self.heigth)
 
         self.directory = "{}/{}".format(self.crud.get_application_prop("data_directory"),self.args["directory"])
@@ -25,18 +26,18 @@ class PicsouDiapo(Gtk.Window):
         """ Construction des diapos """
         vbox = Gtk.VBox()
         hbox = None
-        qcols = 3
+        self.nb_cols = 2
         icol = 0
         files = sorted([f for f in glob.glob(self.directory + "/*.png")])
         for file_path in files:
             # print(file_path)
             if icol == 0:
                 hbox = Gtk.HBox()
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(file_path, self.width//2 - 4, -1, True)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(file_path, self.width//self.nb_cols - 4, -1, True)
             image = Gtk.Image.new_from_pixbuf(pixbuf)
             hbox.pack_start(image, False, False, 0)
             icol+=1
-            if icol >= qcols:
+            if icol >= self.nb_cols:
                 vbox.pack_start(hbox, False, False, 0)
                 icol = 0
                 hbox = None
