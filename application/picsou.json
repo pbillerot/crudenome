@@ -182,7 +182,7 @@
                         "_batch": {}
                     },
                     "sql_where": "ptf_enabled = '1'",
-                    "order_by": "ptf_gain desc, ptf_id",
+                    "order_by": "ptf_top desc, ptf_id",
                     "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(ptf_gain)) AS sql_footer FROM ptf where ptf_gain is not null and ptf_enabled = 1"
                 },
                 "vall": {
