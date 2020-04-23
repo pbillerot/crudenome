@@ -163,15 +163,16 @@ class PicsouBatch():
                     percent = ((quote["open"]-qclose1) / qclose1)*100
                     dpercent.append( percent )
 
-                    dhig = ((quote["high"]-qclose1) / qclose1)*100
+                    high = quote["high"] if quote["high"] > quote["open"] else quote["open"]
+                    dhig = ((high-qclose1) / qclose1)*100
                     if dhig > 0 :
                         dhig_p.append( dhig )
                         dhig_n.append( 0 )
                     else :
                         dhig_p.append( 0 )
                         dhig_n.append( dhig )
-
-                    dlow = ((quote["low"]-qclose1) / qclose1)*100
+                    low = quote["low"] if quote["low"] < quote["open"] else quote["open"]
+                    dlow = ((low-qclose1) / qclose1)*100
                     if dlow > 0 :
                         dlow_p.append( dlow )
                         dlow_n.append( 0 )
@@ -184,7 +185,8 @@ class PicsouBatch():
                     percent = ((quote["close"]-qclose1) / qclose1)*100
                     dpercent.append( percent )
 
-                    dhig = ((quote["high"]-qclose1) / qclose1)*100
+                    high = quote["high"] if quote["high"] > quote["open"] else quote["open"]
+                    dhig = ((high-qclose1) / qclose1)*100
                     if dhig > 0 :
                         dhig_p.append( dhig )
                         dhig_n.append( 0 )
@@ -192,7 +194,8 @@ class PicsouBatch():
                         dhig_p.append( 0 )
                         dhig_n.append( dhig )
 
-                    dlow = ((quote["low"]-qclose1) / qclose1)*100
+                    low = quote["low"] if quote["low"] < quote["open"] else quote["open"]
+                    dlow = ((low-qclose1) / qclose1)*100
                     if dlow > 0 :
                         dlow_p.append( dlow )
                         dlow_n.append( 0 )
