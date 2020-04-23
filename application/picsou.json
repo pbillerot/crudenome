@@ -9,7 +9,7 @@
     "basehost": "~/data/picsou/picsou.sqlite",
     "data_directory": "/mnt/nas/data/picsou",
     "constants": {
-        "qlast_quotes": 19,
+        "qlast_quotes": 25,
         "stake": 1200,
         "cost": 0.0047,
         "macdbuy": 40,

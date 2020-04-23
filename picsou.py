@@ -12,7 +12,7 @@ import sys
 from crud import Crud
 from crudel import Crudel
 from plugin.picsou_loader import PicsouLoader
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt, matplotlib.gridspec as gridspec
 
 class PicsouBatch():
     """ Actualisation des données """
@@ -73,6 +73,7 @@ class PicsouBatch():
                     self.run_day()
                 else:
                     self.display("Picsou en dehors de la plage autorisée".format())
+                isStart = False
             isStart = False
             if ( (time2-time1) > 5 * 60 ):
                 now = datetime.datetime.now()
@@ -138,6 +139,7 @@ class PicsouBatch():
 
         id_current = ""
         path = ""
+        dquotes = []
         ddate = []
         dzero = []
         dpercent= []
@@ -145,6 +147,7 @@ class PicsouBatch():
         dhig_n= []
         dlow_p= []
         dlow_n= []
+        dvol = []
         ptf_name = ""
         qclose1 = 0
         if len(quotes) > 0:
@@ -157,6 +160,10 @@ class PicsouBatch():
                 # un graphe par ptf
                 if id_current == quote["id"] :
                     # chargement des données
+
+                    # le matin
+                    dvol.append(quote["volume"])
+                    dquotes.append(quote["open"])
                     ddate.append(mini_date(quote["date"]) + " matin")
                     dzero.append(0)
 
@@ -180,6 +187,9 @@ class PicsouBatch():
                         dlow_p.append( 0 )
                         dlow_n.append( dlow )
 
+                    # Le soir
+                    dvol.append(quote["volume"])
+                    dquotes.append(quote["close"])
                     ddate.append(mini_date(quote["date"]) + " soir")
                     dzero.append(0)
                     percent = ((quote["close"]-qclose1) / qclose1)*100
@@ -214,7 +224,6 @@ class PicsouBatch():
 
                         # width = 0.20 
                         ax1.plot(ddate, dzero, 'k:', linewidth=2)
-                        
                         ax1.plot(ddate, dpercent, 'o-')
                         ax1.bar(ddate, dhig_p, color='b', alpha=0.2)
                         ax1.bar(ddate, dhig_n, color='r', alpha=0.2)
@@ -225,20 +234,32 @@ class PicsouBatch():
                         ax1.tick_params(axis="x", labelsize=8)
                         ax1.tick_params(axis="y", labelsize=8)
 
+                        ax2 = ax1.twinx()
+                        vols = []
+                        ax2.plot(ddate, dquotes, 'mo:', label='Cotation')
+                        ax2.set_ylabel('Cotation', fontsize=9)
+                        ax2.tick_params(axis="y", labelsize=8)
+                        ax2.legend(loc=4)
+
+                        # ax3 = ax1.twinx()
+                        # ax3.bar(ddate, dvol, color='k', alpha=0.1)
+                        # ax3.get_yaxis().set_visible(False)
+
                         fig.autofmt_xdate()
                         plt.suptitle("Cours de {} - {}".format(id_current, ptf_name), fontsize=11, fontweight='bold')
-                        plt.subplots_adjust(left=0.06, bottom=0.1, right=0.96, top=0.93, wspace=None, hspace=None)
+                        plt.subplots_adjust(left=0.06, bottom=0.1, right=0.93, top=0.93, wspace=None, hspace=None)
                         plt.grid()
                         # plt.show()
                         # Création du PNG
-                        self.pout(" " + quote["id"])
+                        self.pout(" " + id_current)
                         plt.savefig(path)
                         plt.close()
 
                     draw()
 
                     # ça repart pour un tour
-                    self.pout(" " + quote["id"])
+                    # self.pout(" " + quote["id"])
+                    dquotes.clear()
                     ddate.clear()
                     dpercent.clear()
                     dhig_p.clear()
@@ -246,10 +267,14 @@ class PicsouBatch():
                     dlow_p.clear()
                     dlow_n.clear()
                     dzero.clear()
+                    dvol.clear()
                     id_current = quote["id"]
                     qclose1 = quote["open"]
                     ptf_name = quote["ptf_name"]
-            draw()
+                    volmax = 0
+                    quotemax = 0
+            if len(dquotes) > 0 : 
+                draw()
             self.display("")
 
 if __name__ == '__main__':
