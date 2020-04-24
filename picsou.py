@@ -219,7 +219,7 @@ class PicsouBatch():
                     # Dessin du graphe
                     def draw():
                         fig, ax1 = plt.subplots()
-                        fig.set_figwidth(10)
+                        fig.set_figwidth(12)
                         fig.set_figheight(6)
 
                         # width = 0.20 
