@@ -45,11 +45,17 @@ class AppWindow(Gtk.ApplicationWindow):
         self.set_border_width(10)
         self.set_default_size(1280, 600)
         if "icon_file" in self.crud.config:
-            self.set_icon_from_file(self.crud.config["icon_file"])
+            self.set_icon_from_file(self.get_resource_path(self.crud.config["icon_file"]))
         if "icon_name" in self.crud.config:
             self.set_icon_name(self.crud.config["icon_name"])
 
         self.crud_portail = CrudPortail(self.crud)
+
+    def get_resource_path(self, rel_path):
+        dir_of_py_file = os.path.dirname(__file__)
+        rel_path_to_resource = os.path.join(dir_of_py_file, rel_path)
+        abs_path_to_resource = os.path.abspath(rel_path_to_resource)
+        return abs_path_to_resource
 
     def delete_event(self, widget, event, data=None):
         # If you return FALSE in the "delete_event" signal handler,
