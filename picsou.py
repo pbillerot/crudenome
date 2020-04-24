@@ -48,6 +48,9 @@ class PicsouBatch():
         if self.args.graph:
            self.graphLastQuotes()
 
+        if self.args.note:
+           self.update_note()
+
 
     def display(self, msg):
         """ docstring """
@@ -124,6 +127,32 @@ class PicsouBatch():
             self.display("Restore OK %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host)))
         else:
             self.display("Restore NA %s %s" % (self.crud.get_basehost(), datetime.datetime.fromtimestamp(ticket_host)))
+
+    def update_note(self):
+        """ Mise à jour du champ note avec des infos pertinentes pour le trading """
+        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM ptf where ptf_enabled = '1' order by ptf_id
+            """, {})
+        for ptf in ptfs:
+            quotes = self.crud.sql_to_dict(self.crud.get_basename(), """
+            SELECT * FROM quotes where id = :id order by date desc limit 1
+            """, {"id": ptf["ptf_id"]})
+            if quotes is None : continue
+            quote = quotes[0]
+            """
+            - P4 : si quotemin < -4 %
+            - Q0 : si quotemin < 0 et close > close1
+            """
+            note = ""
+            pmin = (quote["low"] - quote["close1"])/quote["close1"]
+            if float(pmin) < -0.04 : note = "P4"
+            if quote["low"] < quote["close1"] and quote["close"] > quote["close1"] :
+                note += " Q+"
+            self.crud.exec_sql(self.crud.get_basename(), """
+                update ptf set ptf_note = :note where ptf_id = :id
+                """, {"id": ptf["ptf_id"], "note": note})
+            if note != "" :
+                self.display("{} : {}".format(ptf["ptf_id"], note))
 
     def graphLastQuotes(self):
         """ """
@@ -224,7 +253,7 @@ class PicsouBatch():
 
                         # width = 0.20 
                         ax1.plot(ddate, dzero, 'k:', linewidth=2)
-                        ax1.plot(ddate, dpercent, 'o-')
+                        ax1.plot(ddate, dpercent, 'o-', alpha=0.3)
                         ax1.bar(ddate, dhig_p, color='b', alpha=0.2)
                         ax1.bar(ddate, dhig_n, color='r', alpha=0.2)
                         ax1.bar(ddate, dlow_p, color='b', alpha=0.2)
@@ -289,6 +318,7 @@ if __name__ == '__main__':
     parser.add_argument('-dayrepeat', action='store_true', default=False, help="Requête des cours du jour toutes les 5 minutes")
     parser.add_argument('-sms', action='store_true', default=False, help="Envoi de SMS de recommandation")
     parser.add_argument('-graph', action='store_true', default=False, help="Création graphique derniers cours")
+    parser.add_argument('-note', action='store_true', default=False, help="Mise à jour du bloc note")
     # print parser.parse_args()
     if parser._get_args() == 0:
         parser.print_help()

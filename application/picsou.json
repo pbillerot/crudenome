@@ -9,7 +9,7 @@
     "basehost": "~/data/picsou/picsou.sqlite",
     "data_directory": "/mnt/nas/data/picsou",
     "constants": {
-        "qlast_quotes": 25,
+        "qlast_quotes": 30,
         "stake": 1200,
         "cost": 0.0047,
         "macdbuy": 40,
@@ -395,9 +395,22 @@
                     "formulas": "( ({orders_sell} * {orders_quantity} - {orders_buy} * {orders_quantity} - {orders_buy} * {orders_quantity} * {__cost} - {orders_sell} * {orders_quantity} * {__cost}) / ({orders_buy} * {orders_quantity}) )*100",
                     "sql_color": "case when orders_sell_gainp < 0 then '#FF0000' else '#006600' end"
                 },
-                "_graph": {
+                "_graphdyn": {
                     "label_long": "Graph",
-                    "label_short": "Graph",
+                    "label_short": "Dyn",
+                    "type": "plugin",
+                    "params": {
+                        "plugin": "picsou_graph.PicsouGraphDay",
+                        "icon_name": "applications-office"
+                    },
+                    "args": {
+                        "ptf_id": "{orders_ptf_id}",
+                        "path": "png/day/{orders_ptf_id}.png"
+                    }
+                },
+                "_graphday": {
+                    "label_long": "Graph",
+                    "label_short": "Day",
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
@@ -463,7 +476,8 @@
                         "orders_quote": {},
                         "orders_gain": {},
                         "orders_gainp": {},
-                        "_graph": {},
+                        "_graphdyn": {},
+                        "_graphday": {},
                         "_image": {},
                         "_fsell": {}
                     },
@@ -494,8 +508,8 @@
                         "orders_credit": {},
                         "orders_sell_gain": {},
                         "orders_sell_gainp": {},
-                        "_image": {},
-                        "_graph": {}
+                        "_graphday": {},
+                        "_image": {}
                     },
                     "sql_where": "orders.orders_order = 'sell'",
                     "order_by": "orders.orders_time desc",
