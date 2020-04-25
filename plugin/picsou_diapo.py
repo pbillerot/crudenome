@@ -28,7 +28,7 @@ class PicsouDiapo(Gtk.Window):
         hbox = None
         self.nb_cols = 2
         icol = 0
-        files = sorted([f for f in glob.glob(self.directory + "/*.png")])
+        files = sorted([f for f in glob.glob(self.directory + "/**/*.png", recursive=True)])
         for file_path in files:
             # print(file_path)
             if icol == 0:
