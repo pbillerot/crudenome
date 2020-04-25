@@ -8,6 +8,8 @@ import os
 import datetime, time
 import argparse
 import sys
+import glob
+import re
 
 from crud import Crud
 from crudel import Crudel
@@ -162,6 +164,14 @@ class PicsouBatch():
 
         self.pout("graphLastQuotes... ")
 
+        # Chargement des commentaires 
+        ptfs = self.crud.sql_to_dict(self.crud.get_basename(), """
+        SELECT * FROM ptf
+        """, {})
+        notes = {}
+        for ptf in ptfs:
+            notes[ptf["ptf_id"]] = ptf["ptf_note"]
+
         quotes = self.crud.sql_to_dict(self.crud.get_basename(), """
         SELECT quotes.*, ptf_name FROM quotes left outer join ptf on ptf_id = id order by id ,date
         """, {})
@@ -177,6 +187,7 @@ class PicsouBatch():
         dlow_p= []
         dlow_n= []
         dvol = []
+        labelx = []
         ptf_name = ""
         qclose1 = 0
         if len(quotes) > 0:
@@ -193,7 +204,8 @@ class PicsouBatch():
                     # le matin
                     dvol.append(quote["volume"])
                     dquotes.append(quote["open"])
-                    ddate.append(mini_date(quote["date"]) + " matin")
+                    ddate.append(mini_date(quote["date"]) + " open")
+                    labelx.append(mini_date(quote["date"]))
                     dzero.append(0)
 
                     percent = ((quote["open"]-qclose1) / qclose1)*100
@@ -219,7 +231,8 @@ class PicsouBatch():
                     # Le soir
                     dvol.append(quote["volume"])
                     dquotes.append(quote["close"])
-                    ddate.append(mini_date(quote["date"]) + " soir")
+                    ddate.append(mini_date(quote["date"]) + " close")
+                    labelx.append("")
                     dzero.append(0)
                     percent = ((quote["close"]-qclose1) / qclose1)*100
                     dpercent.append( percent )
@@ -242,7 +255,6 @@ class PicsouBatch():
                         dlow_p.append( 0 )
                         dlow_n.append( dlow )
 
-                    path = "{}/png/quotes/{}.png".format(self.crud.get_application_prop("data_directory"), id_current)
                     qclose1 = quote["close"]
                 else:
                     # Dessin du graphe
@@ -252,7 +264,7 @@ class PicsouBatch():
                         fig.set_figheight(6)
 
                         vols = []
-                        ax1.plot(ddate, dquotes, 'mo:', label='Cotation')
+                        ax1.plot(ddate, dquotes, 'mo-', label='Cotation')
                         ax1.set_ylabel('Cotation en €', fontsize=9)
                         ax1.tick_params(axis="x", labelsize=8)
                         ax1.tick_params(axis="y", labelsize=8)
@@ -260,7 +272,7 @@ class PicsouBatch():
 
                         ax2 = ax1.twinx()
                         ax2.plot(ddate, dzero, 'k:', linewidth=2)
-                        ax2.plot(ddate, dpercent, 'o-', alpha=0.3, label="Pourcentage")
+                        ax2.plot(ddate, dpercent, 'bo:', alpha=0.6, label="Pourcentage")
                         ax2.bar(ddate, dhig_p, color='b', alpha=0.2, label="Max.")
                         ax2.bar(ddate, dhig_n, color='r', alpha=0.2, label="Min.")
                         ax2.bar(ddate, dlow_p, color='b', alpha=0.2)
@@ -274,14 +286,33 @@ class PicsouBatch():
                         # ax3.get_yaxis().set_visible(False)
 
                         fig.autofmt_xdate()
-                        plt.suptitle("Cours de {} - {}".format(id_current, ptf_name), fontsize=11, fontweight='bold')
-                        plt.subplots_adjust(left=0.06, bottom=0.1, right=0.93, top=0.93, wspace=None, hspace=None)
+                        # plt.title(notes[id_current], fontsize=10)
+                        plt.subplots_adjust(left=0.06, bottom=0.1, right=0.93, top=0.90, wspace=None, hspace=None)
                         plt.grid()
+
+                        fig.canvas.draw_idle()
+                        plt.xticks(ddate, labelx)
                         # plt.show()
                         # Création du PNG
                         self.pout(" " + id_current)
+                        # Recherche du fichier qui peut être classé dans un sous répertoire
+                        pattern_path = "\/png\/(.*?){}\.png".format(id_current)
+                        comment = ""
+                        files = glob.glob(self.crud.get_application_prop("data_directory") + "/png/quotes/**/{}.png".format(id_current), recursive=True)
+                        if len(files) == 0:
+                            path = "{}/png/quotes/{}.png".format(self.crud.get_application_prop("data_directory"), id_current)
+                        else:
+                            path = files[0]
+                            srep1 = re.search(pattern_path, path).group(1)
+                            comment = srep1.replace("quotes", "").replace("/", "")
+
+                        plt.suptitle("Cours de {} - {} ({})".format(id_current, ptf_name, comment), fontsize=11, fontweight='bold')
                         plt.savefig(path)
                         plt.close()
+                        # Maj de net dans ptf
+                        self.crud.exec_sql(self.crud.get_basename(), """
+                        update ptf set ptf_note = :note where ptf_id = :id
+                        """, {"id": id_current, "note": comment})
 
                     draw()
 
