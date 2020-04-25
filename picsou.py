@@ -251,22 +251,21 @@ class PicsouBatch():
                         fig.set_figwidth(12)
                         fig.set_figheight(6)
 
-                        # width = 0.20 
-                        ax1.plot(ddate, dzero, 'k:', linewidth=2)
-                        ax1.plot(ddate, dpercent, 'o-', alpha=0.3)
-                        ax1.bar(ddate, dhig_p, color='b', alpha=0.2)
-                        ax1.bar(ddate, dhig_n, color='r', alpha=0.2)
-                        ax1.bar(ddate, dlow_p, color='b', alpha=0.2)
-                        ax1.bar(ddate, dlow_n, color='r', alpha=0.2)
-
-                        ax1.set_ylabel('Cours en %', fontsize=9)
+                        vols = []
+                        ax1.plot(ddate, dquotes, 'mo:', label='Cotation')
+                        ax1.set_ylabel('Cotation en €', fontsize=9)
                         ax1.tick_params(axis="x", labelsize=8)
                         ax1.tick_params(axis="y", labelsize=8)
+                        ax1.legend(loc=3)
 
                         ax2 = ax1.twinx()
-                        vols = []
-                        ax2.plot(ddate, dquotes, 'mo:', label='Cotation')
-                        ax2.set_ylabel('Cotation', fontsize=9)
+                        ax2.plot(ddate, dzero, 'k:', linewidth=2)
+                        ax2.plot(ddate, dpercent, 'o-', alpha=0.3, label="Pourcentage")
+                        ax2.bar(ddate, dhig_p, color='b', alpha=0.2, label="Max.")
+                        ax2.bar(ddate, dhig_n, color='r', alpha=0.2, label="Min.")
+                        ax2.bar(ddate, dlow_p, color='b', alpha=0.2)
+                        ax2.bar(ddate, dlow_n, color='r', alpha=0.2)
+                        ax2.set_ylabel('Cotation en %', fontsize=9)
                         ax2.tick_params(axis="y", labelsize=8)
                         ax2.legend(loc=4)
 
