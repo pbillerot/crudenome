@@ -10,11 +10,12 @@ import argparse
 import sys
 import glob
 import re
+import numpy as np
+import matplotlib.pyplot as plt, matplotlib.gridspec as gridspec
 
 from crud import Crud
 from crudel import Crudel
 from plugin.picsou_loader import PicsouLoader
-import matplotlib.pyplot as plt, matplotlib.gridspec as gridspec
 
 class PicsouBatch():
     """ Actualisation des données """
@@ -187,9 +188,12 @@ class PicsouBatch():
         dlow_n= []
         dvol = []
         labelx = []
+        emas = []
+        smas = []
         ptf_name = ""
         qclose1 = 0
         if len(quotes) > 0:
+            iquote = 0
             for quote in quotes:
                 if id_current == "" : # la 1ère fois
                    id_current = quote["id"]
@@ -199,14 +203,15 @@ class PicsouBatch():
                 # un graphe par ptf
                 if id_current == quote["id"] :
                     # chargement des données
-
                     # le matin
+                    iquote += 1
                     dvol.append(quote["volume"])
                     dquotes.append(quote["open"])
+                    smas.append(self.sma(dquotes, iquote if iquote < 12 else 12)) 
+                    emas.append(self.ema(dquotes, iquote if iquote < 12 else 12)) 
                     ddate.append(mini_date(quote["date"]) + " open")
                     labelx.append(mini_date(quote["date"]))
                     dzero.append(0)
-
                     percent = ((quote["open"]-qclose1) / qclose1)*100
                     dpercent.append( percent )
 
@@ -228,8 +233,11 @@ class PicsouBatch():
                         dlow_n.append( dlow )
 
                     # Le soir
+                    iquote += 1
                     dvol.append(quote["volume"])
                     dquotes.append(quote["close"])
+                    smas.append(self.sma(dquotes, iquote if iquote < 12 else 12)) 
+                    emas.append(self.ema(dquotes, iquote if iquote < 12 else 12)) 
                     ddate.append(mini_date(quote["date"]) + " close")
                     labelx.append("")
                     dzero.append(0)
@@ -263,6 +271,8 @@ class PicsouBatch():
                         fig.set_figheight(6)
 
                         ax1.plot(ddate, dquotes, 'mo-', label='Cotation')
+                        ax1.plot(ddate, emas, 'm:', label='EMA')
+                        ax1.plot(ddate, smas, 'c:', label='SMA')
                         ax1.set_ylabel('Cotation en €', fontsize=9)
                         ax1.tick_params(axis="x", labelsize=8)
                         ax1.tick_params(axis="y", labelsize=8)
@@ -329,12 +339,58 @@ class PicsouBatch():
                     dlow_n.clear()
                     dzero.clear()
                     dvol.clear()
+                    emas.clear()
+                    smas.clear()
                     id_current = quote["id"]
                     qclose1 = quote["open"]
                     ptf_name = quote["ptf_name"]
+                    iquote = 0
             if len(dquotes) > 0 : 
                 draw()
             self.display("")
+
+    def rsi(self, data, n=14):
+        deltas = np.diff(data)
+        seed = deltas[:n+1]
+        up = seed[seed>=0].sum()/n
+        down = -seed[seed<0].sum()/n
+        rs = up/down
+        rsi = np.zeros_like(data)
+        rsi[:n] = 100. - 100./(1.+rs)
+
+        for i in range(n, len(data)):
+            delta = deltas[i-1]
+            if delta > 0:
+                upval = delta
+                downval = 0.
+            else:
+                upval = 0.
+                downval = -delta
+
+            up = (up*(n-1) + upval)/n
+            down = (down*(n-1) + downval)/n
+            rs = up/down
+            rsi[i] = 100. - 100./(1.+rs)
+        return rsi[len(rsi)-1]
+
+    def ema(self, data, window):
+        """ Calculates Exponential Moving Average """
+        if len(data) < 2 * window:
+            window = len(data)//2
+            if window < 2 : return None
+            # raise ValueError("data is too short")
+        c = 2.0 / (window + 1)
+        current_ema = self.sma(data[-window*2:-window], window)
+        for value in data[-window:]:
+            current_ema = (c * value) + ((1 - c) * current_ema)
+        return current_ema        
+
+
+    def sma(self, data, window):
+        """ Calculates Simple Moving Average """
+        if len(data) < window:
+            return sum(data) / float(len(data))
+        return sum(data[-window:]) / float(window)
 
 if __name__ == '__main__':
 
