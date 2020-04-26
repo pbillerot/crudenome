@@ -177,7 +177,6 @@ class PicsouBatch():
         """, {})
 
         id_current = ""
-        path = ""
         dquotes = []
         ddate = []
         dzero = []
@@ -263,12 +262,11 @@ class PicsouBatch():
                         fig.set_figwidth(12)
                         fig.set_figheight(6)
 
-                        vols = []
                         ax1.plot(ddate, dquotes, 'mo-', label='Cotation')
                         ax1.set_ylabel('Cotation en €', fontsize=9)
                         ax1.tick_params(axis="x", labelsize=8)
                         ax1.tick_params(axis="y", labelsize=8)
-                        ax1.legend(loc=3)
+                        ax1.legend(loc="lower left")
 
                         ax2 = ax1.twinx()
                         ax2.plot(ddate, dzero, 'k:', linewidth=2)
@@ -279,18 +277,21 @@ class PicsouBatch():
                         ax2.bar(ddate, dlow_n, color='r', alpha=0.2)
                         ax2.set_ylabel('Cotation en %', fontsize=9)
                         ax2.tick_params(axis="y", labelsize=8)
-                        ax2.legend(loc=4)
+                        # ax2.yaxis.set_ticklabels(dpercent , minor=True)
+                        # plt.gca().yaxis.set_ticks(dpercent, minor = True) 
+                        ax2.legend(loc="lower right")
+                        ax2.grid()
 
-                        # ax3 = ax1.twinx()
-                        # ax3.bar(ddate, dvol, color='k', alpha=0.1)
-                        # ax3.get_yaxis().set_visible(False)
+                        ax3 = ax1.twinx()
+                        ax3.bar(ddate, dvol, color='k', alpha=0.1, width=0.4, label="Volume")
+                        ax3.get_yaxis().set_visible(False)
+                        ax3.legend(loc="lower center")
 
                         fig.autofmt_xdate()
                         # plt.title(notes[id_current], fontsize=10)
                         plt.subplots_adjust(left=0.06, bottom=0.1, right=0.93, top=0.90, wspace=None, hspace=None)
-                        plt.grid()
 
-                        fig.canvas.draw_idle()
+                        # fig.canvas.draw_idle()
                         plt.xticks(ddate, labelx)
                         # plt.show()
                         # Création du PNG
@@ -306,7 +307,8 @@ class PicsouBatch():
                             srep1 = re.search(pattern_path, path).group(1)
                             comment = srep1.replace("quotes", "").replace("/", "")
 
-                        plt.suptitle("Cours de {} - {} ({})".format(id_current, ptf_name, comment), fontsize=11, fontweight='bold')
+                        plt.suptitle("Cours de {} - {}".format(id_current, ptf_name), fontsize=11, fontweight='bold')
+                        plt.title(comment, loc='right', color="red", backgroundcolor="yellow") 
                         plt.savefig(path)
                         plt.close()
                         # Maj de net dans ptf
@@ -330,8 +332,6 @@ class PicsouBatch():
                     id_current = quote["id"]
                     qclose1 = quote["open"]
                     ptf_name = quote["ptf_name"]
-                    volmax = 0
-                    quotemax = 0
             if len(dquotes) > 0 : 
                 draw()
             self.display("")
