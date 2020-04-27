@@ -93,7 +93,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "applications-office"
+                        "icon_name": "image-x-generic"
                     },
                     "args": {
                         "path": "png/day/{ptf_id}.png"
@@ -105,7 +105,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "applications-science"
+                        "icon_name": "folder-pictures"
                     },
                     "args": {
                         "path": "png/quotes/{ptf_id}.png"
@@ -401,7 +401,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_graph.PicsouGraphDay",
-                        "icon_name": "applications-office"
+                        "icon_name": "utilities-system-monitor"
                     },
                     "args": {
                         "ptf_id": "{orders_ptf_id}",
@@ -414,7 +414,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "applications-office"
+                        "icon_name": "image-x-generic"
                     },
                     "args": {
                         "path": "png/day/{orders_ptf_id}.png"
@@ -426,7 +426,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "applications-science"
+                        "icon_name": "folder-pictures"
                     },
                     "args": {
                         "path": "png/quotes/{orders_ptf_id}.png"
@@ -804,7 +804,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "insert-image"
+                        "icon_name": "image-x-generic"
                     },
                     "args": {
                         "path": "png/day/{cdays_ptf_id}.png"
@@ -816,7 +816,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_graph.PicsouGraphDay",
-                        "icon_name": "applications-office"
+                        "icon_name": "utilities-system-monitor"
                     },
                     "args": {
                         "ptf_id": "{cdays_ptf_id}",
@@ -974,7 +974,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "insert-image"
+                        "icon_name": "image-x-generic"
                     },
                     "args": {
                         "path": "png/day/{trades_ptf_id}.png"
@@ -986,7 +986,7 @@
                     "type": "plugin",
                     "params": {
                         "plugin": "picsou_graph.PicsouGraphDay",
-                        "icon_name": "applications-office"
+                        "icon_name": "utilities-system-monitor"
                     },
                     "args": {
                         "ptf_id": "{trades_ptf_id}",
