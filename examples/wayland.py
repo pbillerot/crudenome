@@ -3,7 +3,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
-icon = ("firefox")
+icon = ("folder")
 
 class IconViewWindow(Gtk.Window):
 
@@ -22,8 +22,9 @@ class IconViewWindow(Gtk.Window):
     pixbuf48 = Gtk.IconTheme.get_default().load_icon(icon, 48, 0)
     pixbuf64 = Gtk.IconTheme.get_default().load_icon(icon, 64, 0)
     pixbuf96 = Gtk.IconTheme.get_default().load_icon(icon, 96, 0)
-    self.set_icon_list([pixbuf24, pixbuf32, pixbuf48, pixbuf64, pixbuf96])
-    liststore.append([pixbuf64, "firefox"])
+    # self.set_icon_list([pixbuf24, pixbuf32, pixbuf48, pixbuf64, pixbuf96])
+    self.set_default_icon_list([pixbuf48])
+    liststore.append([pixbuf64, "folder"])
 
     self.add(iconview)
 

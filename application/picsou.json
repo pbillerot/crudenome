@@ -476,7 +476,6 @@
                         "orders_quote": {},
                         "orders_gain": {},
                         "orders_gainp": {},
-                        "_graphdyn": {},
                         "_graphday": {},
                         "_image": {},
                         "_fsell": {}
@@ -844,7 +843,7 @@
                         "cdays_ema": {},
                         "cdays_sma": {},
                         "cdays_trade": {},
-                        "_graph": {},
+                        "_image": {},
                         "cdays_gain": {},
                         "cdays_gainp": {},
                         "_yahoo": {},
@@ -1034,7 +1033,7 @@
                         "_yahoo": {},
                         "trades_cash": {},
                         "trades_day": {},
-                        "_graph": {},
+                        "_image": {},
                         "_form_order_buy": {},
                         "_batch": {}
                     },

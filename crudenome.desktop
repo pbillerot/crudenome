@@ -1,10 +1,10 @@
 [Desktop Entry]
-Version=1.0
+Version=1.01
 Encoding=UTF-8
 Name=Crudenome
-Comment=Framework de développemens d'application Gnome
-Exec=/mnt/nas/git/crudenome/crudenome.py
-Icon=/mnt/nas/git/crudenome/crudenome.jpg
+Comment=Framework de développement d'applications Gnome
+Exec=/home/billerot/Git/crudenome/venv/bin/python /home/billerot/Git/crudenome/crudenome.py
+Icon=/home/billerot/Git/crudenome/crudenome.jpg
 Terminal=false
 Type=Application
 StartupNotify=true

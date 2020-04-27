@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Encoding=UTF-8
+Name=Picsou
+Comment=Le compagnon des gagnes-petits!
+Icon=/home/billerot/Git/crudenome/data/picsou.ipg
+Exec=/home/billerot/Git/crudenome/venv/bin/python /home/billerot/Git/crudenome/crudenome.py -a picsou
+Terminal=false
+Categories=

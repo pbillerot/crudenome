@@ -20,8 +20,8 @@ class DragDropWindow(Gtk.Window):
         pixbuf48 = Gtk.IconTheme.get_default().load_icon(icon, 48, 0)
         pixbuf64 = Gtk.IconTheme.get_default().load_icon(icon, 64, 0)
         pixbuf96 = Gtk.IconTheme.get_default().load_icon(icon, 96, 0)
-        # Gtk.Windowset_default_icon_list([pixbufs])
-        self.set_icon_list([pixbuf24, pixbuf32, pixbuf48, pixbuf64, pixbuf96])
+        self.set_default_icon_list([pixbuf48])
+        # self.set_icon_list([pixbuf24, pixbuf32, pixbuf48, pixbuf64, pixbuf96])
         # Gtk.icon_theme_get_default().load_icon("folder-open", 48, 0)
         
         
