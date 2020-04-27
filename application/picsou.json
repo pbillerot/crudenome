@@ -829,7 +829,7 @@
                     "title": "Cours du jour",
                     "searchable_sql": true,
                     "deletable": true,
-                    "icon_name": "battery-good-charging",
+                    "icon_name": "application-rss+xml",
                     "limit": 400,
                     "elements": {
                         "cdays_id": {},
