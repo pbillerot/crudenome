@@ -1,7 +1,7 @@
 {
     "title": "CRUD for GNOME",
     "name": "crudenome",
-    "version": "18.1.23",
+    "version": "20.4.27",
     "copyright": "(c) pbillerot",
     "comments": "Le framework pour développer des applications Gnome",
     "web_site": "https://github.com/pbillerot/crudenome",

@@ -219,7 +219,7 @@ class Application(Gtk.Application):
         about.set_copyright(self.crud.config["copyright"])
         about.set_comments(self.crud.config["comments"])
         about.set_website(self.crud.config["web_site"])
-        about.set_logo(GdkPixbuf.Pixbuf.new_from_file(self.crud.config["logo"]))
+        about.set_logo(GdkPixbuf.Pixbuf.new_from_file(self.crud.config["icon_file"]))
         with open('LICENSE', 'r') as file:
             about.set_license(file.read())
         about.connect("response", lambda d, r: d.destroy())
@@ -239,12 +239,12 @@ class Application(Gtk.Application):
         self.quit()
 
 # get the style from the css file and apply it
-style_provider = Gtk.CssProvider()
-style_provider.load_from_path(os.path.dirname(os.path.realpath(__file__)) + '/style.css')
-Gtk.StyleContext.add_provider_for_screen(
-    Gdk.Screen.get_default(),
-    style_provider,
-    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+# style_provider = Gtk.CssProvider()
+# style_provider.load_from_path(os.path.dirname(os.path.realpath(__file__)) + '/style.css')
+# Gtk.StyleContext.add_provider_for_screen(
+#     Gdk.Screen.get_default(),
+#     style_provider,
+#     Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 myapp = Application()
 exit_status = myapp.run(sys.argv)

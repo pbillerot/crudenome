@@ -12,7 +12,19 @@ DRAG_ACTION = Gdk.DragAction.COPY
 class DragDropWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Drag and Drop Demo")
-
+        
+        # self.set_icon_name("folder")
+        icon = "folder"
+        pixbuf24 = Gtk.IconTheme.get_default().load_icon(icon, 24, 0)
+        pixbuf32 = Gtk.IconTheme.get_default().load_icon(icon, 32, 0)
+        pixbuf48 = Gtk.IconTheme.get_default().load_icon(icon, 48, 0)
+        pixbuf64 = Gtk.IconTheme.get_default().load_icon(icon, 64, 0)
+        pixbuf96 = Gtk.IconTheme.get_default().load_icon(icon, 96, 0)
+        # Gtk.Windowset_default_icon_list([pixbufs])
+        self.set_icon_list([pixbuf24, pixbuf32, pixbuf48, pixbuf64, pixbuf96])
+        # Gtk.icon_theme_get_default().load_icon("folder-open", 48, 0)
+        
+        
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.add(vbox)
 

@@ -1,5 +1,7 @@
 #/usr/bin/python3
 
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
 class MainWindow(Gtk.Window):
@@ -14,7 +16,7 @@ class MainWindow(Gtk.Window):
         found_icons = set()
         for res in range(0, 512, 2):
             icon = icon_theme.lookup_icon(icon_name, res, 0)
-            #print(icon)
+            print(icon)
             if icon != None:
                 found_icons.add(icon.get_filename())
 
