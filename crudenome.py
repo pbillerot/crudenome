@@ -65,9 +65,9 @@ class AppWindow(Gtk.ApplicationWindow):
         # type dialogs.
         # print "delete event occurred"
 
-        if self.crud.get_basehost():
-            ticket_user = os.path.getmtime(self.crud.get_basename())
-            ticket_host = os.path.getmtime(self.crud.get_basehost())
+        # if self.crud.get_basehost():
+        #     ticket_user = os.path.getmtime(self.crud.get_basename())
+        #     ticket_host = os.path.getmtime(self.crud.get_basehost())
             # if ticket_user > ticket_host:
             #     # la base du host a changée depuis la dernière prise
             #     dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
