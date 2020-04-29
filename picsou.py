@@ -79,7 +79,6 @@ class PicsouBatch():
                     self.run_day()
                 else:
                     self.display("Picsou en dehors de la plage autorisée".format())
-                isStart = False
             isStart = False
             if ( (time2-time1) > 5 * 60 ):
                 now = datetime.datetime.now()
@@ -90,6 +89,7 @@ class PicsouBatch():
                         time1 = time2
                 else:
                     self.display("Picsou en dehors de la plage autorisée".format())
+                    time1 = time2
             time.sleep(1)
 
     def run_day(self):
