@@ -432,6 +432,19 @@
                         "path": "png/quotes/{orders_ptf_id}.png"
                     }
                 },
+                "_batch": {
+                    "label_long": "Actualiation des données",
+                    "label_short": "Actualiser...",
+                    "type": "batch_sql",
+                    "params": {
+                        "sqls": [
+                            "update orders set orders_quote = (select close from quotes where id = orders_ptf_id and date = (select max(date) from quotes where id = orders_ptf_id))",
+                            "update orders set orders_gain = orders_quote * orders_quantity - orders_buy * orders_quantity - orders_buy * orders_quantity * {__cost} - orders_quote * orders_quantity * {__cost}",
+                            "update orders set orders_gainp = (orders_gain / (orders_buy * orders_quantity)) * 100"
+                        ],
+                        "icon_name": "view-refresh"
+                    }
+                },
                 "_fsell": {
                     "label_long": "Vendre",
                     "label_short": "Vendre",
@@ -474,11 +487,12 @@
                         "orders_debit": {},
                         "orders_cost_price": {},
                         "orders_quote": {},
+                        "_fsell": {},
                         "orders_gain": {},
                         "orders_gainp": {},
                         "_graphday": {},
                         "_image": {},
-                        "_fsell": {}
+                        "_batch": {}
                     },
                     "sql_where": "orders.orders_order = 'buy'",
                     "order_by": "orders.orders_time desc",

@@ -528,8 +528,15 @@ class CrudView(GObject.GObject):
 
     def on_batch_sql_button_clicked(self, widget, crudel):
         """ Action un bouton batch sql """
-        sql = crudel.get_param_replace("sql")
-        self.crud.exec_sql(self.crud.get_basename(), sql, {})
+        if crudel.get_param("sqls", None) :
+            # Exécution de plusieurs ordres
+            values = self.crud.get_table_values(elements=self.crud.get_view_elements())
+            for sql_brut in crudel.get_param("sqls"):
+                sql = self.crud.replace_from_dict(sql_brut, values)
+                self.crud.exec_sql(self.crud.get_basename(), sql, {})
+        else :
+            sql = crudel.get_param_replace("sql")
+            self.crud.exec_sql(self.crud.get_basename(), sql, {})
         self.emit("refresh_data_view", "", "")
 
     def on_search_changed(self, widget):
