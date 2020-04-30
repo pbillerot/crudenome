@@ -5,27 +5,29 @@
 
 ## Installation du Virtualenv
 ```shell
-sudo apt install virtualenv
+sudo dnf install virtualenv
 virtualenv --python=/usr/bin/python3 venv
 source venv/bin/activate
 
-sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+sudo dnf install cairo-devel pkg-config python3-devel gobject-introspection-devel cairo-gobject-devel
+
 pip3 install pycairo pygobject matplotlib requests
+
 ```
 ### Pour VSCodium
 - https://flathub.org/apps/details/com.visualstudio.code.oss
 - ```vscode flatpak install flathub com.visualstudio.code```
-- ou la version deb ```sudo apt install codium```
+- ou la version deb ```sudo dnf install codium```
 - Installer l'extension ```ms-python.python```
 - Installer pylint pour python ```pip3 install pylint```
 
 ## SQL
 - Utilisation de DB Browser for SQLite http://sqlitebrowser.org/
-- sudo apt-get install sqlitebrowser
+- sudo dnf install sqlitebrowser
 - Création des tables SQLite
 
 ## Icones
-- sudo apt install gtk-3-examples
+- sudo dnf install gtk-3-examples
 - puis lancer gtk3-icon-browser
 
 ## Démarche
