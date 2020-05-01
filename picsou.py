@@ -34,6 +34,9 @@ class PicsouBatch():
 
         self.crud.set_application(application)
 
+        if self.args.install:
+            self.install()
+
         if self.args.backup:
             self.backup()
 
@@ -64,6 +67,10 @@ class PicsouBatch():
         sys.stdout.write(msg)
         sys.stdout.flush()
         # self.crud.logger.info(msg)
+
+    def install(self):
+        """installation du .desktop """
+        os.system("cp picsou.desktop ~./local/share/applications/picsou.deskop")
 
     def day_repeat(self):
         """ Lancement toutes les 5 minutes de day """
@@ -405,6 +412,7 @@ if __name__ == '__main__':
     parser.add_argument('-sms', action='store_true', default=False, help="Envoi de SMS de recommandation")
     parser.add_argument('-graph', action='store_true', default=False, help="Création graphique derniers cours")
     parser.add_argument('-note', action='store_true', default=False, help="Mise à jour du bloc note")
+    parser.add_argument('-install', action='store_true', default=False, help="Installation dans Gnome")
     # print parser.parse_args()
     if parser._get_args() == 0:
         parser.print_help()
