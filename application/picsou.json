@@ -31,215 +31,6 @@
         "Picsou Repeat": "./picsou.py -dayrepeat -quote -trade"
     },
     "tables": {
-        "ptf": {
-            "key": "ptf_id",
-            "key_display": "ptf_name",
-            "elements": {
-                "ptf_id": {
-                    "label_long": "Valeur",
-                    "label_short": "Valeur",
-                    "type": "text",
-                    "sortable": true,
-                    "searchable": true
-                },
-                "ptf_name": {
-                    "label_long": "Nom",
-                    "label_short": "Nom",
-                    "type": "text",
-                    "searchable": true,
-                    "sortable": true,
-                    "col_width": 140
-                },
-                "ptf_note": {
-                    "label_long": "Note",
-                    "label_short": "Note",
-                    "type": "text",
-                    "col_editable": true,
-                    "searchable": true
-                },
-                "ptf_enabled": {
-                    "label_long": "Valeur Active",
-                    "label_short": "Active",
-                    "type": "check",
-                    "col_editable": true
-                },
-                "ptf_top": {
-                    "label_long": "TOP",
-                    "label_short": "TOP",
-                    "type": "check",
-                    "sortable": true,
-                    "col_editable": true
-                },
-                "ptf_gain": {
-                    "label_long": "Gain",
-                    "label_short": "Gain",
-                    "type": "float",
-                    "display": "%3.2f €",
-                    "sortable": true,
-                    "sql_color": "case when ptf_gain < 0 then '#FF0000' else '#006600' end"
-                },
-                "_yahoo": {
-                    "label_long": "Lien vers Yahoo",
-                    "label_short": "Yahoo",
-                    "type": "url",
-                    "params": {
-                        "url": "https://fr.finance.yahoo.com/chart/{ptf_id}",
-                        "icon_name": "applications-internet"
-                    }
-                },
-                "_graph": {
-                    "label_long": "Graph",
-                    "label_short": "Graph",
-                    "type": "plugin",
-                    "params": {
-                        "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "image-x-generic"
-                    },
-                    "args": {
-                        "path": "png/day/{ptf_id}.png"
-                    }
-                },
-                "_histo": {
-                    "label_long": "Histo",
-                    "label_short": "Histo",
-                    "type": "plugin",
-                    "params": {
-                        "plugin": "picsou_image.PicsouImage",
-                        "icon_name": "folder-pictures"
-                    },
-                    "args": {
-                        "path": "png/quotes/{ptf_id}.png"
-                    }
-                },
-                "_histo_all": {
-                    "label_long": "Historique",
-                    "label_short": "Historique",
-                    "type": "batch",
-                    "params": {
-                        "plugin": "picsou_diapo.PicsouDiapo",
-                        "icon_name": "applications-office"
-                    },
-                    "args": {
-                        "directory": "png/quotes",
-                        "width": 1200,
-                        "height": 800
-                    }
-                },
-                "_batch": {
-                    "label_long": "Actualiation des données",
-                    "label_short": "Actualiser...",
-                    "type": "batch_sql",
-                    "params": {
-                        "sql": "update ptf set ptf_gain = (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id  and orders_order = 'sell') where exists (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id)",
-                        "icon_name": "view-refresh"
-                    }
-                },
-                "_vorders_buy": {
-                    "label_long": "Achat en cours",
-                    "label_short": "Achat en cours",
-                    "type": "view",
-                    "height": 200,
-                    "params": {
-                        "table": "orders",
-                        "view": "vptf_buy"
-                    },
-                    "args": {
-                        "orders_ptf_id": "{ptf_id}"
-                    }
-                },
-                "_vorders_sell": {
-                    "label_long": "Ventes réalisées",
-                    "label_short": "Ventes réalisées",
-                    "type": "view",
-                    "height": 200,
-                    "params": {
-                        "table": "orders",
-                        "view": "vptf_sell"
-                    },
-                    "args": {
-                        "orders_ptf_id": "{ptf_id}"
-                    }
-                }
-            },
-            "views": {
-                "vactif": {
-                    "title": "Valeurs Actives",
-                    "form_add": "fadd",
-                    "form_edit": "fedit",
-                    "icon_name": "folder",
-                    "searchable": true,
-                    "elements": {
-                        "ptf_id": {},
-                        "ptf_name": {},
-                        "ptf_enabled": {},
-                        "ptf_gain": {},
-                        "ptf_top": {},
-                        "ptf_note": {},
-                        "_graph": {},
-                        "_histo": {},
-                        "_yahoo": {},
-                        "_histo_all": {},
-                        "_batch": {}
-                    },
-                    "sql_where": "ptf_enabled = '1'",
-                    "order_by": "ptf_top desc, ptf_id",
-                    "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(ptf_gain)) AS sql_footer FROM ptf where ptf_gain is not null and ptf_enabled = 1"
-                },
-                "vall": {
-                    "title": "Toutes les valeurs",
-                    "form_add": "fadd",
-                    "form_edit": "fedit",
-                    "icon_name": "folder",
-                    "deletable": true,
-                    "searchable": true,
-                    "elements": {
-                        "ptf_id": {},
-                        "ptf_name": {},
-                        "ptf_enabled": {},
-                        "ptf_gain": {},
-                        "ptf_note": {},
-                        "_graph": {},
-                        "_histo": {},
-                        "_yahoo": {}
-                    },
-                    "order_by": "ptf_id"
-                },
-                "vsimul": {
-                    "info1": "Vue particulière lus par les plugins batch",
-                    "info2": "todo: enlever cette contrainte picsou.py ligne 142",
-                    "title": "Simulateur",
-                    "hide": true,
-                    "elements": {
-                        "ptf_id": {},
-                        "_batch": {}
-                    }
-                }
-            },
-            "forms": {
-                "fadd": {
-                    "title": "Ajout d'un titre",
-                    "elements": {
-                        "ptf_id": {},
-                        "ptf_name": {},
-                        "ptf_enabled": {},
-                        "ptf_note": {}
-                    }
-                },
-                "fedit": {
-                    "title": "Mise à jour d'un titre",
-                    "elements": {
-                        "ptf_id": {},
-                        "ptf_name": {},
-                        "ptf_enabled": {},
-                        "_yahoo": {},
-                        "ptf_gain": {"read_only": true},
-                        "ptf_note": {},
-                        "_vorders_buy": {},
-                        "_vorders_sell": {}
-                    }
-                }
-            }
-        },
         "orders": {
             "key": "orders_id",
             "key_display": "orders_id",
@@ -661,7 +452,216 @@
                     }
                 }
             }
-         },
+        },
+        "ptf": {
+            "key": "ptf_id",
+            "key_display": "ptf_name",
+            "elements": {
+                "ptf_id": {
+                    "label_long": "Valeur",
+                    "label_short": "Valeur",
+                    "type": "text",
+                    "sortable": true,
+                    "searchable": true
+                },
+                "ptf_name": {
+                    "label_long": "Nom",
+                    "label_short": "Nom",
+                    "type": "text",
+                    "searchable": true,
+                    "sortable": true,
+                    "col_width": 140
+                },
+                "ptf_note": {
+                    "label_long": "Note",
+                    "label_short": "Note",
+                    "type": "text",
+                    "col_editable": true,
+                    "searchable": true
+                },
+                "ptf_enabled": {
+                    "label_long": "Valeur Active",
+                    "label_short": "Active",
+                    "type": "check",
+                    "col_editable": true
+                },
+                "ptf_top": {
+                    "label_long": "TOP",
+                    "label_short": "TOP",
+                    "type": "check",
+                    "sortable": true,
+                    "col_editable": true
+                },
+                "ptf_gain": {
+                    "label_long": "Gain",
+                    "label_short": "Gain",
+                    "type": "float",
+                    "display": "%3.2f €",
+                    "sortable": true,
+                    "sql_color": "case when ptf_gain < 0 then '#FF0000' else '#006600' end"
+                },
+                "_yahoo": {
+                    "label_long": "Lien vers Yahoo",
+                    "label_short": "Yahoo",
+                    "type": "url",
+                    "params": {
+                        "url": "https://fr.finance.yahoo.com/chart/{ptf_id}",
+                        "icon_name": "applications-internet"
+                    }
+                },
+                "_graph": {
+                    "label_long": "Graph",
+                    "label_short": "Graph",
+                    "type": "plugin",
+                    "params": {
+                        "plugin": "picsou_image.PicsouImage",
+                        "icon_name": "image-x-generic"
+                    },
+                    "args": {
+                        "path": "png/day/{ptf_id}.png"
+                    }
+                },
+                "_histo": {
+                    "label_long": "Histo",
+                    "label_short": "Histo",
+                    "type": "plugin",
+                    "params": {
+                        "plugin": "picsou_image.PicsouImage",
+                        "icon_name": "folder-pictures"
+                    },
+                    "args": {
+                        "path": "png/quotes/{ptf_id}.png"
+                    }
+                },
+                "_histo_all": {
+                    "label_long": "Historique",
+                    "label_short": "Historique",
+                    "type": "batch",
+                    "params": {
+                        "plugin": "picsou_diapo.PicsouDiapo",
+                        "icon_name": "applications-office"
+                    },
+                    "args": {
+                        "directory": "png/quotes",
+                        "width": 1200,
+                        "height": 800
+                    }
+                },
+                "_batch": {
+                    "label_long": "Actualiation des données",
+                    "label_short": "Actualiser...",
+                    "type": "batch_sql",
+                    "params": {
+                        "sql": "update ptf set ptf_gain = (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id  and orders_order = 'sell') where exists (select sum(orders_sell_gain) from orders where orders_ptf_id = ptf_id)",
+                        "icon_name": "view-refresh"
+                    }
+                },
+                "_vorders_buy": {
+                    "label_long": "Achat en cours",
+                    "label_short": "Achat en cours",
+                    "type": "view",
+                    "height": 200,
+                    "params": {
+                        "table": "orders",
+                        "view": "vptf_buy"
+                    },
+                    "args": {
+                        "orders_ptf_id": "{ptf_id}"
+                    }
+                },
+                "_vorders_sell": {
+                    "label_long": "Ventes réalisées",
+                    "label_short": "Ventes réalisées",
+                    "type": "view",
+                    "height": 200,
+                    "params": {
+                        "table": "orders",
+                        "view": "vptf_sell"
+                    },
+                    "args": {
+                        "orders_ptf_id": "{ptf_id}"
+                    }
+                }
+            },
+            "views": {
+                "vactif": {
+                    "title": "Valeurs Actives",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "icon_name": "folder",
+                    "searchable": true,
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_enabled": {},
+                        "ptf_gain": {},
+                        "ptf_top": {},
+                        "ptf_note": {},
+                        "_graph": {},
+                        "_histo": {},
+                        "_yahoo": {},
+                        "_histo_all": {},
+                        "_batch": {}
+                    },
+                    "sql_where": "ptf_enabled = '1'",
+                    "order_by": "ptf_top desc, ptf_id",
+                    "sql_footer": "SELECT printf('PICSOU total : <b>%.2f</b> €', sum(ptf_gain)) AS sql_footer FROM ptf where ptf_gain is not null and ptf_enabled = 1"
+                },
+                "vall": {
+                    "title": "Toutes les valeurs",
+                    "form_add": "fadd",
+                    "form_edit": "fedit",
+                    "icon_name": "folder",
+                    "deletable": true,
+                    "searchable": true,
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_enabled": {},
+                        "ptf_gain": {},
+                        "ptf_note": {},
+                        "_graph": {},
+                        "_histo": {},
+                        "_yahoo": {}
+                    },
+                    "order_by": "ptf_id"
+                },
+                "vsimul": {
+                    "info1": "Vue particulière lus par les plugins batch",
+                    "info2": "todo: enlever cette contrainte picsou.py ligne 142",
+                    "title": "Simulateur",
+                    "hide": true,
+                    "elements": {
+                        "ptf_id": {},
+                        "_batch": {}
+                    }
+                }
+            },
+            "forms": {
+                "fadd": {
+                    "title": "Ajout d'un titre",
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_enabled": {},
+                        "ptf_note": {}
+                    }
+                },
+                "fedit": {
+                    "title": "Mise à jour d'un titre",
+                    "elements": {
+                        "ptf_id": {},
+                        "ptf_name": {},
+                        "ptf_enabled": {},
+                        "_yahoo": {},
+                        "ptf_gain": {"read_only": true},
+                        "ptf_note": {},
+                        "_vorders_buy": {},
+                        "_vorders_sell": {}
+                    }
+                }
+            }
+        },
         "cdays": {
             "key": "cdays_id",
             "key_display": "cdays_id",
